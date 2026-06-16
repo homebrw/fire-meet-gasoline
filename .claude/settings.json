@@ -1,0 +1,61 @@
+{
+  "allowlist": [
+    {
+      "description": "Read TypeScript/TSX files for exploration",
+      "pattern": ".*\\.(ts|tsx)$",
+      "tool": "Read"
+    },
+    {
+      "description": "Read JSON configuration files",
+      "pattern": ".*\\.(json|jsonc)$",
+      "tool": "Read"
+    },
+    {
+      "description": "Read Markdown documentation",
+      "pattern": ".*\\.md$",
+      "tool": "Read"
+    },
+    {
+      "description": "Search codebase with Grep",
+      "tool": "Grep"
+    },
+    {
+      "description": "Find files with Glob patterns",
+      "tool": "Glob"
+    },
+    {
+      "description": "Git status and log",
+      "pattern": "^(git status|git log|git diff|git branch|git show).*$",
+      "tool": "Bash"
+    },
+    {
+      "description": "NPM commands for package management",
+      "pattern": "^npm (install|ci|run|list).*$",
+      "tool": "Bash"
+    },
+    {
+      "description": "Next.js dev and build commands",
+      "pattern": "^(npm run dev|npm run build|npm run lint|npm start).*$",
+      "tool": "Bash"
+    },
+    {
+      "description": "Directory listing for navigation",
+      "pattern": "^ls.*$",
+      "tool": "Bash"
+    },
+    {
+      "description": "Find command for file discovery",
+      "pattern": "^find .*$",
+      "tool": "Bash"
+    }
+  ],
+  "hooks": {
+    "before-push": {
+      "description": "Run TypeScript check and lint before push",
+      "commands": [
+        "npm run build",
+        "npm run lint"
+      ]
+    }
+  }
+}

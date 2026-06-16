@@ -15,7 +15,7 @@ export default async function WeekPage() {
 
   const [personsRes, rulesRes, exceptionsRes, presencesRes, eventsRes, transitionsRes] =
     await Promise.all([
-      supabase.from("persons").select("*"),
+      supabase.from("persons").select("*").order("created_at"),
       supabase.from("recurrence_rules").select("*").eq("is_active", true),
       supabase.from("recurrence_exceptions").select("*"),
       supabase.from("child_presences").select("*"),
@@ -36,8 +36,7 @@ export default async function WeekPage() {
   const dayStates: Record<string, DayState> = {}
   dayStatesMap.forEach((v, k) => { dayStates[k] = v })
 
-  const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  const [damien, ma] = persons
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">

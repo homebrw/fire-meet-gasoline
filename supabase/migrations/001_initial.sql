@@ -198,8 +198,8 @@ CREATE POLICY "events_delete" ON events FOR DELETE USING (
 
 INSERT INTO persons (name, color) VALUES
   ('Damien', '#3b82f6'),
-  ('MA', '#ec4899');
+  ('Marie-Alix', '#ec4899');
 
 -- After creating auth users, link them:
 -- UPDATE persons SET auth_user_id = '<damien-auth-uuid>' WHERE name = 'Damien';
--- UPDATE persons SET auth_user_id = '<ma-auth-uuid>' WHERE name = 'MA';
+-- UPDATE persons SET auth_user_id = '<marie-alix-auth-uuid>' WHERE name = 'Marie-Alix';

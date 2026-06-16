@@ -11,7 +11,7 @@ import {
 } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
-import { STATE_CONFIG } from "@/lib/recurrence/display"
+
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -30,24 +30,28 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
 
-  const rows: { label: string; color?: string; check: (s: DayState) => boolean }[] = [
+  const rows: { label: string; short: string; color?: string; check: (s: DayState) => boolean }[] = [
     {
       label: damien?.name ?? "Damien",
+      short: damien?.name?.[0] ?? "D",
       color: damien?.color ?? "#3b82f6",
       check: (s) => s.damienHasChildren,
     },
     {
-      label: ma?.name ?? "MA",
+      label: ma?.name ?? "Personne 2",
+      short: ma?.name?.[0] ?? "M",
       color: ma?.color ?? "#ec4899",
       check: (s) => s.maHasChild,
     },
     {
       label: "Disponible",
+      short: "✓",
       color: "#22c55e",
       check: (s) => s.bothAvailable,
     },
     {
       label: "Changement",
+      short: "↔",
       color: "#f97316",
       check: (s) => s.hasTransition,
     },
@@ -70,10 +74,10 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
 
       {/* Table */}
       <div className="overflow-x-auto -mx-4 md:mx-0">
-        <table className="w-full min-w-[600px] text-sm">
+        <table className="w-full text-sm">
           <thead>
             <tr>
-              <th className="w-28 text-left px-3 py-2 text-[var(--color-muted-foreground)] font-medium text-xs uppercase tracking-wide" />
+              <th className="w-8 md:w-28 text-left px-1 md:px-3 py-2 text-[var(--color-muted-foreground)] font-medium text-xs uppercase tracking-wide" />
               {days.map((d, i) => (
                 <th key={i} className="text-center px-1 py-2">
                   <div className={cn(
@@ -99,13 +103,14 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
           <tbody className="divide-y divide-[var(--color-border)]">
             {rows.map((row) => (
               <tr key={row.label}>
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
+                <td className="px-1 md:px-3 py-2 w-8 md:w-28">
+                  <div className="flex items-center gap-1">
                     <span
-                      className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                      className="h-2 w-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: row.color }}
                     />
-                    <span className="font-medium text-xs">{row.label}</span>
+                    <span className="font-bold text-[10px] md:hidden">{row.short}</span>
+                    <span className="font-medium text-xs hidden md:inline truncate">{row.label}</span>
                   </div>
                 </td>
                 {dayKeys.map((key) => {
@@ -133,8 +138,12 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
             ))}
             {/* Events row */}
             <tr>
-              <td className="px-3 py-2">
-                <span className="text-xs font-medium text-[var(--color-muted-foreground)]">Événements</span>
+              <td className="px-1 md:px-3 py-2 w-8 md:w-28">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full flex-shrink-0 bg-amber-500" />
+                  <span className="font-bold text-[10px] md:hidden text-[var(--color-muted-foreground)]">Ev</span>
+                  <span className="text-xs font-medium hidden md:inline text-[var(--color-muted-foreground)]">Événements</span>
+                </div>
               </td>
               {dayKeys.map((key) => {
                 const state = dayStates[key]

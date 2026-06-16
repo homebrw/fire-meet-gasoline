@@ -26,6 +26,7 @@ export type RecurrenceRule = {
   handoff_day: number | null      // 0=Sun, 1=Mon, ...
   handoff_time: string | null     // 'HH:MM'
   handoff_location: string | null
+  ends_at: string | null
   is_active: boolean
   created_at: string
   updated_at: string

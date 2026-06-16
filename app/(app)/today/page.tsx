@@ -23,7 +23,7 @@ export default async function TodayPage() {
 
   const [personsRes, rulesRes, exceptionsRes, presencesRes, eventsRes, transitionsRes] =
     await Promise.all([
-      supabase.from("persons").select("*"),
+      supabase.from("persons").select("*").order("created_at"),
       supabase.from("recurrence_rules").select("*").eq("is_active", true),
       supabase.from("recurrence_exceptions").select("*"),
       supabase.from("child_presences").select("*"),
@@ -44,8 +44,7 @@ export default async function TodayPage() {
   const todayKey = today.toISOString().slice(0, 10)
   const todayState = dayStates.get(todayKey) ?? null
 
-  const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  const [damien, ma] = persons
 
   const nextSlot = findNextAvailableSlot(dayStates, addDays(today, 1))
   const upcomingTransitions = getUpcomingTransitions(transitions, today, 14)

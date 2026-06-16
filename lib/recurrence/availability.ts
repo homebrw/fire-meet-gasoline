@@ -18,8 +18,8 @@ export function computeDayStates(
   from: Date,
   to: Date
 ): Map<string, DayState> {
-  const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  // persons are ordered by created_at — index 0 = first person, index 1 = second
+  const [damien, ma] = persons
 
   const states = new Map<string, DayState>()
 

@@ -16,6 +16,7 @@ const ruleSchema = z.object({
   custody_days: z.array(z.number()).nullable().optional(),
   handoff_time: z.string().nullable().optional(),
   handoff_location: z.string().nullable().optional(),
+  ends_at: z.string().nullable().optional(),
   is_active: z.boolean().default(true),
 })
 

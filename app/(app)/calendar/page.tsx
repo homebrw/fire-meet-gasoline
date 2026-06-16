@@ -15,7 +15,7 @@ export default async function CalendarPage() {
 
   const [personsRes, rulesRes, exceptionsRes, presencesRes, eventsRes, transitionsRes] =
     await Promise.all([
-      supabase.from("persons").select("*"),
+      supabase.from("persons").select("*").order("created_at"),
       supabase.from("recurrence_rules").select("*").eq("is_active", true),
       supabase.from("recurrence_exceptions").select("*"),
       supabase.from("child_presences").select("*"),
@@ -40,7 +40,7 @@ export default async function CalendarPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Calendrier</h1>
-      <MonthCalendar dayStates={dayStates} />
+      <MonthCalendar dayStates={dayStates} persons={persons} />
     </div>
   )
 }

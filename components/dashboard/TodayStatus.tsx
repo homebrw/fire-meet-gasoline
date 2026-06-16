@@ -48,7 +48,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
             )}
           </div>
           <div className="space-y-1">
-            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">MA</p>
+            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">Marie-Alix</p>
             <Badge variant={state.maHasChild ? "ma" : "outline"} className="text-xs">
               {state.maHasChild ? "Avec sa fille" : "Sans enfant"}
             </Badge>

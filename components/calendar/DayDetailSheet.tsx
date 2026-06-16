@@ -57,7 +57,7 @@ export function DayDetailSheet({ dateKey, state, open, onClose }: DayDetailSheet
                 )}
               </div>
               <div className="rounded-lg bg-pink-50 p-3">
-                <p className="text-xs font-semibold text-pink-700 mb-1">MA</p>
+                <p className="text-xs font-semibold text-pink-700 mb-1">Marie-Alix</p>
                 <p className="text-sm">
                   {state.maHasChild ? "Avec sa fille" : "Libre"}
                 </p>

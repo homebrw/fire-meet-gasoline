@@ -37,7 +37,7 @@ export default async function WeekPage() {
   dayStatesMap.forEach((v, k) => { dayStates[k] = v })
 
   const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  const ma = persons.find((p) => p.name === "Marie-Alix")
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">

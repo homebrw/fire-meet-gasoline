@@ -11,7 +11,7 @@ export const STATE_CONFIG: Record<
     dotClass: "bg-blue-500",
   },
   ma_kid: {
-    label: "MA a sa fille",
+    label: "Marie-Alix a sa fille",
     bgClass: "bg-pink-100",
     textClass: "text-pink-800",
     dotClass: "bg-pink-500",
@@ -35,7 +35,7 @@ export const STATE_CONFIG: Record<
     dotClass: "bg-gray-400",
   },
   ma_unavailable: {
-    label: "MA indisponible",
+    label: "Marie-Alix indisponible",
     bgClass: "bg-gray-100",
     textClass: "text-gray-700",
     dotClass: "bg-gray-400",

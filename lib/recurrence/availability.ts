@@ -19,7 +19,7 @@ export function computeDayStates(
   to: Date
 ): Map<string, DayState> {
   const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  const ma = persons.find((p) => p.name === "Marie-Alix")
 
   const states = new Map<string, DayState>()
 

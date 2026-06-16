@@ -45,7 +45,7 @@ export default async function TodayPage() {
   const todayState = dayStates.get(todayKey) ?? null
 
   const damien = persons.find((p) => p.name === "Damien")
-  const ma = persons.find((p) => p.name === "MA")
+  const ma = persons.find((p) => p.name === "Marie-Alix")
 
   const nextSlot = findNextAvailableSlot(dayStates, addDays(today, 1))
   const upcomingTransitions = getUpcomingTransitions(transitions, today, 14)

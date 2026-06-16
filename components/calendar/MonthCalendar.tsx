@@ -90,7 +90,7 @@ export function MonthCalendar({ initialMonth, dayStates }: MonthCalendarProps) {
       {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-muted-foreground)]">
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-blue-100 border border-blue-300" /> Damien</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-pink-100 border border-pink-300" /> MA</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-pink-100 border border-pink-300" /> Marie-Alix</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-violet-100 border border-violet-300" /> Chacun a ses enfants</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-green-100 border border-green-300" /> Disponible</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-100 border border-orange-300" /> Changement</span>

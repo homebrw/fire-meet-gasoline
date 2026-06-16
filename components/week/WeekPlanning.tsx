@@ -37,7 +37,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
       check: (s) => s.damienHasChildren,
     },
     {
-      label: ma?.name ?? "MA",
+      label: ma?.name ?? "Marie-Alix",
       color: ma?.color ?? "#ec4899",
       check: (s) => s.maHasChild,
     },

@@ -1,61 +1,102 @@
 {
-  "allowlist": [
-    {
-      "description": "Read TypeScript/TSX files for exploration",
-      "pattern": ".*\\.(ts|tsx)$",
-      "tool": "Read"
-    },
-    {
-      "description": "Read JSON configuration files",
-      "pattern": ".*\\.(json|jsonc)$",
-      "tool": "Read"
-    },
-    {
-      "description": "Read Markdown documentation",
-      "pattern": ".*\\.md$",
-      "tool": "Read"
-    },
-    {
-      "description": "Search codebase with Grep",
-      "tool": "Grep"
-    },
-    {
-      "description": "Find files with Glob patterns",
-      "tool": "Glob"
-    },
-    {
-      "description": "Git status and log",
-      "pattern": "^(git status|git log|git diff|git branch|git show).*$",
-      "tool": "Bash"
-    },
-    {
-      "description": "NPM commands for package management",
-      "pattern": "^npm (install|ci|run|list).*$",
-      "tool": "Bash"
-    },
-    {
-      "description": "Next.js dev and build commands",
-      "pattern": "^(npm run dev|npm run build|npm run lint|npm start).*$",
-      "tool": "Bash"
-    },
-    {
-      "description": "Directory listing for navigation",
-      "pattern": "^ls.*$",
-      "tool": "Bash"
-    },
-    {
-      "description": "Find command for file discovery",
-      "pattern": "^find .*$",
-      "tool": "Bash"
-    }
-  ],
+  "version": "1.0",
+  "permissions": {
+    "allowlist": [
+      {
+        "command": "npm run dev",
+        "description": "Start Next.js development server"
+      },
+      {
+        "command": "npm run build",
+        "description": "Build Next.js project for production"
+      },
+      {
+        "command": "npm run lint",
+        "description": "Run ESLint on the project"
+      },
+      {
+        "command": "npm install",
+        "description": "Install or update npm dependencies"
+      },
+      {
+        "command": "git status",
+        "description": "Check git repository status"
+      },
+      {
+        "command": "git diff",
+        "description": "View git changes"
+      },
+      {
+        "command": "git add",
+        "description": "Stage files for commit"
+      },
+      {
+        "command": "git commit",
+        "description": "Create git commit"
+      },
+      {
+        "command": "git push",
+        "description": "Push commits to remote"
+      },
+      {
+        "command": "git fetch",
+        "description": "Fetch from remote repository"
+      },
+      {
+        "command": "git pull",
+        "description": "Pull from remote repository"
+      },
+      {
+        "command": "git log",
+        "description": "View git commit history"
+      },
+      {
+        "command": "git checkout",
+        "description": "Switch git branches"
+      },
+      {
+        "command": "git branch",
+        "description": "List or create git branches"
+      }
+    ]
+  },
   "hooks": {
-    "before-push": {
-      "description": "Run TypeScript check and lint before push",
-      "commands": [
-        "npm run build",
-        "npm run lint"
-      ]
+    "sessionStart": {
+      "enabled": true,
+      "command": "npm run lint",
+      "description": "Auto-lint on session start to catch issues early"
+    },
+    "beforeCommit": {
+      "enabled": true,
+      "command": "npm run lint",
+      "description": "Lint before committing to prevent linting errors"
     }
+  },
+  "development": {
+    "devServerPort": 3000,
+    "devServerCommand": "npm run dev",
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": "npm run lint"
+  },
+  "typescript": {
+    "enabled": true,
+    "strict": true,
+    "checkOnChange": true
+  },
+  "codeGeneration": {
+    "maxLineLength": 100,
+    "indentation": 2,
+    "preferTabs": false
+  },
+  "search": {
+    "excludePatterns": [
+      "node_modules/",
+      ".next/",
+      ".git/",
+      "dist/",
+      "build/",
+      "coverage/"
+    ]
   }
 }

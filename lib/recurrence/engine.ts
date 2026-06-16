@@ -119,12 +119,14 @@ function expandManual(
   to: Date
 ): GeneratedPeriod[] {
   const start = parseISO(rule.starts_at)
-  if (start > to) return []
+  const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
+  const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
+  if (start > windowEnd) return []
 
   const period: GeneratedPeriod = {
     person_id: rule.person_id,
     start_at: start > from ? start : from,
-    end_at: to,
+    end_at: windowEnd,
     rule_id: rule.id,
     source: "rule",
   }

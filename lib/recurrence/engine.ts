@@ -55,8 +55,9 @@ function expandWeeklyAlternating(
   if (!rule.week_parity) return []
 
   const ruleStart = parseISO(rule.starts_at)
+  const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
   const windowStart = from < ruleStart ? ruleStart : from
-  const windowEnd = to
+  const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
   const custodyDays: Date[] = []
 
@@ -89,8 +90,9 @@ function expandCustomCycle(
   if (!rule.cycle_length_days || !rule.custody_days?.length) return []
 
   const ruleStart = startOfDay(parseISO(rule.starts_at))
+  const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
   const windowStart = from < ruleStart ? ruleStart : from
-  const windowEnd = to
+  const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
   const custodyDays: Date[] = []
 

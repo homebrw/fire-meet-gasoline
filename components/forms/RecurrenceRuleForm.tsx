@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
+
+const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
 interface RecurrenceRuleFormProps {
   persons: Person[]
@@ -18,8 +20,27 @@ interface RecurrenceRuleFormProps {
 export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleFormProps) {
   const [patternType, setPatternType] = useState<string>(rule?.pattern_type ?? "weekly_alternating")
   const [personId, setPersonId] = useState<string>(rule?.person_id ?? persons[0]?.id ?? "")
+  const [cycleLengthDays, setCycleLengthDays] = useState(rule?.cycle_length_days ?? 14)
+  const [selectedDays, setSelectedDays] = useState<Set<number>>(
+    new Set(rule?.custody_days ?? [])
+  )
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  function handleCycleLengthChange(val: string) {
+    const n = Math.max(2, Math.min(28, parseInt(val) || 14))
+    setCycleLengthDays(n)
+    setSelectedDays((prev) => new Set(Array.from(prev).filter((d) => d < n)))
+  }
+
+  function toggleDay(day: number) {
+    setSelectedDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(day)) next.delete(day)
+      else next.add(day)
+      return next
+    })
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -39,6 +60,9 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       }
     })
   }
+
+  const numWeeks = Math.ceil(cycleLengthDays / 7)
+  const person = persons.find((p) => p.id === personId)
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +88,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
           id="name"
           name="name"
           defaultValue={rule?.name}
-          placeholder="Ex: Garde alternée Damien"
+          placeholder="Ex: Garde alternée"
           required
         />
       </div>
@@ -73,27 +97,36 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       <div className="space-y-2">
         <Label>Type de récurrence</Label>
         <Select name="pattern_type" value={patternType} onValueChange={setPatternType} required>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="weekly_alternating">1 semaine sur 2</SelectItem>
-            <SelectItem value="custom_cycle">Cycle personnalisé (3+4, 4+3…)</SelectItem>
+            <SelectItem value="custom_cycle">Cycle personnalisé (2+5, 3+4…)</SelectItem>
             <SelectItem value="manual">Manuel (date fixe)</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Start date */}
-      <div className="space-y-2">
-        <Label htmlFor="starts_at">Date de début</Label>
-        <Input
-          id="starts_at"
-          name="starts_at"
-          type="datetime-local"
-          defaultValue={rule?.starts_at ? rule.starts_at.slice(0, 16) : ""}
-          required
-        />
+      {/* Validity window */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="starts_at">Début de validité</Label>
+          <Input
+            id="starts_at"
+            name="starts_at"
+            type="datetime-local"
+            defaultValue={rule?.starts_at ? rule.starts_at.slice(0, 16) : ""}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ends_at">Fin de validité <span className="text-[var(--color-muted-foreground)] font-normal">(optionnel)</span></Label>
+          <Input
+            id="ends_at"
+            name="ends_at"
+            type="date"
+            defaultValue={rule?.ends_at ? rule.ends_at.slice(0, 10) : ""}
+          />
+        </div>
       </div>
 
       {/* Custody times */}
@@ -120,17 +153,15 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
         </div>
       </div>
 
-      {/* weekly_alternating fields */}
+      {/* weekly_alternating */}
       {patternType === "weekly_alternating" && (
         <div className="space-y-2">
           <Label>Parité de la semaine ISO</Label>
-          <Select name="week_parity" defaultValue={rule?.week_parity ?? "even"} required>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+          <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="even">Semaines paires</SelectItem>
               <SelectItem value="odd">Semaines impaires</SelectItem>
+              <SelectItem value="even">Semaines paires</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-[var(--color-muted-foreground)]">
@@ -139,7 +170,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
         </div>
       )}
 
-      {/* custom_cycle fields */}
+      {/* custom_cycle */}
       {patternType === "custom_cycle" && (
         <>
           <div className="space-y-2">
@@ -149,30 +180,78 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
               name="cycle_length_days"
               type="number"
               min={2}
-              max={30}
-              defaultValue={rule?.cycle_length_days ?? 7}
-              placeholder="Ex: 7 pour un cycle de 7 jours"
+              max={28}
+              value={cycleLengthDays}
+              onChange={(e) => handleCycleLengthChange(e.target.value)}
             />
           </div>
+
+          {/* Visual day grid */}
           <div className="space-y-2">
-            <Label htmlFor="custody_days">Jours de garde dans le cycle</Label>
-            <Input
-              id="custody_days"
-              name="custody_days"
-              defaultValue={rule?.custody_days?.join(",") ?? "0,1,2"}
-              placeholder="Ex: 0,1,2 = jours 0, 1 et 2 du cycle"
-            />
+            <Label>Jours de garde dans le cycle</Label>
             <p className="text-xs text-[var(--color-muted-foreground)]">
-              Indices des jours (0 = premier jour du cycle). Séparés par des virgules.
+              Le jour 0 correspond au premier jour du cycle (= date de début ci-dessus).
             </p>
+            <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] p-3">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left pb-2 pr-3 text-[var(--color-muted-foreground)] font-medium w-12" />
+                    {DAY_NAMES.map((d) => (
+                      <th key={d} className="text-center pb-2 w-9 text-[var(--color-muted-foreground)] font-medium">{d}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: numWeeks }, (_, w) => (
+                    <tr key={w}>
+                      <td className="pr-3 py-1 text-[var(--color-muted-foreground)] font-medium">S{w + 1}</td>
+                      {Array.from({ length: 7 }, (_, d) => {
+                        const dayIndex = w * 7 + d
+                        if (dayIndex >= cycleLengthDays) {
+                          return <td key={d} className="py-1 w-9" />
+                        }
+                        const checked = selectedDays.has(dayIndex)
+                        return (
+                          <td key={d} className="py-1 text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleDay(dayIndex)}
+                              title={`Jour ${dayIndex} — ${DAY_NAMES[d]}`}
+                              className={cn(
+                                "h-8 w-8 rounded-md text-xs font-medium transition-colors",
+                                checked
+                                  ? "text-white"
+                                  : "bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]"
+                              )}
+                              style={checked ? { backgroundColor: person?.color ?? "#3b82f6" } : {}}
+                            >
+                              {d === 0 && w > 0 ? `+${w * 7}` : DAY_NAMES[d].slice(0, 1)}
+                            </button>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-[var(--color-muted-foreground)]">
+              Sélectionnés : {Array.from(selectedDays).sort((a, b) => a - b).join(", ") || "aucun"}
+            </p>
+            <input
+              type="hidden"
+              name="custody_days"
+              value={Array.from(selectedDays).sort((a, b) => a - b).join(",")}
+            />
           </div>
         </>
       )}
 
-      {/* Handoff info (all types) */}
+      {/* Handoff info */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="handoff_time">Heure de changement</Label>
+          <Label htmlFor="handoff_time">Heure de passation</Label>
           <Input
             id="handoff_time"
             name="handoff_time"
@@ -181,12 +260,12 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="handoff_location">Lieu de changement</Label>
+          <Label htmlFor="handoff_location">Lieu de passation</Label>
           <Input
             id="handoff_location"
             name="handoff_location"
             defaultValue={rule?.handoff_location ?? ""}
-            placeholder="Ex: École, Gare…"
+            placeholder="École, Gare…"
           />
         </div>
       </div>

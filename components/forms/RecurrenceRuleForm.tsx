@@ -248,26 +248,15 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
         </>
       )}
 
-      {/* Handoff info */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="handoff_time">Heure de passation</Label>
-          <Input
-            id="handoff_time"
-            name="handoff_time"
-            type="time"
-            defaultValue={rule?.handoff_time ?? ""}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="handoff_location">Lieu de passation</Label>
-          <Input
-            id="handoff_location"
-            name="handoff_location"
-            defaultValue={rule?.handoff_location ?? ""}
-            placeholder="École, Gare…"
-          />
-        </div>
+      {/* Handoff location */}
+      <div className="space-y-2">
+        <Label htmlFor="handoff_location">Lieu de passation</Label>
+        <Input
+          id="handoff_location"
+          name="handoff_location"
+          defaultValue={rule?.handoff_location ?? ""}
+          placeholder="École, Gare…"
+        />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

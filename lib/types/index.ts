@@ -23,8 +23,6 @@ export type RecurrenceRule = {
   week_parity: "even" | "odd" | null
   cycle_length_days: number | null
   custody_days: number[] | null   // day indices within the cycle
-  handoff_day: number | null      // 0=Sun, 1=Mon, ...
-  handoff_time: string | null     // 'HH:MM'
   handoff_location: string | null
   ends_at: string | null
   is_active: boolean
@@ -152,7 +150,6 @@ export type RecurrenceRuleFormData = {
   week_parity?: "even" | "odd"
   cycle_length_days?: number
   custody_days?: number[]
-  handoff_time?: string
   handoff_location?: string
 }
 

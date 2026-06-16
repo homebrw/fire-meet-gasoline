@@ -1,5 +1,5 @@
 import type { DayState, Person } from "@/lib/types"
-import { STATE_CONFIG } from "@/lib/recurrence/display"
+import { getStateConfig } from "@/lib/recurrence/display"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -24,7 +24,8 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
     )
   }
 
-  const config = STATE_CONFIG[state.displayState]
+  const stateConfig = getStateConfig(damien?.name ?? "Personne 1", ma?.name ?? "Personne 2")
+  const config = stateConfig[state.displayState]
 
   return (
     <Card className={cn("border-l-4", getBorderColor(state.displayState))}>
@@ -39,7 +40,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
 
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="space-y-1">
-            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">Damien</p>
+            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">{damien?.name ?? "Personne 1"}</p>
             <Badge variant={state.damienHasChildren ? "damien" : "outline"} className="text-xs">
               {state.damienHasChildren ? "Avec ses enfants" : "Sans enfants"}
             </Badge>
@@ -48,7 +49,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
             )}
           </div>
           <div className="space-y-1">
-            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">Marie-Alix</p>
+            <p className="text-[var(--color-muted-foreground)] text-xs font-medium uppercase tracking-wide">{ma?.name ?? "Personne 2"}</p>
             <Badge variant={state.maHasChild ? "ma" : "outline"} className="text-xs">
               {state.maHasChild ? "Avec sa fille" : "Sans enfant"}
             </Badge>

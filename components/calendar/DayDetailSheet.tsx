@@ -1,7 +1,7 @@
 "use client"
 
-import type { DayState } from "@/lib/types"
-import { STATE_CONFIG } from "@/lib/recurrence/display"
+import type { DayState, Person } from "@/lib/types"
+import { getStateConfig } from "@/lib/recurrence/display"
 import {
   Sheet,
   SheetContent,
@@ -18,13 +18,16 @@ import { cn } from "@/lib/utils"
 interface DayDetailSheetProps {
   dateKey: string
   state: DayState | undefined
+  persons: Person[]
   open: boolean
   onClose: () => void
 }
 
-export function DayDetailSheet({ dateKey, state, open, onClose }: DayDetailSheetProps) {
+export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDetailSheetProps) {
   const date = parseISO(dateKey + "T12:00:00")
-  const config = state ? STATE_CONFIG[state.displayState] : null
+  const [person1, person2] = persons
+  const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
+  const config = state ? stateConfig[state.displayState] : null
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
@@ -48,7 +51,7 @@ export function DayDetailSheet({ dateKey, state, open, onClose }: DayDetailSheet
             {/* Custody status */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-blue-50 p-3">
-                <p className="text-xs font-semibold text-blue-700 mb-1">Damien</p>
+                <p className="text-xs font-semibold text-blue-700 mb-1">{person1?.name ?? "Personne 1"}</p>
                 <p className="text-sm">
                   {state.damienHasChildren ? "Avec ses enfants" : "Libre"}
                 </p>
@@ -57,7 +60,7 @@ export function DayDetailSheet({ dateKey, state, open, onClose }: DayDetailSheet
                 )}
               </div>
               <div className="rounded-lg bg-pink-50 p-3">
-                <p className="text-xs font-semibold text-pink-700 mb-1">Marie-Alix</p>
+                <p className="text-xs font-semibold text-pink-700 mb-1">{person2?.name ?? "Personne 2"}</p>
                 <p className="text-sm">
                   {state.maHasChild ? "Avec sa fille" : "Libre"}
                 </p>

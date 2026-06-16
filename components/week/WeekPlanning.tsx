@@ -11,7 +11,7 @@ import {
 } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
-import { STATE_CONFIG } from "@/lib/recurrence/display"
+
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -37,7 +37,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
       check: (s) => s.damienHasChildren,
     },
     {
-      label: ma?.name ?? "Marie-Alix",
+      label: ma?.name ?? "Personne 2",
       color: ma?.color ?? "#ec4899",
       check: (s) => s.maHasChild,
     },

@@ -1,7 +1,7 @@
 "use client"
 
 import type { DayState } from "@/lib/types"
-import { STATE_CONFIG } from "@/lib/recurrence/display"
+import { DISPLAY_CLASSES } from "@/lib/recurrence/display"
 import { cn } from "@/lib/utils"
 import { format, parseISO, isToday } from "date-fns"
 
@@ -15,7 +15,7 @@ interface DayCellProps {
 export function DayCell({ dateKey, state, isCurrentMonth, onClick }: DayCellProps) {
   const date = parseISO(dateKey)
   const today = isToday(date)
-  const config = state ? STATE_CONFIG[state.displayState] : null
+  const config = state ? DISPLAY_CLASSES[state.displayState] : null
 
   return (
     <button

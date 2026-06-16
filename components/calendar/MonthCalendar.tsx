@@ -13,7 +13,7 @@ import {
   isSameMonth,
 } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { DayState } from "@/lib/types"
+import type { DayState, Person } from "@/lib/types"
 import { DayCell } from "./DayCell"
 import { DayDetailSheet } from "./DayDetailSheet"
 import { Button } from "@/components/ui/button"
@@ -24,9 +24,10 @@ const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 interface MonthCalendarProps {
   initialMonth?: string
   dayStates: Record<string, DayState>
+  persons: Person[]
 }
 
-export function MonthCalendar({ initialMonth, dayStates }: MonthCalendarProps) {
+export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialMonth ? new Date(initialMonth + "-01") : startOfMonth(new Date())
   )
@@ -49,6 +50,7 @@ export function MonthCalendar({ initialMonth, dayStates }: MonthCalendarProps) {
 
   const grid = buildGrid()
   const selectedState = selectedDay ? dayStates[selectedDay] : undefined
+  const [person1, person2] = persons
 
   return (
     <div className="space-y-4">
@@ -89,8 +91,8 @@ export function MonthCalendar({ initialMonth, dayStates }: MonthCalendarProps) {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-muted-foreground)]">
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-blue-100 border border-blue-300" /> Damien</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-pink-100 border border-pink-300" /> Marie-Alix</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-blue-100 border border-blue-300" /> {person1?.name ?? "Personne 1"}</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-pink-100 border border-pink-300" /> {person2?.name ?? "Personne 2"}</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-violet-100 border border-violet-300" /> Chacun a ses enfants</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-green-100 border border-green-300" /> Disponible</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-100 border border-orange-300" /> Changement</span>
@@ -101,6 +103,7 @@ export function MonthCalendar({ initialMonth, dayStates }: MonthCalendarProps) {
         <DayDetailSheet
           dateKey={selectedDay}
           state={selectedState}
+          persons={persons}
           open={!!selectedDay}
           onClose={() => setSelectedDay(null)}
         />

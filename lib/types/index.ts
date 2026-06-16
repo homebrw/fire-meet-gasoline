@@ -1,0 +1,168 @@
+// ─── Core Entities ────────────────────────────────────────────────────────────
+
+export type Person = {
+  id: string
+  name: string
+  color: string
+  avatar_url: string | null
+  auth_user_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type RecurrencePatternType = "weekly_alternating" | "custom_cycle" | "manual"
+
+export type RecurrenceRule = {
+  id: string
+  person_id: string
+  name: string
+  pattern_type: RecurrencePatternType
+  starts_at: string
+  custody_start_time: string  // 'HH:MM'
+  custody_end_time: string    // 'HH:MM'
+  week_parity: "even" | "odd" | null
+  cycle_length_days: number | null
+  custody_days: number[] | null   // day indices within the cycle
+  handoff_day: number | null      // 0=Sun, 1=Mon, ...
+  handoff_time: string | null     // 'HH:MM'
+  handoff_location: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type RecurrenceExceptionType = "cancel" | "move" | "extend" | "shorten" | "add"
+
+export type RecurrenceException = {
+  id: string
+  recurrence_rule_id: string
+  person_id: string
+  original_start_at: string | null
+  original_end_at: string | null
+  override_start_at: string | null
+  override_end_at: string | null
+  type: RecurrenceExceptionType
+  reason: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ChildPresence = {
+  id: string
+  person_id: string
+  start_at: string
+  end_at: string
+  recurrence_rule_id: string | null
+  is_exception: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type CustodyTransitionDirection = "pickup" | "dropoff"
+
+export type CustodyTransition = {
+  id: string
+  person_id: string
+  transition_at: string
+  direction: CustodyTransitionDirection
+  location: string | null
+  recurrence_rule_id: string | null
+  is_exception: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type EventType = "shared" | "individual"
+export type EventVisibility = "both" | "private"
+
+export type CalendarEvent = {
+  id: string
+  title: string
+  description: string | null
+  start_at: string
+  end_at: string
+  location: string | null
+  type: EventType
+  owner_person_id: string | null
+  created_by: string
+  is_blocking: boolean
+  visibility: EventVisibility
+  created_at: string
+  updated_at: string
+}
+
+export type EventAttachment = {
+  id: string
+  event_id: string
+  file_name: string
+  storage_path: string
+  file_type: string | null
+  file_size: number | null
+  uploaded_by: string
+  created_at: string
+}
+
+// ─── Engine Types ─────────────────────────────────────────────────────────────
+
+export type GeneratedPeriod = {
+  person_id: string
+  start_at: Date
+  end_at: Date
+  rule_id: string
+  source: "rule" | "exception" | "manual"
+}
+
+export type DisplayState =
+  | "damien_kids"
+  | "ma_kid"
+  | "both_kids"
+  | "available"
+  | "damien_unavailable"
+  | "ma_unavailable"
+  | "both_unavailable"
+  | "shared_event"
+  | "custody_change"
+
+export type DayState = {
+  date: string                          // 'YYYY-MM-DD'
+  damienHasChildren: boolean
+  maHasChild: boolean
+  damienBlockingEvent: boolean
+  maBlockingEvent: boolean
+  hasTransition: boolean
+  sharedEvents: CalendarEvent[]
+  custodyTransitions: CustodyTransition[]
+  bothAvailable: boolean
+  displayState: DisplayState
+}
+
+// ─── Form Schemas (used in forms) ─────────────────────────────────────────────
+
+export type RecurrenceRuleFormData = {
+  person_id: string
+  name: string
+  pattern_type: RecurrencePatternType
+  starts_at: string
+  custody_start_time: string
+  custody_end_time: string
+  week_parity?: "even" | "odd"
+  cycle_length_days?: number
+  custody_days?: number[]
+  handoff_time?: string
+  handoff_location?: string
+}
+
+export type EventFormData = {
+  title: string
+  description?: string
+  start_at: string
+  end_at: string
+  location?: string
+  type: EventType
+  owner_person_id?: string
+  is_blocking: boolean
+  visibility: EventVisibility
+}

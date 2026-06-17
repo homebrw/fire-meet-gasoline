@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChangeBadge } from "@/components/ui/change-badge"
-import { ItemTimestamp } from "@/components/ui/item-timestamp"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -159,10 +157,6 @@ export default function CustodyPage() {
                         {format(parseISO(p.end_at), "d MMM yyyy HH:mm", { locale: fr })}
                       </p>
                       {p.notes && <p className="text-xs">{p.notes}</p>}
-                      <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
-                        <ChangeBadge createdAt={p.created_at} updatedAt={p.updated_at} />
-                        <ItemTimestamp createdAt={p.created_at} />
-                      </div>
                     </CardContent>
                   </Card>
                 )
@@ -254,10 +248,6 @@ export default function CustodyPage() {
                         {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
                         {t.location && ` — ${t.location}`}
                       </p>
-                      <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
-                        <ChangeBadge createdAt={t.created_at} updatedAt={t.updated_at} />
-                        <ItemTimestamp createdAt={t.created_at} />
-                      </div>
                     </CardContent>
                   </Card>
                 )

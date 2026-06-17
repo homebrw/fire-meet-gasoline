@@ -27,10 +27,18 @@ import { fr } from "date-fns/locale"
 import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
 import { ParticipantsSelector } from "./participants-selector"
 
+type EventParticipantData = {
+  person_id: string
+  persons?: {
+    name: string
+    color: string
+  }
+}
+
 export default function EventsPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
-  const [participants, setParticipants] = useState<Record<string, any[]>>({})
+  const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
   const [createOpen, setCreateOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -49,7 +57,7 @@ export default function EventsPage() {
       setPersons(personsData)
 
       // Load participants for each event
-      const participantsMap: Record<string, any[]> = {}
+      const participantsMap: Record<string, EventParticipantData[]> = {}
       for (const ev of eventsData) {
         const { data: parts } = await supabase
           .from("event_participants")
@@ -114,7 +122,7 @@ export default function EventsPage() {
                     <span>{ev.title}</span>
                     <div className="flex gap-1">
                       <Link href={`/settings/events/${ev.id}`}>
-                        <Button variant="ghost" size="icon" asChild>
+                        <Button variant="ghost" size="icon">
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
@@ -166,7 +174,7 @@ export default function EventsPage() {
                   </div>
                   {participants[ev.id] && participants[ev.id].length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {participants[ev.id].map((p: any) => (
+                      {participants[ev.id].map((p: EventParticipantData) => (
                         <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
                           <div
                             className="h-3 w-3 rounded-full"
@@ -214,7 +222,7 @@ function EventForm({ persons, event, onSuccess }: EventFormProps) {
           await updateEvent(event.id, formData)
           // Update participants for existing event
           const existingParticipants = await getEventParticipants(event.id)
-          const existingIds = existingParticipants.map((p: any) => p.person_id)
+          const existingIds = existingParticipants.map((p) => p.person_id)
 
           // Remove participants not in new list
           for (const id of existingIds) {

@@ -48,10 +48,6 @@ export function EventDetailCard({
     loadParticipants()
   }, [event.id, showParticipants])
 
-  const owner = event.owner_person_id
-    ? persons.find((p) => p.id === event.owner_person_id)
-    : null
-
   return (
     <Card className="space-y-3 p-4">
       <div>

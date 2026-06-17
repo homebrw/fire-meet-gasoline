@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { EventAttachment } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { FileIcon, Download, Trash2 } from "lucide-react"
+import { FileIcon, Trash2 } from "lucide-react"
 
 interface EventAttachmentsListProps {
   eventId: string

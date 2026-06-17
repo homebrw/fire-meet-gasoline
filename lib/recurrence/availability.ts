@@ -21,6 +21,15 @@ export function computeDayStates(
   // persons are ordered by created_at — index 0 = first person, index 1 = second
   const [damien, ma] = persons
 
+  console.log(`[computeDayStates] Processing ${periods.length} periods`)
+  if (periods.length > 0) {
+    console.log(`  Sample periods:`)
+    periods.slice(0, 3).forEach((p) => {
+      const personName = persons.find((ps) => ps.id === p.person_id)?.name || "Unknown"
+      console.log(`    ${personName}: ${p.start_at.toISOString()} → ${p.end_at.toISOString()}`)
+    })
+  }
+
   const states = new Map<string, DayState>()
 
   let current = startOfDay(from)

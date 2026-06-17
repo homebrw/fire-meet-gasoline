@@ -30,7 +30,19 @@ export default async function CalendarPage() {
   const events = (eventsRes.data ?? []) as CalendarEvent[]
   const transitions = (transitionsRes.data ?? []) as CustodyTransition[]
 
+  // Log all rules for debugging
+  console.log(`\n=== CALENDAR PAGE DEBUG ===`)
+  console.log(`Found ${rules.length} active rules:`)
+  rules.forEach((rule) => {
+    console.log(`  - "${rule.name}"`)
+    console.log(`    pattern_type: ${rule.pattern_type}`)
+    console.log(`    week_parity: ${rule.week_parity}`)
+    console.log(`    starts_at: ${rule.starts_at}`)
+    console.log(`    ends_at: ${rule.ends_at}`)
+  })
+
   const periods = generateCustodyPeriods(rules, exceptions, from, to)
+  console.log(`Generated ${periods.length} total custody periods`)
   const dayStatesMap = computeDayStates(persons, periods, presences, events, transitions, from, to)
 
   // Convert Map to plain object for client component

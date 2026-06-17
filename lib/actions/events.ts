@@ -79,21 +79,28 @@ export async function addEventParticipant(
     throw new Error("Unauthorized")
   }
 
-  // Verify user owns the event
-  const { data: event } = await supabase
+  // Verify event exists
+  const { data: event, error: eventError } = await supabase
     .from("events")
     .select("owner_person_id")
     .eq("id", eventId)
     .single()
 
-  const { data: owner } = await supabase
-    .from("persons")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single()
+  if (eventError || !event) {
+    throw new Error("Event not found")
+  }
 
-  if (!event || event.owner_person_id !== owner?.id) {
-    throw new Error("Unauthorized")
+  // For individual events, verify user owns the event
+  if (event.owner_person_id) {
+    const { data: owner } = await supabase
+      .from("persons")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single()
+
+    if (!owner || event.owner_person_id !== owner.id) {
+      throw new Error("Unauthorized")
+    }
   }
 
   const { error } = await supabase.from("event_participants").insert({
@@ -125,21 +132,28 @@ export async function removeEventParticipant(
     throw new Error("Unauthorized")
   }
 
-  // Verify user owns the event
-  const { data: event } = await supabase
+  // Verify event exists
+  const { data: event, error: eventError } = await supabase
     .from("events")
     .select("owner_person_id")
     .eq("id", eventId)
     .single()
 
-  const { data: owner } = await supabase
-    .from("persons")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .single()
+  if (eventError || !event) {
+    throw new Error("Event not found")
+  }
 
-  if (!event || event.owner_person_id !== owner?.id) {
-    throw new Error("Unauthorized")
+  // For individual events, verify user owns the event
+  if (event.owner_person_id) {
+    const { data: owner } = await supabase
+      .from("persons")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single()
+
+    if (!owner || event.owner_person_id !== owner.id) {
+      throw new Error("Unauthorized")
+    }
   }
 
   const { error } = await supabase

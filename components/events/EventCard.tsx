@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CalendarEvent, Person } from "@/lib/types"
-import { format, parseISO, differenceInDays } from "date-fns"
+import { format, parseISO, differenceInDays, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Paperclip, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,9 @@ export function EventCard({
   const { attachments, refetch: refetchAttachments } = useEventAttachments(event.id)
 
   const eventDate = parseISO(event.start_at)
+  const endDate = parseISO(event.end_at)
   const daysRemaining = differenceInDays(eventDate, new Date())
+  const isMultiDay = !isSameDay(eventDate, endDate)
 
   return (
     <div className="space-y-3">
@@ -55,7 +57,8 @@ export function EventCard({
             <>
               {" — "}
               {format(eventDate, "HH:mm", { locale: fr })} –{" "}
-              {format(parseISO(event.end_at), "HH:mm", { locale: fr })}
+              {isMultiDay && `${format(endDate, "EEEE d MMMM yyyy", { locale: fr })} `}
+              {format(endDate, "HH:mm", { locale: fr })}
             </>
           )}
         </p>

@@ -11,7 +11,7 @@ colors:
   ring: "#18181b"
   person-damien: "#3b82f6"
   person-ma: "#ec4899"
-  person-both-kids: "#8b5cf6"
+  person-both-kids: "#06b6d4"
   status-available: "#22c55e"
   status-transition: "#f97316"
   status-unavailable: "#6b7280"
@@ -54,6 +54,11 @@ components:
     textColor: "#be123c"
     rounded: "{rounded.full}"
     padding: "10px 16px"
+  badge-both-kids:
+    backgroundColor: "#a5f3fc"
+    textColor: "#164e63"
+    rounded: "{rounded.full}"
+    padding: "10px 16px"
   badge-status-available:
     backgroundColor: "#dcfce7"
     textColor: "#166534"
@@ -81,7 +86,7 @@ components:
 
 **Creative North Star: "The Shared Calendar"**
 
-Famille Sync is a calm, minimal interface for co-parenting families coordinating custody and events. The design prioritizes legibility and trust—every piece of information is easy to find, every action has clear affordance, and nothing competes for attention. The system uses semantic color (person-based: blue, pink, purple; status-based: green, orange, gray) to make patterns recognizable at a glance, but text and icons always provide the same information so color is never the sole signal. Dark and light modes are equally supported and equally refined.
+Famille Sync is a calm, minimal interface for co-parenting families coordinating custody and events. The design prioritizes legibility and trust—every piece of information is easy to find, every action has clear affordance, and nothing competes for attention. The system uses semantic color (person-based: blue, pink, cyan; status-based: green, orange, gray) to make patterns recognizable at a glance, but text and icons always provide the same information so color is never the sole signal. Dark and light modes are equally supported and equally refined.
 
 The design explicitly rejects cute/playful aesthetics, visual chaos, and stock imagery. It avoids overly corporate or clinical coldness while maintaining the precision needed for serious family coordination. This is a tool for adults managing high-stakes logistics; the interface should feel steady, organized, and trustworthy.
 
@@ -102,7 +107,7 @@ These colors represent individuals in the family system. They appear in badges, 
 
 - **Damien (Blue)** (#3b82f6 primary, #dbeafe background): Person 1 color across the system. Used for Damien's custody periods, availability, and actions.
 - **Ma (Pink)** (#ec4899 primary, #fce7f3 background): Person 2 color. Used for Ma's custody periods, availability, and actions.
-- **Both Kids (Purple)** (#8b5cf6 primary, #ede9fe background): Joint custody color. Used when both people have custody.
+- **Both Kids (Cyan)** (#06b6d4 primary, #cffafe background): Joint custody color. Used when both people have custody. Distinct from both Damien and Ma for clear visual differentiation.
 
 ### Status
 
@@ -126,7 +131,7 @@ These colors indicate states and actions in the schedule.
 
 ### Named Rules
 
-**The Person-First Rule.** Person identity colors (blue, pink, purple) carry meaning and should never be arbitrary. When a UI element is colored by person identity, use the light + dark pair to ensure legible contrast. Do not tint or desaturate person colors for "elegance"; the contrast is the point.
+**The Person-First Rule.** Person identity colors (blue, pink, cyan) carry meaning and should never be arbitrary. When a UI element is colored by person identity, use the light + dark pair to ensure legible contrast. Do not tint or desaturate person colors for "elegance"; the contrast is the point.
 
 **The Status-Second Rule.** Status colors (green, orange, gray) are secondary signals. They should always be accompanied by text labels and icons. Never let color carry information alone—e.g., a "Transition" cell must have the text "Transition" or an icon, not just orange.
 
@@ -184,6 +189,7 @@ Badges carry person identity or status. Shape is fully rounded (9999px radius, p
 
 - **Damien:** Light blue background (#dbeafe), dark blue text (#1e40af)
 - **Ma:** Light pink background (#fce7f3), dark pink text (#be123c)
+- **Both Kids:** Light cyan background (#cffafe), dark cyan text (#155e75)
 - **Available:** Light green background (#dcfce7), dark green text (#166534)
 - **Transition:** Light orange background (#ffedd5), dark orange text (#c2410c)
 - **Outline:** No background, border (#e4e4e7), dark text (#18181b)
@@ -220,7 +226,7 @@ The status card (TodayStatus, NextAvailableSlot) combines a person/status color 
 
 ### Do:
 
-- **Do use person identity colors consistently** (blue for Damien, pink for Ma, purple for both). These carry meaning; every person-colored element should represent that person.
+- **Do use person identity colors consistently** (blue for Damien, pink for Ma, cyan for both). These carry meaning; every person-colored element should represent that person.
 - **Do pair every color with text or icon** to reinforce meaning. Never rely on color alone to convey status or person.
 - **Do maintain 4.5:1 contrast** on all text. Body text and placeholder text must hit this standard; large text (18px+) needs 3:1 minimum. This is non-negotiable in a tool for high-stakes coordination.
 - **Do respect `prefers-reduced-motion`**. Transitions and hover effects should be instant or very brief (100–200ms) and can be disabled entirely for users who opt out.

@@ -7,7 +7,7 @@ type StateConfig = Classes & { label: string }
 export const DISPLAY_CLASSES: Record<DisplayState, Classes> = {
   damien_kids:       { bgClass: "bg-blue-100",   textClass: "text-blue-800",   dotClass: "bg-blue-500" },
   ma_kid:            { bgClass: "bg-pink-100",   textClass: "text-pink-800",   dotClass: "bg-pink-500" },
-  both_kids:         { bgClass: "bg-violet-100", textClass: "text-violet-800", dotClass: "bg-violet-500" },
+  both_kids:         { bgClass: "bg-cyan-100", textClass: "text-cyan-800", dotClass: "bg-cyan-500" },
   available:         { bgClass: "bg-green-100",  textClass: "text-green-800",  dotClass: "bg-green-500" },
   damien_unavailable:{ bgClass: "bg-gray-100",   textClass: "text-gray-700",   dotClass: "bg-gray-400" },
   ma_unavailable:    { bgClass: "bg-gray-100",   textClass: "text-gray-700",   dotClass: "bg-gray-400" },

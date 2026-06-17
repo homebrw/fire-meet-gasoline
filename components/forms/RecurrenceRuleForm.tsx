@@ -24,6 +24,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
   const [selectedDays, setSelectedDays] = useState<Set<number>>(
     new Set(rule?.custody_days ?? [])
   )
+  const [weekParity, setWeekParity] = useState<string>(rule?.week_parity ?? "odd")
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -69,7 +70,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {/* Person */}
       <div className="space-y-2">
         <Label>Personne</Label>
-        <Select name="person_id" value={personId} onValueChange={setPersonId} required>
+        <Select value={personId} onValueChange={setPersonId} required>
           <SelectTrigger>
             <SelectValue placeholder="Choisir une personne" />
           </SelectTrigger>
@@ -79,6 +80,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             ))}
           </SelectContent>
         </Select>
+        <input type="hidden" name="person_id" value={personId} />
       </div>
 
       {/* Name */}
@@ -96,7 +98,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {/* Pattern type */}
       <div className="space-y-2">
         <Label>Type de récurrence</Label>
-        <Select name="pattern_type" value={patternType} onValueChange={setPatternType} required>
+        <Select value={patternType} onValueChange={setPatternType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="weekly_alternating">1 semaine sur 2</SelectItem>
@@ -104,6 +106,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             <SelectItem value="manual">Manuel (date fixe)</SelectItem>
           </SelectContent>
         </Select>
+        <input type="hidden" name="pattern_type" value={patternType} />
       </div>
 
       {/* Validity window */}
@@ -157,13 +160,14 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {patternType === "weekly_alternating" && (
         <div className="space-y-2">
           <Label>Parité de la semaine ISO</Label>
-          <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
+          <Select value={weekParity} onValueChange={setWeekParity} required>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="odd">Semaines impaires</SelectItem>
               <SelectItem value="even">Semaines paires</SelectItem>
             </SelectContent>
           </Select>
+          <input type="hidden" name="week_parity" value={weekParity} />
           <p className="text-xs text-[var(--color-muted-foreground)]">
             Semaines ISO : lundi = jour 1. La parité se calcule d&apos;après le numéro de semaine ISO.
           </p>

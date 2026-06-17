@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import type { DayState, Person } from "@/lib/types"
 import { getStateConfig } from "@/lib/recurrence/display"
 import {
@@ -39,6 +40,7 @@ interface DayDetailSheetProps {
 }
 
 export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDetailSheetProps) {
+  const router = useRouter()
   const date = parseISO(dateKey + "T12:00:00")
   const [person1, person2] = persons
   const [createEventOpen, setCreateEventOpen] = useState(false)
@@ -82,7 +84,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                   onSuccess={() => {
                     setCreateEventOpen(false)
                     onClose()
-                    location.reload()
+                    router.refresh()
                   }}
                 />
               </DialogContent>
@@ -214,7 +216,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
           onOpenChange={(isOpen) => {
             if (!isOpen) {
               setSelectedEvent(null)
-              location.reload()
+              router.refresh()
             }
           }}
         />

@@ -107,11 +107,31 @@ fire-meet-gasoline/
 
 ## Guide de Développement
 
+### Architecture & Patterns
+
+#### Server Actions
+La majorité des mutations de données utilisent les **Server Actions** de Next.js (fichiers dans `lib/actions/`) avec:
+- Directive `"use server"` au début de chaque fichier d'action
+- Validation Zod intégrée à chaque action
+- `revalidatePath()` pour invalider les caches après mutations
+- Appels directs au client Supabase (pas de routes API pour le CRUD)
+
+Exemples: `lib/actions/events.ts`, `lib/actions/custody.ts`, `lib/actions/recurrence.ts`
+
+#### Moteur de Récurrence
+Logique métier complexe dans `lib/recurrence/engine.ts` pour la planification des gardes avec trois types:
+- **weekly_alternating**: Alternance hebdomadaire (semaines paires/impaires)
+- **custom_cycle**: Cycles personnalisés (ex: tous les 5 jours)
+- **manual**: Règles définies manuellement
+
+Le moteur expands les `RecurrenceRule` en `GeneratedPeriod[]` sur une plage de dates, applique les `RecurrenceException` et gère les annulations/déplacements/extensions.
+
 ### Style de Code
-- **TypeScript**: Mode strict activé
-- **Composants**: Composants fonctionnels avec hooks
+- **TypeScript**: Mode strict activé, alias `@/*` pour imports
+- **Composants**: Fonctionnels avec hooks React 19
 - **Styling**: Utilitaires Tailwind CSS uniquement (pas de modules CSS)
-- **Imports**: Utilisez l'alias `@/` pour les imports à partir de la racine
+- **Validation**: React Hook Form + Zod pour tous les formulaires
+- **Database**: Client Supabase type-safe
 
 ### Exemples d'Import
 ```typescript
@@ -123,8 +143,9 @@ import { calculateDates } from "@/lib/utils"
 ### Ajouter des Fonctionnalités
 1. Créez une page dans `app/(app)/nom-de-la-fonctionnalite/`
 2. Ajoutez les composants dans `components/nom-de-la-fonctionnalite/`
-3. Utilisez React Hook Form + Zod pour la validation de formulaires
-4. Interrogez Supabase en utilisant le client fourni
+3. Pour les mutations: créez une server action dans `lib/actions/`
+4. Utilisez React Hook Form + Zod pour la validation
+5. Appelez le client Supabase directement ou via des actions serveur
 
 ## Authentification
 
@@ -140,6 +161,14 @@ Le schéma de base de données et les migrations se trouvent dans le répertoire
 - Exécutez les migrations via le tableau de bord Supabase ou la CLI
 - Utilisez le client Supabase type-safe pour les requêtes
 - Les abonnements en temps réel sont disponibles
+
+### Modèle de Données Principal
+- **Person**: Individus (parents/tuteurs) avec couleur + avatar
+- **RecurrenceRule**: Modèle de planning de garde (pattern + timing)
+- **RecurrenceException**: Surcharges pour un occurrence unique (annul/déplac/extension/raccourc/ajout)
+- **ChildPresence**: Période de garde générée (délimitée temporellement)
+- **CustodyTransition**: Événement de prise en charge/remise (lieu défini)
+- **CalendarEvent**: Événements partagés ou individuels (pièces jointes optionnelles)
 
 ## Déploiement
 
@@ -185,12 +214,17 @@ npm run dev -- -p 3001
 
 Ce projet est sous licence MIT - voir le fichier LICENSE pour les détails.
 
+## Notes Importantes
+
+### Next.js 16
+⚠️ Cette version introduit des changements importants par rapport aux versions antérieures. Consultez la documentation Next.js 16 avant d'ajouter du code. Prêtez attention aux avis de dépréciation.
+
 ## Support
 
 Pour les problèmes et questions:
 - 📧 Créez une issue sur GitHub
 - 💬 Vérifiez les issues existantes pour des solutions
-- 📚 Consultez [CLAUDE.md](./CLAUDE.md) pour les détails techniques
+- 📚 Consultez [CLAUDE.md](./CLAUDE.md) pour les détails techniques approfondis
 
 ---
 

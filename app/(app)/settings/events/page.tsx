@@ -116,7 +116,6 @@ export default function EventsPage() {
       ) : (
         <div className="space-y-3">
           {events.map((ev) => {
-            const owner = ev.owner_person_id ? personById[ev.owner_person_id] : null
             return (
               <Card key={ev.id}>
                 <CardHeader className="pb-2">
@@ -165,11 +164,8 @@ export default function EventsPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex flex-wrap gap-2 text-xs">
-                    <Badge variant={ev.type === "shared" ? "secondary" : "outline"}>
-                      {ev.type === "shared" ? "Commun" : owner?.name ?? "Individuel"}
-                    </Badge>
                     {ev.is_blocking && <Badge variant="destructive">Bloquant</Badge>}
-                    {ev.visibility === "private" && <Badge variant="outline">Privé</Badge>}
+                    {!ev.allow_participants_to_see_attachments && <Badge variant="outline">PJ restreintes</Badge>}
                     <span className="text-[var(--color-muted-foreground)]">
                       {format(parseISO(ev.start_at), "d MMM HH:mm", { locale: fr })}
                     </span>
@@ -196,4 +192,3 @@ export default function EventsPage() {
     </div>
   )
 }
-

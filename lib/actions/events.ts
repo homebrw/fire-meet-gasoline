@@ -10,11 +10,12 @@ const eventSchema = z.object({
   start_at: z.string(),
   end_at: z.string(),
   location: z.string().nullable().optional(),
-  type: z.enum(["shared", "individual"]),
+  type: z.enum(["shared", "individual"]).optional(),
   owner_person_id: z.string().uuid().nullable().optional(),
   created_by: z.string().uuid(),
   is_blocking: z.coerce.boolean().default(false),
-  visibility: z.enum(["both", "private"]).default("both"),
+  visibility: z.enum(["both", "private"]).optional(),
+  allow_participants_to_see_attachments: z.coerce.boolean().default(true),
 })
 
 export async function createEvent(formData: FormData) {

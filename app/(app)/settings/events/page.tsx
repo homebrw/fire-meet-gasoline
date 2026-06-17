@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -32,24 +31,25 @@ export default function EventsPage() {
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  async function load() {
-    const supabase = createClient()
-    const [evRes, persRes] = await Promise.all([
-      supabase.from("events").select("*").order("start_at"),
-      supabase.from("persons").select("*"),
-    ])
-    setEvents((evRes.data ?? []) as CalendarEvent[])
-    setPersons((persRes.data ?? []) as Person[])
-  }
-
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const [evRes, persRes] = await Promise.all([
+        supabase.from("events").select("*").order("start_at"),
+        supabase.from("persons").select("*"),
+      ])
+      setEvents((evRes.data ?? []) as CalendarEvent[])
+      setPersons((persRes.data ?? []) as Person[])
+    }
+    load()
+  }, [])
 
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteEvent(id)
-      await load()
+      location.reload()
     })
   }
 
@@ -70,7 +70,10 @@ export default function EventsPage() {
             </DialogHeader>
             <EventForm
               persons={persons}
-              onSuccess={() => { setCreateOpen(false); load() }}
+              onSuccess={() => {
+                setCreateOpen(false)
+                location.reload()
+              }}
             />
           </DialogContent>
         </Dialog>
@@ -103,12 +106,15 @@ export default function EventsPage() {
                         </DialogTrigger>
                         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Modifier l'événement</DialogTitle>
+                            <DialogTitle>Modifier l&apos;événement</DialogTitle>
                           </DialogHeader>
                           <EventForm
                             persons={persons}
                             event={ev}
-                            onSuccess={() => { setEditEvent(null); load() }}
+                            onSuccess={() => {
+                              setEditEvent(null)
+                              location.reload()
+                            }}
                           />
                         </DialogContent>
                       </Dialog>

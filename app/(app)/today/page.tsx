@@ -12,7 +12,7 @@ import { TodayStatus } from "@/components/dashboard/TodayStatus"
 import { NextAvailableSlot } from "@/components/dashboard/NextAvailableSlot"
 import { UpcomingTransitions } from "@/components/dashboard/UpcomingTransitions"
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents"
-import { subDays, addDays, startOfToday, parseISO } from "date-fns"
+import { subDays, addDays, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person } from "@/lib/types"
 
 export default async function TodayPage() {

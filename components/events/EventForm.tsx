@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
 import { Upload, X } from "lucide-react"
+import { datetimeLocalToUTC } from "@/lib/utils"
 
 interface EventFormProps {
   persons: Person[]
@@ -73,6 +74,17 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
+
+    // Convert datetime-local values to UTC
+    const startAt = formData.get("start_at")
+    const endAt = formData.get("end_at")
+
+    if (startAt && typeof startAt === "string" && startAt.includes("T") && !startAt.includes("Z")) {
+      formData.set("start_at", datetimeLocalToUTC(startAt))
+    }
+    if (endAt && typeof endAt === "string" && endAt.includes("T") && !endAt.includes("Z")) {
+      formData.set("end_at", datetimeLocalToUTC(endAt))
+    }
 
     startTransition(async () => {
       try {

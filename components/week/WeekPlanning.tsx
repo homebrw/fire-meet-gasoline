@@ -15,7 +15,7 @@ import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus, Home } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -72,12 +72,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
       short: "✓",
       color: "#22c55e",
       check: (s) => s.bothAvailable,
-    },
-    {
-      label: "Changement",
-      short: "↔",
-      color: "#f97316",
-      check: (s) => s.hasTransition,
     },
   ]
 
@@ -185,26 +179,35 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
               <td className="px-1 md:px-3 py-2 w-8 md:w-28">
                 <div className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full flex-shrink-0" style={{backgroundColor: 'var(--color-transition)'}} />
-                  <span className="font-bold text-[10px] md:hidden text-[var(--color-muted-foreground)]">↔</span>
+                  <span className="font-bold text-[10px] md:hidden text-[var(--color-muted-foreground)]">Ch</span>
                   <span className="text-xs font-medium hidden md:inline text-[var(--color-muted-foreground)]">Changements</span>
                 </div>
               </td>
               {dayKeys.map((key) => {
                 const state = dayStates[key]
-                const hasTransition = state?.custodyTransitions.length ?? 0 > 0
+                const transitions = state?.custodyTransitions ?? []
                 return (
                   <td key={key} className="px-1 py-2 text-center">
-                    {hasTransition ? (
+                    {transitions.length > 0 ? (
                       <button
                         type="button"
                         onClick={() => handleTransitionClick(key)}
-                        className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center cursor-pointer"
+                        className="mx-auto flex gap-1 items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                         title="Afficher les changements de garde"
                       >
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{backgroundColor: 'var(--color-transition)'}}
-                        />
+                        {transitions.map((transition) => {
+                          const person = persons.find((p) => p.id === transition.person_id)
+                          const isPickup = transition.direction === "pickup"
+                          const Icon = isPickup ? ArrowUp : ArrowDown
+                          return (
+                            <Icon
+                              key={`${transition.id}-${transition.direction}`}
+                              className="h-3.5 w-3.5"
+                              style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
+                              strokeWidth={2.5}
+                            />
+                          )
+                        })}
                       </button>
                     ) : (
                       <div className="mx-auto h-6 w-6" />
@@ -255,6 +258,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
           state={dayStates[selectedDate]}
           damien={damien}
           ma={ma}
+          persons={persons}
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
         />
@@ -287,6 +291,7 @@ interface TransitionDetailSheetProps {
   state: DayState | undefined
   damien: Person | undefined
   ma: Person | undefined
+  persons: Person[]
   open: boolean
   onClose: () => void
 }
@@ -296,6 +301,7 @@ function TransitionDetailSheet({
   state,
   damien,
   ma,
+  persons,
   open,
   onClose,
 }: TransitionDetailSheetProps) {
@@ -304,6 +310,7 @@ function TransitionDetailSheet({
   const person2 = ma
   const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
   const config = state ? stateConfig[state.displayState] : null
+  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   if (!state) return null
 
@@ -322,15 +329,38 @@ function TransitionDetailSheet({
           <div className="mt-4 space-y-3">
             <p className="text-sm font-semibold">Changements de garde</p>
             <ul className="space-y-2">
-              {state.custodyTransitions.map((t) => (
-                <li key={t.id} className="flex items-center gap-2 text-sm rounded-lg p-3" style={{backgroundColor: 'var(--color-transition-light)'}}>
-                  <span className="h-2 w-2 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} />
-                  <span>
-                    <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span> — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
-                    {t.location && ` (${t.location})`}
-                  </span>
-                </li>
-              ))}
+              {state.custodyTransitions.map((t) => {
+                const person = personById[t.person_id]
+                const isPickup = t.direction === "pickup"
+                const Icon = isPickup ? ArrowUp : ArrowDown
+                return (
+                  <li key={t.id} className="flex items-start gap-3 text-sm rounded-lg p-3 border" style={{borderColor: person?.color ?? "var(--color-border)", backgroundColor: person?.color ? person.color + "10" : "transparent"}}>
+                    <div className="flex items-center justify-center flex-shrink-0">
+                      <Icon
+                        className="h-4 w-4"
+                        style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
+                        strokeWidth={2.5}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: person?.color ?? "var(--color-muted-foreground)" }}
+                        />
+                        <span className="font-semibold">{person?.name ?? "?"}</span>
+                        <span className="text-xs text-[var(--color-muted-foreground)]">
+                          {isPickup ? "Récupération" : "Dépose"}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                        <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span>
+                        {t.location && <span> — {t.location}</span>}
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useRef } from "react"
+import { useState, useTransition, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants, deleteEvent } from "@/lib/actions/events"
@@ -29,6 +29,7 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [participants, setParticipants] = useState<string[]>([])
+  const [defaultParticipants, setDefaultParticipants] = useState<string[] | null>(event ? null : [])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadProgress, setUploadProgress] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -37,6 +38,15 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
 
   const parentPersons = persons.filter((p) => !p.is_child)
   const childPersons = persons.filter((p) => p.is_child)
+
+  useEffect(() => {
+    if (!event) return
+    getEventParticipants(event.id).then((existing) => {
+      const ids = existing.map((p) => p.person_id)
+      setDefaultParticipants(ids)
+      setParticipants(ids)
+    })
+  }, [event])
 
   // Set default start_at to initialDate or event start_at
   const defaultStartAt = event?.start_at ? formatDatetimeLocal(event.start_at) : (initialDate ? format(new Date(initialDate + "T09:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
@@ -261,11 +271,14 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       <div className="space-y-2 border-t pt-4">
         <Label htmlFor="participants">Participants</Label>
         <div id="participants">
-          <ParticipantsSelector
-            parents={parentPersons}
-            childPersonList={childPersons}
-            onChange={setParticipants}
-          />
+          {defaultParticipants !== null && (
+            <ParticipantsSelector
+              parents={parentPersons}
+              childPersonList={childPersons}
+              defaultParticipants={defaultParticipants}
+              onChange={setParticipants}
+            />
+          )}
         </div>
       </div>
 

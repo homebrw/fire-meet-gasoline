@@ -25,10 +25,10 @@ import { EventForm } from "@/components/events/EventForm"
 
 type EventParticipantData = {
   person_id: string
-  persons?: Array<{
+  persons?: {
     name: string
     color: string
-  }>
+  }
 }
 
 function EventsPageContent() {
@@ -63,7 +63,7 @@ function EventsPageContent() {
           .from("event_participants")
           .select("person_id, persons(name, color)")
           .eq("event_id", ev.id)
-        participantsMap[ev.id] = parts || []
+        participantsMap[ev.id] = (parts || []) as unknown as EventParticipantData[]
       }
       setParticipants(participantsMap)
     }
@@ -180,9 +180,9 @@ function EventsPageContent() {
                         <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
                           <div
                             className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
+                            style={{ backgroundColor: p.persons?.color || "#6b7280" }}
                           />
-                          <span>{p.persons?.[0]?.name || "?"}</span>
+                          <span>{p.persons?.name || "?"}</span>
                         </div>
                       ))}
                     </div>

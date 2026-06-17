@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/sheet"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
 import { Button } from "@/components/ui/button"
+import { useEventsParticipants } from "@/lib/hooks/useEventParticipants"
+import { ParticipantBadge } from "@/components/events/ParticipantBadge"
 
 interface DayEventsModalProps {
   dateKey: string
@@ -29,6 +31,7 @@ export function DayEventsModal({
   onClose,
 }: DayEventsModalProps) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const participants = useEventsParticipants(events.map((e) => e.id))
   const date = parseISO(dateKey + "T12:00:00")
 
   return (
@@ -67,6 +70,17 @@ export function DayEventsModal({
                           )}
                           {event.location && <div>📍 {event.location}</div>}
                         </div>
+                        {participants[event.id] && participants[event.id].length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {participants[event.id].map((p) => (
+                              <ParticipantBadge
+                                key={p.person_id}
+                                name={p.persons?.name ?? ""}
+                                color={p.persons?.color ?? ""}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </Button>
                   </li>

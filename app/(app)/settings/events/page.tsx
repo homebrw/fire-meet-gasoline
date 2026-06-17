@@ -22,14 +22,8 @@ import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { EventForm } from "@/components/events/EventForm"
-
-type EventParticipantData = {
-  person_id: string
-  persons?: {
-    name: string
-    color: string
-  }
-}
+import { useEventsParticipants } from "@/lib/hooks/useEventParticipants"
+import { ParticipantBadge } from "@/components/events/ParticipantBadge"
 
 function EventsPageContent() {
   const searchParams = useSearchParams()
@@ -38,10 +32,10 @@ function EventsPageContent() {
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
-  const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
   const [createOpen, setCreateOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
+  const participants = useEventsParticipants(events.map((ev) => ev.id))
 
   useEffect(() => {
     async function load() {
@@ -55,17 +49,6 @@ function EventsPageContent() {
 
       setEvents(eventsData)
       setPersons(personsData)
-
-      // Load participants for each event
-      const participantsMap: Record<string, EventParticipantData[]> = {}
-      for (const ev of eventsData) {
-        const { data: parts } = await supabase
-          .from("event_participants")
-          .select("person_id, persons(name, color)")
-          .eq("event_id", ev.id)
-        participantsMap[ev.id] = (parts || []) as unknown as EventParticipantData[]
-      }
-      setParticipants(participantsMap)
     }
     load()
   }, [])
@@ -176,14 +159,12 @@ function EventsPageContent() {
                   </div>
                   {participants[ev.id] && participants[ev.id].length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {participants[ev.id].map((p: EventParticipantData) => (
-                        <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: p.persons?.color || "#6b7280" }}
-                          />
-                          <span>{p.persons?.name || "?"}</span>
-                        </div>
+                      {participants[ev.id].map((p) => (
+                        <ParticipantBadge
+                          key={p.person_id}
+                          name={p.persons?.name ?? ""}
+                          color={p.persons?.color ?? ""}
+                        />
                       ))}
                     </div>
                   )}

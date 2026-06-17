@@ -1,21 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useState } from "react"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarDays } from "lucide-react"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
-
-type ParticipantData = {
-  person_id: string
-  persons?: Array<{
-    name: string
-    color: string
-  }>
-}
+import { useEventsParticipants } from "@/lib/hooks/useEventParticipants"
+import { ParticipantBadge } from "@/components/events/ParticipantBadge"
 
 interface UpcomingEventsProps {
   events: CalendarEvent[]
@@ -24,25 +17,7 @@ interface UpcomingEventsProps {
 
 export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const [participants, setParticipants] = useState<Record<string, ParticipantData[]>>({})
-
-  useEffect(() => {
-    async function loadParticipants() {
-      const supabase = createClient()
-      const participantsMap: Record<string, ParticipantData[]> = {}
-      for (const event of events) {
-        const { data: parts } = await supabase
-          .from("event_participants")
-          .select("person_id, persons(name, color)")
-          .eq("event_id", event.id)
-        participantsMap[event.id] = parts || []
-      }
-      setParticipants(participantsMap)
-    }
-    if (events.length > 0) {
-      loadParticipants()
-    }
-  }, [events])
+  const participants = useEventsParticipants(events.map((e) => e.id))
 
   return (
     <Card>
@@ -85,18 +60,14 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
                     <p className="text-xs text-[var(--color-muted-foreground)]">📍 {ev.location}</p>
                   )}
                   {eventParticipants.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div className="flex flex-wrap gap-2 pt-1">
                       {eventParticipants.map((p) => (
-                        <div
+                        <ParticipantBadge
                           key={p.person_id}
-                          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800"
-                        >
-                          <div
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
-                          />
-                          <span className="text-gray-700 dark:text-gray-300">{p.persons?.[0]?.name || "?"}</span>
-                        </div>
+                          name={p.persons?.name ?? ""}
+                          color={p.persons?.color ?? ""}
+                          size="sm"
+                        />
                       ))}
                     </div>
                   )}

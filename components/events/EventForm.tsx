@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
 import { Upload, X } from "lucide-react"
-import { datetimeLocalToUTC } from "@/lib/utils"
+import { datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
 
 interface EventFormProps {
   persons: Person[]
@@ -25,7 +25,7 @@ interface EventFormProps {
 export function EventForm({ persons, event, initialDate, onSuccess }: EventFormProps) {
   const [ownerPersonId, setOwnerPersonId] = useState<string>(event?.owner_person_id ?? "")
   const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
-  const [allDayDate, setAllDayDate] = useState<string>(initialDate || event?.start_at?.slice(0, 10) || format(new Date(), "yyyy-MM-dd"))
+  const [allDayDate, setAllDayDate] = useState<string>(initialDate || (event?.start_at ? formatDatetimeLocal(event.start_at).slice(0, 10) : format(new Date(), "yyyy-MM-dd")))
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [participants, setParticipants] = useState<string[]>([])
@@ -37,8 +37,8 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
   const childPersons = persons.filter((p) => p.is_child)
 
   // Set default start_at to initialDate or event start_at
-  const defaultStartAt = event?.start_at?.slice(0, 16) || (initialDate ? format(new Date(initialDate + "T09:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
-  const defaultEndAt = event?.end_at?.slice(0, 16) || (initialDate ? format(new Date(initialDate + "T10:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
+  const defaultStartAt = event?.start_at ? formatDatetimeLocal(event.start_at) : (initialDate ? format(new Date(initialDate + "T09:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
+  const defaultEndAt = event?.end_at ? formatDatetimeLocal(event.end_at) : (initialDate ? format(new Date(initialDate + "T10:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
 
   async function uploadFiles(eventId: string, personId: string) {
     if (selectedFiles.length === 0) return
@@ -193,8 +193,8 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
               onChange={(e) => setAllDayDate(e.target.value)}
               required
             />
-            <input type="hidden" name="start_at" value={`${allDayDate}T00:00:00`} />
-            <input type="hidden" name="end_at" value={`${allDayDate}T23:59:59`} />
+            <input type="hidden" name="start_at" value={datetimeLocalToUTC(`${allDayDate}T00:00:00`)} />
+            <input type="hidden" name="end_at" value={datetimeLocalToUTC(`${allDayDate}T23:59:59`)} />
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">

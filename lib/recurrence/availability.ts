@@ -114,6 +114,9 @@ export function computeDayStates(
 
     // Events for this day
     const dayEvents: CalendarEvent[] = []
+    let damienIndividualBlockingEvent = false
+    let maIndividualBlockingEvent = false
+    let sharedBlockingEvent = false
     let damienBlockingEvent = false
     let maBlockingEvent = false
 
@@ -129,18 +132,28 @@ export function computeDayStates(
             : clip(evStart, evEnd, dayStart, dayEnd)
 
           if (!event.owner_person_id) {
+            sharedBlockingEvent = true
             damienBlockingEvent = true
             maBlockingEvent = true
             pushTo(damien?.id, interval)
             pushTo(ma?.id, interval)
           } else {
-            if (damien && event.owner_person_id === damien.id) damienBlockingEvent = true
-            if (ma && event.owner_person_id === ma.id) maBlockingEvent = true
+            if (damien && event.owner_person_id === damien.id) {
+              damienIndividualBlockingEvent = true
+              damienBlockingEvent = true
+            }
+            if (ma && event.owner_person_id === ma.id) {
+              maIndividualBlockingEvent = true
+              maBlockingEvent = true
+            }
             pushTo(event.owner_person_id, interval)
           }
         }
       }
     }
+
+    const damienPersonallyAvailable = !damienHasChildren && !damienIndividualBlockingEvent
+    const maPersonallyAvailable = !maHasChild && !maIndividualBlockingEvent
 
     // Shared events (non-blocking, for display)
     const sharedEvents = dayEvents.filter((e) => !e.owner_person_id)
@@ -174,8 +187,9 @@ export function computeDayStates(
       hasTransition,
       damienHasChildren,
       maHasChild,
-      damienBlockingEvent,
-      maBlockingEvent,
+      damienIndividualBlockingEvent,
+      maIndividualBlockingEvent,
+      sharedBlockingEvent,
       bothAvailable,
     })
 
@@ -185,6 +199,11 @@ export function computeDayStates(
       maHasChild,
       damienBlockingEvent,
       maBlockingEvent,
+      damienIndividualBlockingEvent,
+      maIndividualBlockingEvent,
+      sharedBlockingEvent,
+      damienPersonallyAvailable,
+      maPersonallyAvailable,
       hasTransition,
       sharedEvents,
       custodyTransitions: dayTransitions,
@@ -206,25 +225,29 @@ function computeDisplayState(args: {
   hasTransition: boolean
   damienHasChildren: boolean
   maHasChild: boolean
-  damienBlockingEvent: boolean
-  maBlockingEvent: boolean
+  damienIndividualBlockingEvent: boolean
+  maIndividualBlockingEvent: boolean
+  sharedBlockingEvent: boolean
   bothAvailable: boolean
 }): DisplayState {
   const {
     damienHasChildren,
     maHasChild,
-    damienBlockingEvent,
-    maBlockingEvent,
+    damienIndividualBlockingEvent,
+    maIndividualBlockingEvent,
+    sharedBlockingEvent,
     bothAvailable,
   } = args
 
   if (bothAvailable) return "available"
+  if (sharedBlockingEvent && !damienIndividualBlockingEvent && !maIndividualBlockingEvent)
+    return "shared_event"
   if (damienHasChildren && maHasChild) return "both_kids"
   if (damienHasChildren) return "damien_kids"
   if (maHasChild) return "ma_kid"
-  if (damienBlockingEvent && maBlockingEvent) return "both_unavailable"
-  if (damienBlockingEvent) return "damien_unavailable"
-  if (maBlockingEvent) return "ma_unavailable"
+  if (damienIndividualBlockingEvent && maIndividualBlockingEvent) return "both_unavailable"
+  if (damienIndividualBlockingEvent) return "damien_unavailable"
+  if (maIndividualBlockingEvent) return "ma_unavailable"
   return "available"
 }
 

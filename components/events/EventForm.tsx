@@ -17,9 +17,10 @@ interface EventFormProps {
   event?: CalendarEvent
   initialDate?: string
   onSuccess?: () => void
+  onRevalidateNeeded?: () => Promise<void>
 }
 
-export function EventForm({ persons, event, initialDate, onSuccess }: EventFormProps) {
+export function EventForm({ persons, event, initialDate, onSuccess, onRevalidateNeeded }: EventFormProps) {
   const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
   const [allDayDate, setAllDayDate] = useState<string>(initialDate || (event?.start_at ? formatDatetimeLocal(event.start_at).slice(0, 10) : format(new Date(), "yyyy-MM-dd")))
   const [isPending, startTransition] = useTransition()
@@ -120,6 +121,7 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         }
 
         onSuccess?.()
+        await onRevalidateNeeded?.()
       } catch (err) {
         setError(err instanceof Error ? err.message : "Une erreur est survenue")
       }

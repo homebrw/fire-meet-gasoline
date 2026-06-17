@@ -1,8 +1,30 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { getISOWeek, startOfWeek, addWeeks } from "date-fns"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function getWeekString(date: Date): string {
+  const year = date.getFullYear()
+  const week = String(getISOWeek(date)).padStart(2, "0")
+  return `${year}-W${week}`
+}
+
+export function parseWeekString(weekStr: string): Date {
+  const match = weekStr.match(/^(\d{4})-W(\d{2})$/)
+  if (!match) {
+    return startOfWeek(new Date(), { weekStartsOn: 1 })
+  }
+
+  const [, yearStr, weekStr_] = match
+  const year = parseInt(yearStr)
+  const week = parseInt(weekStr_)
+
+  const jan4 = new Date(year, 0, 4)
+  const weekOneMonday = startOfWeek(jan4, { weekStartsOn: 1 })
+  return addWeeks(weekOneMonday, week - 1)
 }
 
 export function lightenColor(hex: string, percent: number = 30): string {

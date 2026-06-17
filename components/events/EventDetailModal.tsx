@@ -12,6 +12,7 @@ interface EventDetailModalProps {
   persons: Person[]
   open: boolean
   onOpenChange: (open: boolean) => void
+  onRevalidateNeeded?: () => Promise<void>
 }
 
 export function EventDetailModal({
@@ -19,6 +20,7 @@ export function EventDetailModal({
   persons,
   open,
   onOpenChange,
+  onRevalidateNeeded,
 }: EventDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false)
 
@@ -37,6 +39,7 @@ export function EventDetailModal({
                 setIsEditing(false)
                 onOpenChange(false)
               }}
+              onRevalidateNeeded={onRevalidateNeeded}
             />
           </>
         ) : (

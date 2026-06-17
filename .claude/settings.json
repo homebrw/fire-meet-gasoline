@@ -98,5 +98,11 @@
       "build/",
       "coverage/"
     ]
+  },
+  "git": {
+    "pullRequests": {
+      "autoCreate": false,
+      "description": "Do not create pull requests automatically. Only create on explicit user request."
+    }
   }
 }

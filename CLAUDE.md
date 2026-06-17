@@ -152,3 +152,12 @@ Radix UI primitives wrapped in shadcn-style components:
 - Avatar, Badge, Card, Label, Separator, TextArea
 - Sheet (mobile-friendly drawer)
 - Custom compound components in `/components/`
+
+## Git & Pull Request Policy
+
+⚠️ **IMPORTANT**: Claude should **NOT create pull requests automatically**. Only create a PR when explicitly requested by the user with commands like:
+- "Create a PR"
+- "Open a pull request"
+- "Make a PR for this"
+
+This policy conserves Vercel credits by avoiding unnecessary deployments for draft changes. Always push code to the branch, then wait for explicit user request before creating a PR.

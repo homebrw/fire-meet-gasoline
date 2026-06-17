@@ -22,7 +22,7 @@ export function ChildEditDialog({
 }: ChildEditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent closeOnOutsideClick={false}>
         <DialogHeader>
           <DialogTitle>Modifier {child.name}</DialogTitle>
         </DialogHeader>

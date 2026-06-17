@@ -18,7 +18,7 @@ export function CreateChildButton() {
       <Button onClick={() => setOpen(true)}>+ Ajouter un enfant</Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent closeOnOutsideClick={false}>
           <DialogHeader>
             <DialogTitle>Créer un enfant</DialogTitle>
           </DialogHeader>

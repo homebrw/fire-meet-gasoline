@@ -62,7 +62,7 @@ export default function CustodyPage() {
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter une garde</Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent closeOnOutsideClick={false} className="max-w-md">
                 <DialogHeader><DialogTitle>Nouvelle période de garde</DialogTitle></DialogHeader>
                 <PresenceForm
                   persons={persons}
@@ -119,7 +119,7 @@ export default function CustodyPage() {
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter un changement</Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent closeOnOutsideClick={false} className="max-w-md">
                 <DialogHeader><DialogTitle>Nouveau changement de garde</DialogTitle></DialogHeader>
                 <TransitionForm
                   persons={persons}

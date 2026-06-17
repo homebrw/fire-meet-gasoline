@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { format, parseISO, differenceInDays } from "date-fns"
@@ -113,23 +112,17 @@ export function SharedEventCard({ event, persons }: SharedEventCardProps) {
             </div>
           )}
 
-          {event.is_blocking && (
-            <Badge variant="destructive" className="text-xs w-fit">
-              Bloquant
-            </Badge>
-          )}
-
           <EventAttachmentsList eventId={event.id} />
 
-          <Button
-            onClick={() => setShowDeleteConfirm(true)}
-            variant="destructive"
-            size="sm"
-            className="w-full gap-2"
-          >
-            <Trash2 className="h-4 w-4" />
-            Supprimer l&apos;événement
-          </Button>
+          <div className="flex justify-end pt-2 border-t">
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-xs text-[var(--color-muted-foreground)] hover:text-red-600 dark:hover:text-red-400 transition"
+              aria-label="Supprimer l'événement"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </CardContent>
       </Card>
 

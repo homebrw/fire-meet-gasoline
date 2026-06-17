@@ -25,11 +25,9 @@ import { Plus, ArrowUp, ArrowDown } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { EventDetailCard } from "@/components/events/EventDetailCard"
+import { EventCard } from "@/components/events/EventCard"
 import { EventForm } from "@/components/events/EventForm"
-import { EventDetailModal } from "@/components/events/EventDetailModal"
 import { AvailabilityWindowsList } from "@/components/shared/AvailabilityDetailSheet"
-import type { CalendarEvent } from "@/lib/types"
 
 interface DayDetailSheetProps {
   dateKey: string
@@ -44,7 +42,6 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
   const date = parseISO(dateKey + "T12:00:00")
   const [person1, person2] = persons
   const [createEventOpen, setCreateEventOpen] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
   const config = state ? stateConfig[state.displayState] : null
 
@@ -168,17 +165,13 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                   <p className="text-sm font-semibold mb-2">Événements</p>
                   <div className="space-y-3">
                     {state.sharedEvents.map((ev) => (
-                      <button
-                        key={ev.id}
-                        onClick={() => setSelectedEvent(ev)}
-                        className="w-full text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] focus:ring-offset-2 rounded"
-                      >
-                        <EventDetailCard
+                      <div key={ev.id} className="rounded-lg border p-3">
+                        <EventCard
                           event={ev}
-                          showAttachments={true}
-                          showParticipants={true}
+                          persons={persons}
+                          onRevalidateNeeded={async () => router.refresh()}
                         />
-                      </button>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -207,20 +200,6 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
         )}
       </SheetContent>
       </Sheet>
-
-      {selectedEvent && (
-        <EventDetailModal
-          event={selectedEvent}
-          persons={persons}
-          open={!!selectedEvent}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setSelectedEvent(null)
-              router.refresh()
-            }
-          }}
-        />
-      )}
     </>
   )
 }

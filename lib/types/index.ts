@@ -105,6 +105,14 @@ export type EventParticipant = {
   updated_at: string
 }
 
+export type EventParticipantWithPerson = {
+  person_id: string
+  persons?: {
+    name: string
+    color: string
+  } | null
+}
+
 export type EventAttachment = {
   id: string
   event_id: string

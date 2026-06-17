@@ -5,13 +5,9 @@ import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { format, parseISO, differenceInDays } from "date-fns"
-import { fr } from "date-fns/locale"
 import { Calendar, Trash2 } from "lucide-react"
-import { EventAttachmentsList } from "@/components/events/EventAttachmentsList"
+import { EventCard } from "@/components/events/EventCard"
 import { deleteEvent } from "@/lib/actions/events"
-import { useEventParticipants } from "@/lib/hooks/useEventParticipants"
-import { ParticipantBadge } from "@/components/events/ParticipantBadge"
 
 interface SharedEventCardProps {
   event: CalendarEvent
@@ -19,12 +15,8 @@ interface SharedEventCardProps {
 }
 
 export function SharedEventCard({ event, persons }: SharedEventCardProps) {
-  const participants = useEventParticipants(event.id)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const eventDate = parseISO(event.start_at)
-  const daysRemaining = differenceInDays(eventDate, new Date())
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -49,46 +41,7 @@ export function SharedEventCard({ event, persons }: SharedEventCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div>
-            <p className="text-sm font-medium">{event.title}</p>
-            {event.description && (
-              <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
-                {event.description}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <p className="text-xs text-[var(--color-muted-foreground)]">
-              {format(eventDate, "d MMMM HH:mm", { locale: fr })}
-              {daysRemaining >= 0 && (
-                <span className="ml-2">
-                  {daysRemaining === 0 ? "aujourd'hui" : `dans ${daysRemaining} jour${daysRemaining > 1 ? "s" : ""}`}
-                </span>
-              )}
-            </p>
-            {event.location && (
-              <p className="text-xs text-[var(--color-muted-foreground)]">
-                📍 {event.location}
-              </p>
-            )}
-          </div>
-
-          {participants.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {participants.map((p) => (
-                <ParticipantBadge
-                  key={p.person_id}
-                  name={p.persons?.name ?? ""}
-                  color={p.persons?.color ?? ""}
-                  size="sm"
-                  className="bg-white dark:bg-blue-900/40"
-                />
-              ))}
-            </div>
-          )}
-
-          <EventAttachmentsList eventId={event.id} />
+          <EventCard event={event} persons={persons} />
 
           <div className="flex justify-end pt-2 border-t">
             <button

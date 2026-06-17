@@ -1,54 +1,26 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { EventAttachment } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { FileIcon, Trash2 } from "lucide-react"
 
 interface EventAttachmentsListProps {
-  eventId: string
+  attachments: EventAttachment[]
   canDelete?: boolean
   onDelete?: (attachmentId: string, storagePath: string) => Promise<void>
 }
 
 export function EventAttachmentsList({
-  eventId,
+  attachments,
   canDelete = false,
   onDelete,
 }: EventAttachmentsListProps) {
-  const [attachments, setAttachments] = useState<EventAttachment[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadAttachments() {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase
-          .from("event_attachments")
-          .select("*")
-          .eq("event_id", eventId)
-          .order("created_at", { ascending: false })
-
-        if (error) throw error
-        setAttachments((data || []) as EventAttachment[])
-      } catch (error) {
-        console.error("Error loading attachments:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadAttachments()
-  }, [eventId])
-
   const handleDelete = async (id: string, path: string) => {
     if (!canDelete) return
     if (!confirm("Supprimer cette pièce jointe?")) return
 
     try {
       await onDelete?.(id, path)
-      setAttachments((prev) => prev.filter((a) => a.id !== id))
     } catch (error) {
       console.error("Error deleting attachment:", error)
       alert("Erreur lors de la suppression")
@@ -61,10 +33,6 @@ export function EventAttachmentsList({
       .map((segment) => encodeURIComponent(segment))
       .join("/")
     return `/api/attachments/download/${encodedPath}`
-  }
-
-  if (loading) {
-    return <div className="text-xs text-gray-500">Chargement...</div>
   }
 
   if (attachments.length === 0) {

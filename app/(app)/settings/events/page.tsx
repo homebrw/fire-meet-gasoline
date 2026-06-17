@@ -17,13 +17,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2, Eye, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, Eye, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { EventForm } from "@/components/events/EventForm"
-import { useEventsParticipants } from "@/lib/hooks/useEventParticipants"
-import { ParticipantBadge } from "@/components/events/ParticipantBadge"
+import { EventCard } from "@/components/events/EventCard"
 
 function EventsPageContent() {
   const searchParams = useSearchParams()
@@ -33,9 +30,7 @@ function EventsPageContent() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
   const [createOpen, setCreateOpen] = useState(false)
-  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
-  const participants = useEventsParticipants(events.map((ev) => ev.id))
 
   useEffect(() => {
     async function load() {
@@ -114,29 +109,6 @@ function EventsPageContent() {
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
-                      <Dialog
-                        open={editEvent?.id === ev.id}
-                        onOpenChange={(o) => !o && setEditEvent(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditEvent(ev)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Modifier l&apos;événement</DialogTitle>
-                          </DialogHeader>
-                          <EventForm
-                            persons={persons}
-                            event={ev}
-                            onSuccess={() => {
-                              setEditEvent(null)
-                              router.refresh()
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -153,21 +125,12 @@ function EventsPageContent() {
                   <div className="flex flex-wrap gap-2 text-xs">
                     {ev.is_blocking && <Badge variant="destructive">Bloquant</Badge>}
                     {!ev.allow_participants_to_see_attachments && <Badge variant="outline">PJ restreintes</Badge>}
-                    <span className="text-[var(--color-muted-foreground)]">
-                      {format(parseISO(ev.start_at), "d MMM HH:mm", { locale: fr })}
-                    </span>
                   </div>
-                  {participants[ev.id] && participants[ev.id].length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {participants[ev.id].map((p) => (
-                        <ParticipantBadge
-                          key={p.person_id}
-                          name={p.persons?.name ?? ""}
-                          color={p.persons?.color ?? ""}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <EventCard
+                    event={ev}
+                    persons={persons}
+                    onRevalidateNeeded={async () => router.refresh()}
+                  />
                 </CardContent>
               </Card>
             )

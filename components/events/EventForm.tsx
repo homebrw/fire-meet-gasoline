@@ -23,7 +23,7 @@ interface EventFormProps {
 }
 
 export function EventForm({ persons, event, initialDate, onSuccess }: EventFormProps) {
-  const [eventType, setEventType] = useState<string>(event?.type ?? "shared")
+  const [ownerPersonId, setOwnerPersonId] = useState<string>(event?.owner_person_id ?? "")
   const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
   const [allDayDate, setAllDayDate] = useState<string>(initialDate || event?.start_at?.slice(0, 10) || format(new Date(), "yyyy-MM-dd"))
   const [isPending, startTransition] = useTransition()
@@ -152,29 +152,17 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="type-trigger">Type</Label>
-        <Select name="type" value={eventType} onValueChange={setEventType}>
-          <SelectTrigger id="type-trigger"><SelectValue /></SelectTrigger>
+        <Label htmlFor="person-trigger">Personne (optionnel - laisser vide pour un événement commun)</Label>
+        <Select name="owner_person_id" value={ownerPersonId} onValueChange={setOwnerPersonId}>
+          <SelectTrigger id="person-trigger"><SelectValue placeholder="Choisir une personne ou laisser vide" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="shared">Commun</SelectItem>
-            <SelectItem value="individual">Individuel</SelectItem>
+            <SelectItem value="">Événement commun</SelectItem>
+            {persons.map((p) => (
+              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
-
-      {eventType === "individual" && (
-        <div className="space-y-2">
-          <Label htmlFor="person-trigger">Personne</Label>
-          <Select name="owner_person_id" defaultValue={event?.owner_person_id ?? ""}>
-            <SelectTrigger id="person-trigger"><SelectValue placeholder="Choisir" /></SelectTrigger>
-            <SelectContent>
-              {persons.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       <input type="hidden" name="created_by" value={persons[0]?.id ?? ""} />
 
@@ -263,7 +251,7 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         </label>
       </div>
 
-      {eventType === "individual" && (
+      {ownerPersonId && (
         <div className="space-y-2">
           <Label htmlFor="visibility-trigger">Visibilité</Label>
           <Select name="visibility" defaultValue={event?.visibility ?? "both"}>

@@ -5,6 +5,7 @@ import { TodayStatus } from "./TodayStatus"
 import { NextAvailableSlot } from "./NextAvailableSlot"
 import { UpcomingTransitions } from "./UpcomingTransitions"
 import { UpcomingEvents } from "./UpcomingEvents"
+import { SharedEventCard } from "./SharedEventCard"
 import { EmptyState } from "@/components/state/EmptyState"
 import { CalendarDays } from "lucide-react"
 
@@ -15,6 +16,7 @@ interface DashboardContentProps {
   nextSlot: DayState | null
   upcomingTransitions: CustodyTransition[]
   upcomingEvents: CalendarEvent[]
+  sharedEventsBefore: CalendarEvent[]
   persons: Person[]
 }
 
@@ -25,6 +27,7 @@ export function DashboardContent({
   nextSlot,
   upcomingTransitions,
   upcomingEvents,
+  sharedEventsBefore,
   persons,
 }: DashboardContentProps) {
   const hasData = damien && ma
@@ -46,6 +49,13 @@ export function DashboardContent({
       ) : (
         <>
           <TodayStatus state={todayState} damien={damien} ma={ma} />
+          {sharedEventsBefore.length > 0 && (
+            <div className="space-y-4">
+              {sharedEventsBefore.map((event) => (
+                <SharedEventCard key={event.id} event={event} persons={persons} />
+              ))}
+            </div>
+          )}
           <NextAvailableSlot slot={nextSlot} />
           <div className="grid gap-4 sm:grid-cols-2">
             <UpcomingTransitions transitions={upcomingTransitions} persons={persons} />

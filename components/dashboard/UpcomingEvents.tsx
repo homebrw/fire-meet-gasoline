@@ -1,9 +1,13 @@
+"use client"
+
+import { useState } from "react"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarDays } from "lucide-react"
+import { EventDetailModal } from "@/components/events/EventDetailModal"
 
 interface UpcomingEventsProps {
   events: CalendarEvent[]
@@ -11,6 +15,7 @@ interface UpcomingEventsProps {
 }
 
 export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   return (
@@ -31,10 +36,14 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
             {events.map((ev) => {
               const owner = ev.owner_person_id ? personById[ev.owner_person_id] : null
               return (
-                <li key={ev.id} className="space-y-1">
+                <button
+                  key={ev.id}
+                  onClick={() => setSelectedEvent(ev)}
+                  className="w-full text-left space-y-1 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition"
+                >
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{ev.title}</span>
-                    {ev.type === "shared" ? (
+                    {!ev.owner_person_id ? (
                       <Badge variant="secondary" className="text-xs">Commun</Badge>
                     ) : (
                       <Badge
@@ -58,10 +67,20 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
                   {ev.location && (
                     <p className="text-xs text-[var(--color-muted-foreground)]">📍 {ev.location}</p>
                   )}
-                </li>
+                </button>
               )
             })}
           </ul>
+        )}
+        {selectedEvent && (
+          <EventDetailModal
+            event={selectedEvent}
+            persons={persons}
+            open={!!selectedEvent}
+            onOpenChange={(open) => {
+              if (!open) setSelectedEvent(null)
+            }}
+          />
         )}
       </CardContent>
     </Card>

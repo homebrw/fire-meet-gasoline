@@ -77,7 +77,6 @@ export type CustodyTransition = {
   updated_at: string
 }
 
-export type EventType = "shared" | "individual"
 export type EventVisibility = "both" | "private"
 
 export type CalendarEvent = {
@@ -87,7 +86,6 @@ export type CalendarEvent = {
   start_at: string
   end_at: string
   location: string | null
-  type: EventType
   owner_person_id: string | null
   created_by: string
   is_blocking: boolean
@@ -150,6 +148,10 @@ export type DayState = {
   custodyTransitions: CustodyTransition[]
   bothAvailable: boolean
   displayState: DisplayState
+  damienAvailableFrom: string | null    // 'HH:MM' or null if fully unavailable/fully available
+  damienAvailableUntil: string | null   // 'HH:MM' or null if fully unavailable/fully available
+  maAvailableFrom: string | null        // 'HH:MM' or null if fully unavailable/fully available
+  maAvailableUntil: string | null       // 'HH:MM' or null if fully unavailable/fully available
 }
 
 // ─── Form Schemas (used in forms) ─────────────────────────────────────────────
@@ -173,7 +175,6 @@ export type EventFormData = {
   start_at: string
   end_at: string
   location?: string
-  type: EventType
   owner_person_id?: string
   is_blocking: boolean
   is_all_day: boolean

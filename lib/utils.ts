@@ -19,9 +19,7 @@ export function datetimeLocalToUTC(datetimeLocal: string): string {
   const [hours, minutes] = timePart.split(":").map(Number)
 
   const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
-  const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000)
-
-  return utcDate.toISOString()
+  return localDate.toISOString()
 }
 
 export function formatDatetimeLocal(isoString: string): string {

@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-56 min-h-screen border-r border-[var(--color-border)] bg-[var(--color-background)] p-4">
       <div className="flex items-center gap-2 mb-8 px-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-pink-500">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-transition)]">
           <Heart className="h-4 w-4 text-white" />
         </div>
         <span className="font-semibold">Famille Sync</span>

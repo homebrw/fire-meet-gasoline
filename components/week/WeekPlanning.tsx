@@ -133,36 +133,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--color-muted-foreground)]">
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: damien?.color ?? "#3b82f6" }} />
-          {damien?.name ?? "Damien"}
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: ma?.color ?? "#ec4899" }} />
-          {ma?.name ?? "Personne 2"}
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "var(--color-available)" }} />
-          Disponible
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm flex items-center justify-center" style={{ backgroundColor: "var(--color-available)" + "30" }}>
-            <CircleDashed className="h-2 w-2" style={{ color: "var(--color-available)" }} strokeWidth={3} />
-          </span>
-          Dispo partielle
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "var(--color-transition)" }} />
-          Changements
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 rounded-sm" style={{ backgroundColor: "var(--color-event)" }} />
-          Événements
-        </span>
-      </div>
-
       {/* Table */}
       <div className="overflow-x-auto -mx-4 md:mx-0">
         <table className="w-full text-sm">

@@ -50,6 +50,7 @@
   --color-ring: #18181b;
 }
 
+html.dark,
 @media (prefers-color-scheme: dark) {
   @theme inline {
     --color-background: #09090b;

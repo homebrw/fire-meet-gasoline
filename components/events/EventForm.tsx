@@ -213,7 +213,15 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <div
+          className="p-3 rounded-md bg-red-50 dark:bg-red-950/30 border border-[var(--color-destructive)]"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-sm text-[var(--color-destructive)] font-medium">{error}</p>
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Enregistrement…" : event ? "Modifier" : "Créer l'événement"}

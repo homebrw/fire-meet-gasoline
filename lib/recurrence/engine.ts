@@ -61,27 +61,32 @@ function expandWeeklyAlternating(
   const windowStart = from < ruleStart ? ruleStart : from
   const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
-  // La garde commence au 1er lundi (a) >= starts_at et (b) dans une semaine de
-  // la bonne parité — « le prochain lundi impair ».
-  const mondayOfRuleStart = startOfWeek(ruleStart, { weekStartsOn: 1 })
-  let firstMonday =
-    mondayOfRuleStart >= startOfDay(ruleStart)
-      ? mondayOfRuleStart
-      : addDays(mondayOfRuleStart, 7)
-  while (!weekParityMatches(firstMonday, rule.week_parity)) {
-    firstMonday = addDays(firstMonday, 7)
+  // handoff_day : 0 = lundi … 6 = dimanche (même convention que custom_cycle).
+  // date-fns weekStartsOn utilise 0 = dimanche, d'où la conversion.
+  const handoffDay = rule.handoff_day ?? 0
+  const weekStartsOn = (((handoffDay + 1) % 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+
+  // La garde commence au 1er jour de passation >= starts_at et dans une
+  // semaine de la bonne parité — « le prochain jour de passation impair ».
+  const handoffOfRuleStart = startOfWeek(ruleStart, { weekStartsOn })
+  let firstHandoff =
+    handoffOfRuleStart >= startOfDay(ruleStart)
+      ? handoffOfRuleStart
+      : addDays(handoffOfRuleStart, 7)
+  while (!weekParityMatches(firstHandoff, rule.week_parity)) {
+    firstHandoff = addDays(firstHandoff, 7)
   }
 
   // Démarrer une semaine avant la fenêtre pour capturer une période déjà en
-  // cours (ex. handoff du lundi matin), sans jamais précéder firstMonday.
-  let monday = addDays(startOfWeek(windowStart, { weekStartsOn: 1 }), -7)
-  if (monday < firstMonday) monday = firstMonday
+  // cours (ex. handoff du matin), sans jamais précéder firstHandoff.
+  let handoff = addDays(startOfWeek(windowStart, { weekStartsOn }), -7)
+  if (handoff < firstHandoff) handoff = firstHandoff
 
   const periods: GeneratedPeriod[] = []
-  while (monday <= windowEnd) {
-    if (monday >= firstMonday && weekParityMatches(monday, rule.week_parity)) {
-      const start_at = applyTime(monday, rule.custody_start_time)
-      const end_at = applyTime(addDays(monday, 7), rule.custody_end_time) // lundi suivant
+  while (handoff <= windowEnd) {
+    if (handoff >= firstHandoff && weekParityMatches(handoff, rule.week_parity)) {
+      const start_at = applyTime(handoff, rule.custody_start_time)
+      const end_at = applyTime(addDays(handoff, 7), rule.custody_end_time) // jour de passation suivant
       if (end_at > windowStart) {
         periods.push({
           person_id: rule.person_id,
@@ -93,7 +98,7 @@ function expandWeeklyAlternating(
         })
       }
     }
-    monday = addDays(monday, 7)
+    handoff = addDays(handoff, 7)
   }
 
   return applyExceptions(periods, exceptions, rule.id)

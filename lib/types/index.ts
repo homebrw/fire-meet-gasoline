@@ -24,6 +24,7 @@ export type RecurrenceRule = {
   custody_start_time: string  // 'HH:MM'
   custody_end_time: string    // 'HH:MM'
   week_parity: "even" | "odd" | null
+  handoff_day: number | null   // 0 = lundi … 6 = dimanche (weekly_alternating)
   cycle_length_days: number | null
   custody_days: number[] | null   // day indices within the cycle
   handoff_location: string | null

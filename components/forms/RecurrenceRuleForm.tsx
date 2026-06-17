@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn, datetimeLocalToUTC } from "@/lib/utils"
 
+const FULL_DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+
 interface RecurrenceRuleFormProps {
   persons: Person[]
   rule?: RecurrenceRule
@@ -26,6 +28,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
     new Set(rule?.custody_days ?? [])
   )
   const [startsAt, setStartsAt] = useState(rule?.starts_at ? rule.starts_at.slice(0, 10) : "")
+  const [handoffDay, setHandoffDay] = useState(String(rule?.handoff_day ?? 0))
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -174,18 +177,34 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
       {/* weekly_alternating */}
       {patternType === "weekly_alternating" && (
-        <div className="space-y-2">
-          <Label htmlFor="week_parity">Parité de la semaine ISO</Label>
-          <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
-            <SelectTrigger id="week_parity"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="odd">Semaines impaires</SelectItem>
-              <SelectItem value="even">Semaines paires</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-[var(--color-muted-foreground)]">
-            Semaines ISO : lundi = jour 1. La parité se calcule d&apos;après le numéro de semaine ISO.
-          </p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="handoff_day">Jour de passation</Label>
+            <Select name="handoff_day" value={handoffDay} onValueChange={setHandoffDay} required>
+              <SelectTrigger id="handoff_day"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {FULL_DAY_NAMES.map((name, i) => (
+                  <SelectItem key={i} value={String(i)}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[var(--color-muted-foreground)]">
+              La garde change de personne chaque semaine ce jour-là, à l&apos;heure de début de garde ci-dessus.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="week_parity">Parité de la semaine ISO</Label>
+            <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
+              <SelectTrigger id="week_parity"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="odd">Semaines impaires</SelectItem>
+                <SelectItem value="even">Semaines paires</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[var(--color-muted-foreground)]">
+              Semaines ISO : la parité se calcule d&apos;après le numéro de semaine ISO de la semaine du jour de passation.
+            </p>
+          </div>
         </div>
       )}
 

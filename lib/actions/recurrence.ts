@@ -14,6 +14,7 @@ const ruleSchema = z.object({
   custody_start_time: z.string().default("18:00"),
   custody_end_time: z.string().default("18:00"),
   week_parity: z.enum(["even", "odd"]).nullable().optional(),
+  handoff_day: z.coerce.number().int().min(0).max(6).nullable().optional(),
   cycle_length_days: z.coerce.number().int().positive().nullable().optional(),
   custody_days: z.array(z.number()).nullable().optional(),
   handoff_location: z.string().nullable().optional(),

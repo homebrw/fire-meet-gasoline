@@ -98,7 +98,7 @@ export default function RulesPage() {
                     <div className="flex items-center gap-2">
                       <span
                         className="h-3 w-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: person?.color ?? "#888" }}
+                        style={{ backgroundColor: person?.color ?? 'var(--color-muted)' }}
                       />
                       {rule.name}
                     </div>

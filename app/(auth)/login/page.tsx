@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Heart } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -34,12 +33,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-pink-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-background)] p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-pink-500">
-            <Heart className="h-6 w-6 text-white" />
-          </div>
           <CardTitle className="text-2xl">Famille Sync</CardTitle>
           <CardDescription>Connectez-vous pour accéder à votre planning</CardDescription>
         </CardHeader>
@@ -69,7 +65,7 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-[var(--color-destructive)]">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Connexion…" : "Se connecter"}

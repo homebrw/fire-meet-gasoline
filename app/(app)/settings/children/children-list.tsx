@@ -9,41 +9,76 @@ export function ChildrenList() {
   const [children, setChildren] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
 
+  const loadChildren = async () => {
+    try {
+      const supabase = await createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data: parent } = await supabase
+        .from("persons")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .single()
+
+      if (!parent) return
+
+      const { data: childrenData } = await supabase
+        .from("persons")
+        .select("*")
+        .eq("parent_id", parent.id)
+        .order("name")
+
+      if (childrenData) {
+        setChildren(childrenData)
+      }
+    } catch (error) {
+      console.error("Error loading children:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    async function loadChildren() {
+    ;(async () => {
+      await loadChildren()
+    })()
+  }, [])
+
+  useEffect(() => {
+    const subscriptionRef = { current: null as unknown }
+
+    const setupSubscription = async () => {
       try {
         const supabase = await createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) return
-
-        const { data: parent } = await supabase
-          .from("persons")
-          .select("id")
-          .eq("auth_user_id", user.id)
-          .single()
-
-        if (!parent) return
-
-        const { data: childrenData } = await supabase
-          .from("persons")
-          .select("*")
-          .eq("parent_id", parent.id)
-          .order("name")
-
-        if (childrenData) {
-          setChildren(childrenData)
-        }
+        subscriptionRef.current = supabase
+          .channel("persons_changes")
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "persons",
+            },
+            () => {
+              loadChildren()
+            }
+          )
+          .subscribe()
       } catch (error) {
-        console.error("Error loading children:", error)
-      } finally {
-        setLoading(false)
+        console.error("Error setting up subscription:", error)
       }
     }
 
-    loadChildren()
+    setupSubscription()
+
+    return () => {
+      const sub = subscriptionRef.current as { unsubscribe?: () => void }
+      sub?.unsubscribe?.()
+    }
   }, [])
 
   if (loading) {

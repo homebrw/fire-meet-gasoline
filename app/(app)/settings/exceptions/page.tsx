@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
+import { datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
 
 const TYPE_LABELS: Record<string, string> = {
   cancel: "Annulation",
@@ -205,6 +206,20 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
     setError(null)
     const formData = new FormData(e.currentTarget)
 
+    // Convert datetime-local values to UTC
+    const originalStartAt = formData.get("original_start_at")
+    if (originalStartAt && typeof originalStartAt === "string" && originalStartAt && !originalStartAt.includes("Z")) {
+      formData.set("original_start_at", datetimeLocalToUTC(originalStartAt))
+    }
+    const overrideStartAt = formData.get("override_start_at")
+    if (overrideStartAt && typeof overrideStartAt === "string" && overrideStartAt && !overrideStartAt.includes("Z")) {
+      formData.set("override_start_at", datetimeLocalToUTC(overrideStartAt))
+    }
+    const overrideEndAt = formData.get("override_end_at")
+    if (overrideEndAt && typeof overrideEndAt === "string" && overrideEndAt && !overrideEndAt.includes("Z")) {
+      formData.set("override_end_at", datetimeLocalToUTC(overrideEndAt))
+    }
+
     startTransition(async () => {
       try {
         if (exception) {
@@ -263,7 +278,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
           id="original_start_at"
           name="original_start_at"
           type="datetime-local"
-          defaultValue={exception?.original_start_at?.slice(0, 16) ?? ""}
+          defaultValue={exception?.original_start_at ? formatDatetimeLocal(exception.original_start_at) : ""}
         />
       </div>
 
@@ -275,7 +290,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
               id="override_start_at"
               name="override_start_at"
               type="datetime-local"
-              defaultValue={exception?.override_start_at?.slice(0, 16) ?? ""}
+              defaultValue={exception?.override_start_at ? formatDatetimeLocal(exception.override_start_at) : ""}
             />
           </div>
           <div className="space-y-2">
@@ -284,7 +299,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
               id="override_end_at"
               name="override_end_at"
               type="datetime-local"
-              defaultValue={exception?.override_end_at?.slice(0, 16) ?? ""}
+              defaultValue={exception?.override_end_at ? formatDatetimeLocal(exception.override_end_at) : ""}
             />
           </div>
         </div>

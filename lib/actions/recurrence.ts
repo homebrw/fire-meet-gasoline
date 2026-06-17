@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { generateAndPersistCustodyData, regenerateForRule } from "@/lib/recurrence/persist"
+import { datetimeLocalToUTC } from "@/lib/utils"
 
 const ruleSchema = z.object({
   person_id: z.string().uuid(),
@@ -103,6 +104,21 @@ const exceptionSchema = z.object({
 export async function createRecurrenceException(formData: FormData) {
   const supabase = await createClient()
   const data = exceptionSchema.parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.original_start_at && !data.original_start_at.includes("Z")) {
+    data.original_start_at = datetimeLocalToUTC(data.original_start_at)
+  }
+  if (data.original_end_at && !data.original_end_at.includes("Z")) {
+    data.original_end_at = datetimeLocalToUTC(data.original_end_at)
+  }
+  if (data.override_start_at && !data.override_start_at.includes("Z")) {
+    data.override_start_at = datetimeLocalToUTC(data.override_start_at)
+  }
+  if (data.override_end_at && !data.override_end_at.includes("Z")) {
+    data.override_end_at = datetimeLocalToUTC(data.override_end_at)
+  }
+
   const { error } = await supabase.from("recurrence_exceptions").insert(data)
   if (error) throw new Error(error.message)
 
@@ -119,6 +135,20 @@ export async function createRecurrenceException(formData: FormData) {
 export async function updateRecurrenceException(id: string, formData: FormData) {
   const supabase = await createClient()
   const data = exceptionSchema.partial().parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.original_start_at && !data.original_start_at.includes("Z")) {
+    data.original_start_at = datetimeLocalToUTC(data.original_start_at)
+  }
+  if (data.original_end_at && !data.original_end_at.includes("Z")) {
+    data.original_end_at = datetimeLocalToUTC(data.original_end_at)
+  }
+  if (data.override_start_at && !data.override_start_at.includes("Z")) {
+    data.override_start_at = datetimeLocalToUTC(data.override_start_at)
+  }
+  if (data.override_end_at && !data.override_end_at.includes("Z")) {
+    data.override_end_at = datetimeLocalToUTC(data.override_end_at)
+  }
 
   // Fetch the exception to get the rule_id
   const { data: exception, error: fetchError } = await supabase

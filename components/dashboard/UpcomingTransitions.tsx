@@ -45,6 +45,11 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
                     <p className="text-xs text-[var(--color-muted-foreground)]">
                       {format(parseISO(t.transition_at), "EEEE d MMMM à HH:mm", { locale: fr })}
                     </p>
+                    {t.direction === "dropoff" && (
+                      <p className="text-xs text-[var(--color-muted-foreground)] italic">
+                        Libre à partir de cette heure
+                      </p>
+                    )}
                     {t.location && (
                       <p className="text-xs text-[var(--color-muted-foreground)]">{t.location}</p>
                     )}

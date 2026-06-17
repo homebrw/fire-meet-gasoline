@@ -148,6 +148,10 @@ export type DayState = {
   custodyTransitions: CustodyTransition[]
   bothAvailable: boolean
   displayState: DisplayState
+  damienAvailableFrom: string | null    // 'HH:MM' or null if fully unavailable/fully available
+  damienAvailableUntil: string | null   // 'HH:MM' or null if fully unavailable/fully available
+  maAvailableFrom: string | null        // 'HH:MM' or null if fully unavailable/fully available
+  maAvailableUntil: string | null       // 'HH:MM' or null if fully unavailable/fully available
 }
 
 // ─── Form Schemas (used in forms) ─────────────────────────────────────────────

@@ -87,6 +87,10 @@ export function computeDayStates(
     const bothAvailable =
       !damienHasChildren && !maHasChild && !damienBlockingEvent && !maBlockingEvent
 
+    // Calculate partial availability windows based on transitions
+    const damienPartialAvail = calculatePartialAvailability(dayTransitions, damien?.id, ma?.id)
+    const maPartialAvail = calculatePartialAvailability(dayTransitions, ma?.id, damien?.id)
+
     const displayState = computeDisplayState({
       hasTransition,
       damienHasChildren,
@@ -107,6 +111,10 @@ export function computeDayStates(
       custodyTransitions: dayTransitions,
       bothAvailable,
       displayState,
+      damienAvailableFrom: damienPartialAvail.availableFrom,
+      damienAvailableUntil: damienPartialAvail.availableUntil,
+      maAvailableFrom: maPartialAvail.availableFrom,
+      maAvailableUntil: maPartialAvail.availableUntil,
     })
 
     current = addDays(current, 1)
@@ -139,6 +147,36 @@ function computeDisplayState(args: {
   if (damienBlockingEvent) return "damien_unavailable"
   if (maBlockingEvent) return "ma_unavailable"
   return "available"
+}
+
+function calculatePartialAvailability(
+  dayTransitions: CustodyTransition[],
+  personId: string | undefined,
+  otherPersonId: string | undefined
+): { availableFrom: string | null; availableUntil: string | null } {
+  if (!personId || !otherPersonId) {
+    return { availableFrom: null, availableUntil: null }
+  }
+
+  let availableFrom: string | null = null
+  let availableUntil: string | null = null
+
+  // Look for transitions for the OTHER person (indicating when we become available)
+  for (const trans of dayTransitions) {
+    if (trans.person_id !== otherPersonId) continue
+
+    if (trans.direction === "pickup") {
+      // Other person picks up = we become available at this time
+      const time = trans.transition_at.split("T")[1]?.slice(0, 5)
+      if (time) availableUntil = time
+    } else if (trans.direction === "dropoff") {
+      // Other person drops off = we become available at this time
+      const time = trans.transition_at.split("T")[1]?.slice(0, 5)
+      if (time) availableFrom = time
+    }
+  }
+
+  return { availableFrom, availableUntil }
 }
 
 export function findNextAvailableSlot(

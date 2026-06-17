@@ -217,9 +217,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                             <button
                               type="button"
                               onClick={() => toggleDay(dayIndex)}
+                              aria-label={`Jour ${dayIndex} — ${DAY_NAMES[d]}${checked ? ' (sélectionné)' : ''}`}
                               title={`Jour ${dayIndex} — ${DAY_NAMES[d]}`}
                               className={cn(
-                                "h-8 w-8 rounded-md text-xs font-medium transition-colors",
+                                "h-9 w-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                                 checked
                                   ? "text-white"
                                   : "bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]"
@@ -259,7 +260,15 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
         />
       </div>
 
-      {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
+      {error && (
+        <div
+          className="p-3 rounded-md bg-red-50 dark:bg-red-950/30 border border-[var(--color-destructive)]"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-sm text-[var(--color-destructive)] font-medium">{error}</p>
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Enregistrement…" : rule ? "Modifier" : "Créer la règle"}

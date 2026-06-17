@@ -9,6 +9,7 @@ import {
   format,
   isToday,
   getISOWeek,
+  parseISO,
 } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
@@ -21,8 +22,18 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet"
+import { Separator } from "@/components/ui/separator"
+import { getStateConfig } from "@/lib/recurrence/display"
 
 interface WeekPlanningProps {
   dayStates: Record<string, DayState>
@@ -35,6 +46,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
     startOfWeek(new Date(), { weekStartsOn: 1 })
   )
   const [createEventOpen, setCreateEventOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [persons, setPersons] = useState<Person[]>([])
 
@@ -72,6 +84,11 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
   function handleDayClick(date: string) {
     setSelectedDate(date)
     setCreateEventOpen(true)
+  }
+
+  function handleTransitionClick(date: string) {
+    setSelectedDate(date)
+    setDetailOpen(true)
   }
 
   return (
@@ -163,6 +180,39 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
                 })}
               </tr>
             ))}
+            {/* Transitions row */}
+            <tr>
+              <td className="px-1 md:px-3 py-2 w-8 md:w-28">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full flex-shrink-0" style={{backgroundColor: 'var(--color-transition)'}} />
+                  <span className="font-bold text-[10px] md:hidden text-[var(--color-muted-foreground)]">↔</span>
+                  <span className="text-xs font-medium hidden md:inline text-[var(--color-muted-foreground)]">Changements</span>
+                </div>
+              </td>
+              {dayKeys.map((key) => {
+                const state = dayStates[key]
+                const hasTransition = state?.custodyTransitions.length ?? 0 > 0
+                return (
+                  <td key={key} className="px-1 py-2 text-center">
+                    {hasTransition ? (
+                      <button
+                        type="button"
+                        onClick={() => handleTransitionClick(key)}
+                        className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center cursor-pointer"
+                        title="Afficher les changements de garde"
+                      >
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{backgroundColor: 'var(--color-transition)'}}
+                        />
+                      </button>
+                    ) : (
+                      <div className="mx-auto h-6 w-6" />
+                    )}
+                  </td>
+                )
+              })}
+            </tr>
             {/* Events row */}
             <tr>
               <td className="px-1 md:px-3 py-2 w-8 md:w-28">
@@ -198,6 +248,18 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
         </table>
       </div>
 
+      {/* Transition detail sheet */}
+      {selectedDate && (
+        <TransitionDetailSheet
+          dateKey={selectedDate}
+          state={dayStates[selectedDate]}
+          damien={damien}
+          ma={ma}
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+        />
+      )}
+
       {/* Event creation dialog */}
       <Dialog open={createEventOpen} onOpenChange={setCreateEventOpen}>
         <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -217,5 +279,62 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+interface TransitionDetailSheetProps {
+  dateKey: string
+  state: DayState | undefined
+  damien: Person | undefined
+  ma: Person | undefined
+  open: boolean
+  onClose: () => void
+}
+
+function TransitionDetailSheet({
+  dateKey,
+  state,
+  damien,
+  ma,
+  open,
+  onClose,
+}: TransitionDetailSheetProps) {
+  const date = parseISO(dateKey + "T12:00:00")
+  const person1 = damien
+  const person2 = ma
+  const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
+  const config = state ? stateConfig[state.displayState] : null
+
+  if (!state) return null
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
+        <SheetHeader className="text-left">
+          <div>
+            <SheetTitle className="capitalize">
+              {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+            </SheetTitle>
+          </div>
+        </SheetHeader>
+
+        {state.custodyTransitions.length > 0 && (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm font-semibold">Changements de garde</p>
+            <ul className="space-y-2">
+              {state.custodyTransitions.map((t) => (
+                <li key={t.id} className="flex items-center gap-2 text-sm rounded-lg p-3" style={{backgroundColor: 'var(--color-transition-light)'}}>
+                  <span className="h-2 w-2 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} />
+                  <span>
+                    <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span> — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
+                    {t.location && ` (${t.location})`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
   )
 }

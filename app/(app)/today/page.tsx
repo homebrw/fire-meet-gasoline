@@ -5,7 +5,7 @@ import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import {
   computeDayStates,
   findNextAvailableSlot,
-  getUpcomingTransitions,
+  getNextTransitionPerPerson,
   getUpcomingEvents,
 } from "@/lib/recurrence/availability"
 import { DashboardContent } from "@/components/dashboard/DashboardContent"
@@ -49,7 +49,7 @@ async function loadDashboardData() {
   const [damien, ma] = persons
 
   const nextSlot = findNextAvailableSlot(dayStates, addDays(today, 1))
-  const upcomingTransitions = getUpcomingTransitions(transitions, today, 14)
+  const upcomingTransitions = getNextTransitionPerPerson(transitions, today, 14)
   const upcomingEvents = getUpcomingEvents(events, today, 14)
 
   // Filter shared events that occur before the next available slot

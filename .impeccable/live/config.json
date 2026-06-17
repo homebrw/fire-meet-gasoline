@@ -1,0 +1,11 @@
+{
+  "framework": "next",
+  "cspChecked": true,
+  "files": [
+    "app/layout.tsx"
+  ],
+  "insertBefore": "const metadata",
+  "commentSyntax": "//",
+  "componentHost": "div",
+  "componentHostClassName": "impeccable-live-panel"
+}

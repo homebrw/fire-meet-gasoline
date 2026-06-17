@@ -6,14 +6,14 @@ import { Card } from "@/components/ui/card"
 
 interface ParticipantsSelectorProps {
   parents: Person[]
-  children: Person[]
+  childPersonList: Person[]
   defaultParticipants?: string[]
   onChange: (participantIds: string[]) => void
 }
 
 export function ParticipantsSelector({
   parents,
-  children,
+  childPersonList,
   defaultParticipants = [],
   onChange,
 }: ParticipantsSelectorProps) {
@@ -67,13 +67,13 @@ export function ParticipantsSelector({
         </div>
       )}
 
-      {children.length > 0 && (
+      {childPersonList.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Enfants
           </p>
           <Card className="p-3 space-y-2">
-            {children.map((child) => (
+            {childPersonList.map((child) => (
               <label
                 key={child.id}
                 className="flex items-center gap-3 cursor-pointer"

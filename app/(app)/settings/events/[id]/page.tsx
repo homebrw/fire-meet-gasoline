@@ -114,7 +114,6 @@ export default function EventDetailPage() {
 
       <EventDetailCard
         event={event}
-        persons={persons}
         showAttachments={true}
         showParticipants={true}
         canDeleteAttachments={isOwner}

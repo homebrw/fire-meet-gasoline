@@ -345,7 +345,7 @@ function EventForm({ persons, event, onSuccess }: EventFormProps) {
         <Label>Participants</Label>
         <ParticipantsSelector
           parents={parentPersons}
-          children={childPersons}
+          childPersonList={childPersons}
           onChange={setParticipants}
         />
       </div>

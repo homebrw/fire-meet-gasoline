@@ -104,7 +104,6 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                       <EventDetailCard
                         key={ev.id}
                         event={ev}
-                        persons={persons}
                         showAttachments={true}
                         showParticipants={true}
                       />

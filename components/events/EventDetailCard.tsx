@@ -2,16 +2,23 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { CalendarEvent, Person } from "@/lib/types"
+import { CalendarEvent } from "@/lib/types"
 import { Card } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { EventAttachmentsList } from "./EventAttachmentsList"
 import { deleteAttachment } from "@/lib/actions/events"
 
+type ParticipantData = {
+  person_id: string
+  persons?: {
+    name: string
+    color: string
+  }
+}
+
 interface EventDetailCardProps {
   event: CalendarEvent
-  persons: Person[]
   showAttachments?: boolean
   showParticipants?: boolean
   canDeleteAttachments?: boolean
@@ -19,12 +26,11 @@ interface EventDetailCardProps {
 
 export function EventDetailCard({
   event,
-  persons,
   showAttachments = true,
   showParticipants = true,
   canDeleteAttachments = false,
 }: EventDetailCardProps) {
-  const [participants, setParticipants] = useState<any[]>([])
+  const [participants, setParticipants] = useState<ParticipantData[]>([])
 
   useEffect(() => {
     if (!showParticipants) return

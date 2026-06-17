@@ -121,7 +121,7 @@ export default function ExceptionsPage() {
                           onOpenChange={(o) => !o && setEditExc(null)}
                         >
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setEditExc(exc)}>
+                            <Button variant="ghost" size="icon" onClick={() => setEditExc(exc)} aria-label="Modifier l'exception">
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
                           </DialogTrigger>
@@ -146,6 +146,7 @@ export default function ExceptionsPage() {
                           className="text-[var(--color-destructive)]"
                           disabled={isPending}
                           onClick={() => handleDelete(exc.id)}
+                          aria-label="Supprimer l'exception"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

@@ -71,6 +71,7 @@ export function TransitionRow({
               size="icon"
               className="ml-auto h-6 w-6 text-[var(--color-destructive)]"
               onClick={onDelete}
+              aria-label="Supprimer le changement de garde"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

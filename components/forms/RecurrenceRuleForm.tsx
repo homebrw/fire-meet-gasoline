@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { addDays, format, parseISO } from "date-fns"
+import { fr } from "date-fns/locale"
 import type { Person, RecurrenceRule } from "@/lib/types"
 import { createRecurrenceRule, updateRecurrenceRule } from "@/lib/actions/recurrence"
 import { Button } from "@/components/ui/button"
@@ -8,8 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn, datetimeLocalToUTC } from "@/lib/utils"
-
-const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
 interface RecurrenceRuleFormProps {
   persons: Person[]
@@ -25,6 +25,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
   const [selectedDays, setSelectedDays] = useState<Set<number>>(
     new Set(rule?.custody_days ?? [])
   )
+  const [startsAt, setStartsAt] = useState(rule?.starts_at ? rule.starts_at.slice(0, 10) : "")
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -74,14 +75,20 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
   const numWeeks = Math.ceil(cycleLengthDays / 7)
   const person = persons.find((p) => p.id === personId)
+  const cycleStartDate = startsAt ? parseISO(startsAt) : null
+  const dayLabels = Array.from({ length: 7 }, (_, d) =>
+    cycleStartDate
+      ? format(addDays(cycleStartDate, d), "EEE", { locale: fr })
+      : ["Jour 0", "Jour 1", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6"][d]
+  )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Person */}
       <div className="space-y-2">
-        <Label>Personne</Label>
+        <Label htmlFor="person_id">Personne</Label>
         <Select name="person_id" value={personId} onValueChange={setPersonId} required>
-          <SelectTrigger>
+          <SelectTrigger id="person_id">
             <SelectValue placeholder="Choisir une personne" />
           </SelectTrigger>
           <SelectContent>
@@ -106,9 +113,9 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
       {/* Pattern type */}
       <div className="space-y-2">
-        <Label>Type de récurrence</Label>
+        <Label htmlFor="pattern_type">Type de récurrence</Label>
         <Select name="pattern_type" value={patternType} onValueChange={setPatternType} required>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger id="pattern_type"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="weekly_alternating">1 semaine sur 2</SelectItem>
             <SelectItem value="custom_cycle">Cycle personnalisé (2+5, 3+4…)</SelectItem>
@@ -125,7 +132,8 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             id="starts_at"
             name="starts_at"
             type="date"
-            defaultValue={rule?.starts_at ? rule.starts_at.slice(0, 10) : ""}
+            value={startsAt}
+            onChange={(e) => setStartsAt(e.target.value)}
             required
           />
         </div>
@@ -167,9 +175,9 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {/* weekly_alternating */}
       {patternType === "weekly_alternating" && (
         <div className="space-y-2">
-          <Label>Parité de la semaine ISO</Label>
+          <Label htmlFor="week_parity">Parité de la semaine ISO</Label>
           <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="week_parity"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="odd">Semaines impaires</SelectItem>
               <SelectItem value="even">Semaines paires</SelectItem>
@@ -202,14 +210,15 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             <Label>Jours de garde dans le cycle</Label>
             <p className="text-xs text-[var(--color-muted-foreground)]">
               Le jour 0 correspond au premier jour du cycle (= date de début ci-dessus).
+              {!cycleStartDate && " Choisissez une date de début pour voir les jours de la semaine correspondants."}
             </p>
             <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] p-3">
               <table className="w-full text-xs border-collapse">
                 <thead>
                   <tr>
                     <th className="text-left pb-2 pr-3 text-[var(--color-muted-foreground)] font-medium w-12" />
-                    {DAY_NAMES.map((d) => (
-                      <th key={d} className="text-center pb-2 w-9 text-[var(--color-muted-foreground)] font-medium">{d}</th>
+                    {dayLabels.map((d, i) => (
+                      <th key={i} className="text-center pb-2 w-9 text-[var(--color-muted-foreground)] font-medium">{d}</th>
                     ))}
                   </tr>
                 </thead>
@@ -228,8 +237,8 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                             <button
                               type="button"
                               onClick={() => toggleDay(dayIndex)}
-                              aria-label={`Jour ${dayIndex} — ${DAY_NAMES[d]}${checked ? ' (sélectionné)' : ''}`}
-                              title={`Jour ${dayIndex} — ${DAY_NAMES[d]}`}
+                              aria-label={`Jour ${dayIndex} — ${dayLabels[d]}${checked ? ' (sélectionné)' : ''}`}
+                              title={`Jour ${dayIndex} — ${dayLabels[d]}`}
                               className={cn(
                                 "h-9 w-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                                 checked
@@ -238,7 +247,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                               )}
                               style={checked ? { backgroundColor: person?.color ?? "#3b82f6" } : {}}
                             >
-                              {d === 0 && w > 0 ? `+${w * 7}` : DAY_NAMES[d].slice(0, 1)}
+                              {d === 0 && w > 0 ? `+${w * 7}` : dayLabels[d].slice(0, 1)}
                             </button>
                           </td>
                         )

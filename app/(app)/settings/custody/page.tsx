@@ -148,6 +148,7 @@ export default function CustodyPage() {
                           className="text-[var(--color-destructive)]"
                           disabled={isPending}
                           onClick={() => startTransition(async () => { await deleteChildPresence(p.id); location.reload() })}
+                          aria-label="Supprimer la période de garde"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>

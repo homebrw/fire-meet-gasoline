@@ -88,7 +88,7 @@ export default function ExceptionsPage() {
               Ajouter
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Nouvelle exception</DialogTitle>
             </DialogHeader>
@@ -135,7 +135,7 @@ export default function ExceptionsPage() {
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Modifier l&apos;exception</DialogTitle>
                           </DialogHeader>

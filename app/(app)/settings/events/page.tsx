@@ -97,7 +97,7 @@ export default function EventsPage() {
               Ajouter
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Nouvel événement</DialogTitle>
             </DialogHeader>
@@ -142,7 +142,7 @@ export default function EventsPage() {
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
                             <DialogTitle>Modifier l&apos;événement</DialogTitle>
                           </DialogHeader>

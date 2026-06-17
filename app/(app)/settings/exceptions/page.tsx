@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ChangeBadge } from "@/components/ui/change-badge"
+import { ItemTimestamp } from "@/components/ui/item-timestamp"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -171,6 +173,10 @@ export default function ExceptionsPage() {
                       <p>Nouvelle période : {format(parseISO(exc.override_start_at), "d MMM yyyy HH:mm", { locale: fr })}</p>
                     )}
                     {exc.reason && <p>Raison : {exc.reason}</p>}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)] space-y-1">
+                    <ChangeBadge createdAt={exc.created_at} updatedAt={exc.updated_at} />
+                    <ItemTimestamp createdAt={exc.created_at} />
                   </div>
                 </CardContent>
               </Card>

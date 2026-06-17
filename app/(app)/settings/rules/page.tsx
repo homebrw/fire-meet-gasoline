@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ChangeBadge } from "@/components/ui/change-badge"
+import { ItemTimestamp } from "@/components/ui/item-timestamp"
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
 import { useTransition } from "react"
 
@@ -163,6 +165,10 @@ export default function RulesPage() {
                     <Badge variant={rule.is_active ? "available" : "outline"}>
                       {rule.is_active ? "Active" : "Inactive"}
                     </Badge>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[var(--color-border)] space-y-1">
+                    <ChangeBadge createdAt={rule.created_at} updatedAt={rule.updated_at} />
+                    <ItemTimestamp createdAt={rule.created_at} />
                   </div>
                 </CardContent>
               </Card>

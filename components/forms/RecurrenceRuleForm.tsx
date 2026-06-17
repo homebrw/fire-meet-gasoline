@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn, datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
+import { cn, datetimeLocalToUTC } from "@/lib/utils"
 
 const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
@@ -50,7 +50,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
     const startsAt = formData.get("starts_at")
     if (startsAt && typeof startsAt === "string") {
-      formData.set("starts_at", datetimeLocalToUTC(startsAt))
+      formData.set("starts_at", datetimeLocalToUTC(`${startsAt}T00:00:00`))
     }
 
     const endsAt = formData.get("ends_at")
@@ -124,8 +124,8 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
           <Input
             id="starts_at"
             name="starts_at"
-            type="datetime-local"
-            defaultValue={rule?.starts_at ? formatDatetimeLocal(rule.starts_at) : ""}
+            type="date"
+            defaultValue={rule?.starts_at ? rule.starts_at.slice(0, 10) : ""}
             required
           />
         </div>

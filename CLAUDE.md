@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # fire-meet-gasoline
 
 A Next.js 16 + React 19 web app for managing events, custody schedules, and transition rules with Supabase backend.
@@ -59,7 +63,7 @@ npm install
 npm run dev
 
 # Build for production
-npm build
+npm run build
 
 # Start production server
 npm start
@@ -105,12 +109,41 @@ import { Button } from "@/components/ui/button"
 import { client } from "@/lib/supabase"
 ```
 
+## Architecture & Patterns
+
+### Server Actions
+Most data mutations use Next.js server actions (files in `lib/actions/`) with:
+- `"use server"` directive at the top of each action file
+- Zod validation schemas inline with each action
+- `revalidatePath()` to invalidate cached data after mutations
+- Direct Supabase client calls (no API routes for CRUD)
+
+Example: `lib/actions/events.ts`, `lib/actions/custody.ts`, `lib/actions/recurrence.ts`
+
+### Recurrence Engine
+Complex business logic in `lib/recurrence/engine.ts` handles custody scheduling with three pattern types:
+- **weekly_alternating**: Alternates weekly by even/odd weeks
+- **custom_cycle**: Custom cycles (e.g., every 5 days) with specified custody days
+- **manual**: Manually defined rules
+
+The engine expands `RecurrenceRule` into `GeneratedPeriod[]` over a date range, applies `RecurrenceException` overrides, and handles cancellations/moves/extensions. Used primarily for calculating displayed periods on the calendar.
+
+### Data Model
+Core entities stored in Supabase:
+- **Person**: Individuals (e.g., parent/guardian) with color + avatar
+- **RecurrenceRule**: Custody schedule template with pattern + timing
+- **RecurrenceException**: Overrides to a single occurrence (cancel/move/extend/shorten/add)
+- **ChildPresence**: Generated custody period for a person (time-bounded)
+- **CustodyTransition**: Pickup/dropoff event with location
+- **CalendarEvent**: Shared or individual events with optional attachments
+
 ## Database & Auth
 
-- Supabase SSR library handles auth in middleware (`proxy.ts`)
+- Supabase middleware in `proxy.ts` checks auth on every request via SSR cookies
 - Unauthenticated users redirect to `/login`
-- Auth callback: `/auth/callback`
-- Protected routes: `/(app)/*`
+- Auth callback: `/auth/callback` (OAuth flow redirects here)
+- Protected routes: `/(app)/*` (checked by middleware)
+- All auth state flows through Supabase session cookies
 
 ## Component Library
 

@@ -28,7 +28,7 @@ export function EventDetailModal({
         {isEditing ? (
           <>
             <DialogHeader>
-              <DialogTitle>Modifier l'événement</DialogTitle>
+              <DialogTitle>Modifier l&apos;événement</DialogTitle>
             </DialogHeader>
             <EventForm
               persons={persons}
@@ -45,7 +45,7 @@ export function EventDetailModal({
               <DialogTitle>{event.title}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <EventDetailCard event={event} persons={persons} showParticipants />
+              <EventDetailCard event={event} showParticipants />
               <Button onClick={() => setIsEditing(true)} className="w-full">
                 Modifier
               </Button>

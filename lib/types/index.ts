@@ -175,7 +175,6 @@ export type EventFormData = {
   start_at: string
   end_at: string
   location?: string
-  type: EventType
   owner_person_id?: string
   is_blocking: boolean
   is_all_day: boolean

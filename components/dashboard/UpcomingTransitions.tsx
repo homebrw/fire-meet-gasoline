@@ -2,7 +2,7 @@ import type { CustodyTransition, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 
 interface UpcomingTransitionsProps {
   transitions: CustodyTransition[]
@@ -29,14 +29,12 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
           <ul className="space-y-3">
             {transitions.map((t) => {
               const person = personById[t.person_id]
+              const Icon = t.direction === "pickup" ? ArrowUp : ArrowDown
               return (
                 <li key={t.id} className="flex items-start gap-3">
-                  <div
-                    className="mt-0.5 h-2.5 w-2.5 rounded-full flex-shrink-0 ring-2"
-                    style={{
-                      backgroundColor: person?.color ?? 'var(--color-transition)',
-                      borderColor: 'var(--color-transition)'
-                    }}
+                  <Icon
+                    className="mt-0.5 h-4 w-4 flex-shrink-0"
+                    style={{ color: person?.color ?? 'var(--color-transition)' }}
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium">

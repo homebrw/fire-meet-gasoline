@@ -256,6 +256,25 @@ export function getUpcomingTransitions(
     .sort((a, b) => a.transition_at.localeCompare(b.transition_at))
 }
 
+export function getNextTransitionPerPerson(
+  transitions: CustodyTransition[],
+  from: Date,
+  days = 14
+): CustodyTransition[] {
+  const filtered = getUpcomingTransitions(transitions, from, days)
+  const byPerson = new Map<string, CustodyTransition>()
+
+  for (const transition of filtered) {
+    if (!byPerson.has(transition.person_id)) {
+      byPerson.set(transition.person_id, transition)
+    }
+  }
+
+  return Array.from(byPerson.values()).sort((a, b) =>
+    a.transition_at.localeCompare(b.transition_at)
+  )
+}
+
 export function getUpcomingEvents(
   events: CalendarEvent[],
   from: Date,

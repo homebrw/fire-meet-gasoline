@@ -17,7 +17,11 @@ interface DayCellProps {
 export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: DayCellProps) {
   const date = parseISO(dateKey)
   const today = isToday(date)
-  const config = state ? DISPLAY_CLASSES[state.displayState] : null
+  const config = state?.partiallyAvailable
+    ? { bgClass: "bg-orange-100", textClass: "text-orange-800", dotClass: "bg-orange-500" }
+    : state
+      ? DISPLAY_CLASSES[state.displayState]
+      : null
 
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
@@ -68,10 +72,6 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
         {/* Shared events */}
         {state?.sharedEvents.length ? (
           <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-event)'}} aria-label="Événement commun" title="Événement commun" />
-        ) : null}
-        {/* Partial joint availability */}
-        {state?.partiallyAvailable ? (
-          <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} aria-label="Disponibles une partie de la journée" title="Disponibles une partie de la journée" />
         ) : null}
       </div>
     </button>

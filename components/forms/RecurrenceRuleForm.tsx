@@ -18,8 +18,9 @@ interface RecurrenceRuleFormProps {
 }
 
 export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleFormProps) {
+  const adults = persons.filter((p) => !p.is_child)
   const [patternType, setPatternType] = useState<string>(rule?.pattern_type ?? "weekly_alternating")
-  const [personId, setPersonId] = useState<string>(rule?.person_id ?? persons[0]?.id ?? "")
+  const [personId, setPersonId] = useState<string>(rule?.person_id ?? adults[0]?.id ?? "")
   const [cycleLengthDays, setCycleLengthDays] = useState(rule?.cycle_length_days ?? 14)
   const [selectedDays, setSelectedDays] = useState<Set<number>>(
     new Set(rule?.custody_days ?? [])
@@ -74,7 +75,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             <SelectValue placeholder="Choisir une personne" />
           </SelectTrigger>
           <SelectContent>
-            {persons.map((p) => (
+            {adults.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
             ))}
           </SelectContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Person } from "@/lib/types"
 import { ChildCard } from "./child-card"
@@ -9,42 +9,74 @@ export function ChildrenList() {
   const [children, setChildren] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
 
+  const loadChildren = useCallback(async () => {
+    try {
+      const supabase = await createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data: parent } = await supabase
+        .from("persons")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .single()
+
+      if (!parent) return
+
+      const { data: childrenData } = await supabase
+        .from("persons")
+        .select("*")
+        .eq("parent_id", parent.id)
+        .order("name")
+
+      if (childrenData) {
+        setChildren(childrenData)
+      }
+    } catch (error) {
+      console.error("Error loading children:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    async function loadChildren() {
+    loadChildren()
+  }, [loadChildren])
+
+  useEffect(() => {
+    let subscription: Awaited<ReturnType<typeof createClient>>
+
+    const setupSubscription = async () => {
       try {
-        const supabase = await createClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-
-        if (!user) return
-
-        const { data: parent } = await supabase
-          .from("persons")
-          .select("id")
-          .eq("auth_user_id", user.id)
-          .single()
-
-        if (!parent) return
-
-        const { data: childrenData } = await supabase
-          .from("persons")
-          .select("*")
-          .eq("parent_id", parent.id)
-          .order("name")
-
-        if (childrenData) {
-          setChildren(childrenData)
-        }
+        subscription = await createClient()
+        subscription
+          .channel("persons_changes")
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "persons",
+            },
+            () => {
+              loadChildren()
+            }
+          )
+          .subscribe()
       } catch (error) {
-        console.error("Error loading children:", error)
-      } finally {
-        setLoading(false)
+        console.error("Error setting up subscription:", error)
       }
     }
 
-    loadChildren()
-  }, [])
+    setupSubscription()
+
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [loadChildren])
 
   if (loading) {
     return <div className="text-sm text-gray-500">Chargement...</div>

@@ -22,12 +22,15 @@ const eventSchema = z.object({
 export async function createEvent(formData: FormData) {
   const supabase = await createClient()
   const data = eventSchema.parse(Object.fromEntries(formData))
-  const { error } = await supabase.from("events").insert(data)
+  const { data: insertedData, error } = await supabase.from("events").insert(data).select("id")
   if (error) throw new Error(error.message)
+  if (!insertedData || insertedData.length === 0) throw new Error("Failed to create event")
+  const eventId = insertedData[0].id
   revalidatePath("/settings/events")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
+  return eventId
 }
 
 export async function updateEvent(id: string, formData: FormData) {

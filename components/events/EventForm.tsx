@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useRef } from "react"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
 import { ParticipantsSelector } from "@/app/(app)/settings/events/participants-selector"
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
+import { Upload, X } from "lucide-react"
 
 interface EventFormProps {
   persons: Person[]
@@ -27,6 +28,9 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [participants, setParticipants] = useState<string[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const parentPersons = persons.filter((p) => !p.is_child)
   const childPersons = persons.filter((p) => p.is_child)
@@ -35,6 +39,36 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
   const defaultStartAt = event?.start_at?.slice(0, 16) || (initialDate ? format(new Date(initialDate + "T09:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
   const defaultEndAt = event?.end_at?.slice(0, 16) || (initialDate ? format(new Date(initialDate + "T10:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
 
+  async function uploadFiles(eventId: string, personId: string) {
+    if (selectedFiles.length === 0) return
+
+    for (const file of selectedFiles) {
+      try {
+        setUploadProgress(`Upload: ${file.name}...`)
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("event_id", eventId)
+        formData.append("person_id", personId)
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Upload failed")
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Upload failed"
+        setError(message)
+        throw err
+      }
+    }
+    setUploadProgress(null)
+    setSelectedFiles([])
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
@@ -42,30 +76,58 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
 
     startTransition(async () => {
       try {
+        const personId = persons[0]?.id
+        if (!personId) throw new Error("Erreur: utilisateur non trouvé")
+
+        let eventId: string
         if (event) {
-          await updateEvent(event.id, formData)
-          const existingParticipants = await getEventParticipants(event.id)
+          eventId = event.id
+          await updateEvent(eventId, formData)
+          const existingParticipants = await getEventParticipants(eventId)
           const existingIds = existingParticipants.map((p) => p.person_id)
 
           for (const id of existingIds) {
             if (!participants.includes(id)) {
-              await removeEventParticipant(event.id, id)
+              await removeEventParticipant(eventId, id)
             }
           }
 
           for (const id of participants) {
             if (!existingIds.includes(id)) {
-              await addEventParticipant(event.id, id)
+              await addEventParticipant(eventId, id)
             }
           }
         } else {
-          await createEvent(formData)
+          eventId = await createEvent(formData)
+
+          // Add participants to new event
+          for (const participantId of participants) {
+            await addEventParticipant(eventId, participantId)
+          }
         }
+
+        // Upload files if any
+        if (selectedFiles.length > 0) {
+          await uploadFiles(eventId, personId)
+        }
+
         onSuccess?.()
       } catch (err) {
         setError(err instanceof Error ? err.message : "Une erreur est survenue")
       }
     })
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.currentTarget.files || [])
+    setSelectedFiles(prev => [...prev, ...files])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  function removeFile(index: number) {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -213,10 +275,63 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         </div>
       </div>
 
+      <div className="space-y-2 border-t pt-4">
+        <Label htmlFor="attachments">Pièces jointes</Label>
+        <div className="space-y-3">
+          <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-900 transition">
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="attachments"
+              multiple
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            >
+              <Upload className="h-4 w-4" />
+              Ajouter des pièces jointes
+            </button>
+            <p className="text-xs text-gray-500 mt-1">ou glissez-déposez ici</p>
+          </div>
+
+          {selectedFiles.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Fichiers sélectionnés ({selectedFiles.length})
+              </p>
+              <div className="space-y-1">
+                {selectedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-2 text-xs dark:bg-gray-800"
+                  >
+                    <span className="truncate text-gray-700 dark:text-gray-300">
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-red-600 hover:text-red-700 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {uploadProgress && <p className="text-sm text-blue-600">{uploadProgress}</p>}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "Enregistrement…" : event ? "Modifier" : "Créer l'événement"}
+        {uploadProgress ? "Téléchargement…" : isPending ? "Enregistrement…" : event ? "Modifier" : "Créer l'événement"}
       </Button>
     </form>
   )

@@ -1,15 +1,17 @@
 "use client"
 
 import { useState, useTransition, useRef } from "react"
+import { useRouter } from "next/navigation"
 import type { CalendarEvent, Person } from "@/lib/types"
-import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
+import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants, deleteEvent } from "@/lib/actions/events"
 import { ParticipantsSelector } from "@/app/(app)/settings/events/participants-selector"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { format } from "date-fns"
-import { Upload, X } from "lucide-react"
+import { Upload, X, Trash2 } from "lucide-react"
 import { datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
 
 interface EventFormProps {
@@ -21,6 +23,7 @@ interface EventFormProps {
 }
 
 export function EventForm({ persons, event, initialDate, onSuccess, onRevalidateNeeded }: EventFormProps) {
+  const router = useRouter()
   const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
   const [allDayDate, setAllDayDate] = useState<string>(initialDate || (event?.start_at ? formatDatetimeLocal(event.start_at).slice(0, 10) : format(new Date(), "yyyy-MM-dd")))
   const [isPending, startTransition] = useTransition()
@@ -28,6 +31,8 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
   const [participants, setParticipants] = useState<string[]>([])
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadProgress, setUploadProgress] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const parentPersons = persons.filter((p) => !p.is_child)
@@ -36,6 +41,19 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
   // Set default start_at to initialDate or event start_at
   const defaultStartAt = event?.start_at ? formatDatetimeLocal(event.start_at) : (initialDate ? format(new Date(initialDate + "T09:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
   const defaultEndAt = event?.end_at ? formatDatetimeLocal(event.end_at) : (initialDate ? format(new Date(initialDate + "T10:00:00"), "yyyy-MM-dd'T'HH:mm") : "")
+
+  async function handleDelete() {
+    setIsDeleting(true)
+    try {
+      if (!event) return
+      await deleteEvent(event.id)
+      setShowDeleteConfirm(false)
+      router.push("/settings/events")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors de la suppression")
+      setIsDeleting(false)
+    }
+  }
 
   async function uploadFiles(eventId: string, personId: string) {
     if (selectedFiles.length === 0) return
@@ -141,6 +159,7 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="title">
@@ -313,9 +332,57 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       )}
       {uploadProgress && <p className="text-sm text-blue-600">{uploadProgress}</p>}
 
-      <Button type="submit" className="w-full" disabled={isPending}>
-        {uploadProgress ? "Téléchargement…" : isPending ? "Enregistrement…" : event ? "Modifier" : "Créer l'événement"}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1" disabled={isPending || isDeleting}>
+          {uploadProgress ? "Téléchargement…" : isPending ? "Enregistrement…" : event ? "Modifier" : "Créer l'événement"}
+        </Button>
+        {event && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={isPending || isDeleting}
+            className="text-[var(--color-destructive)]"
+            aria-label="Supprimer l'événement"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </form>
+
+    <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Supprimer l&apos;événement</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <p className="text-sm">
+            Êtes-vous sûr de vouloir supprimer l&apos;événement <strong>{event?.title}</strong> ?
+          </p>
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            Cette action ne peut pas être annulée.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteConfirm(false)}
+            disabled={isDeleting}
+          >
+            Annuler
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Suppression..." : "Supprimer"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   )
 }

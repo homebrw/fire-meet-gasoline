@@ -59,3 +59,102 @@ export async function deleteAttachment(id: string, storagePath: string) {
   if (error) throw new Error(error.message)
   revalidatePath("/settings/events")
 }
+
+export async function addEventParticipant(
+  eventId: string,
+  personId: string
+) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify user owns the event
+  const { data: event } = await supabase
+    .from("events")
+    .select("owner_person_id")
+    .eq("id", eventId)
+    .single()
+
+  const { data: owner } = await supabase
+    .from("persons")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single()
+
+  if (!event || event.owner_person_id !== owner?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  const { error } = await supabase.from("event_participants").insert({
+    event_id: eventId,
+    person_id: personId,
+  })
+
+  if (error) {
+    // Ignore unique constraint violation (participant already added)
+    if (!error.message.includes("unique")) {
+      throw new Error(error.message)
+    }
+  }
+
+  revalidatePath("/settings/events")
+}
+
+export async function removeEventParticipant(
+  eventId: string,
+  personId: string
+) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  // Verify user owns the event
+  const { data: event } = await supabase
+    .from("events")
+    .select("owner_person_id")
+    .eq("id", eventId)
+    .single()
+
+  const { data: owner } = await supabase
+    .from("persons")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single()
+
+  if (!event || event.owner_person_id !== owner?.id) {
+    throw new Error("Unauthorized")
+  }
+
+  const { error } = await supabase
+    .from("event_participants")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("person_id", personId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath("/settings/events")
+}
+
+export async function getEventParticipants(eventId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("event_participants")
+    .select("person_id, persons(id, name, color)")
+    .eq("event_id", eventId)
+
+  if (error) throw new Error(error.message)
+  return data || []
+}

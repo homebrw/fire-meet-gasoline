@@ -6,6 +6,9 @@ export type Person = {
   color: string
   avatar_url: string | null
   auth_user_id: string | null
+  date_of_birth: string | null // 'YYYY-MM-DD'
+  parent_id: string | null
+  is_child: boolean
   created_at: string
   updated_at: string
 }
@@ -89,6 +92,16 @@ export type CalendarEvent = {
   created_by: string
   is_blocking: boolean
   visibility: EventVisibility
+  allow_participants_to_see_attachments: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type EventParticipant = {
+  id: string
+  event_id: string
+  person_id: string
+  status: "invited" | "accepted" | "declined"
   created_at: string
   updated_at: string
 }

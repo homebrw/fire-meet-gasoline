@@ -1,59 +1,59 @@
 @import "tailwindcss";
 
 /* ─── App color tokens ─────────────────────────────────────────────────── */
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer base {
+  :root {
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 
-  /* State colors */
-  --color-damien: #3b82f6;
-  --color-damien-light: #dbeafe;
-  --color-damien-badge-bg: #dbeafe;
-  --color-damien-badge-text: #1e40af;
-  --color-ma: #ec4899;
-  --color-ma-light: #fce7f3;
-  --color-ma-badge-bg: #fce7f3;
-  --color-ma-badge-text: #be123c;
-  --color-both-kids: #06b6d4;
-  --color-both-kids-light: #cffafe;
-  --color-both-kids-badge-bg: #cffafe;
-  --color-both-kids-badge-text: #155e75;
-  --color-available: #22c55e;
-  --color-available-light: #dcfce7;
-  --color-available-badge-bg: #dcfce7;
-  --color-available-badge-text: #166534;
-  --color-transition: #f97316;
-  --color-transition-light: #ffedd5;
-  --color-transition-badge-bg: #ffedd5;
-  --color-transition-badge-text: #c2410c;
-  --color-unavailable: #6b7280;
-  --color-unavailable-light: #f3f4f6;
-  --color-event: #d97706;
-  --color-event-badge-bg: #fef3c7;
-  --color-event-badge-text: #d97706;
+    /* State colors */
+    --color-damien: #3b82f6;
+    --color-damien-light: #dbeafe;
+    --color-damien-badge-bg: #dbeafe;
+    --color-damien-badge-text: #1e40af;
+    --color-ma: #ec4899;
+    --color-ma-light: #fce7f3;
+    --color-ma-badge-bg: #fce7f3;
+    --color-ma-badge-text: #be123c;
+    --color-both-kids: #06b6d4;
+    --color-both-kids-light: #cffafe;
+    --color-both-kids-badge-bg: #cffafe;
+    --color-both-kids-badge-text: #155e75;
+    --color-available: #22c55e;
+    --color-available-light: #dcfce7;
+    --color-available-badge-bg: #dcfce7;
+    --color-available-badge-text: #166534;
+    --color-transition: #f97316;
+    --color-transition-light: #ffedd5;
+    --color-transition-badge-bg: #ffedd5;
+    --color-transition-badge-text: #c2410c;
+    --color-unavailable: #6b7280;
+    --color-unavailable-light: #f3f4f6;
+    --color-event: #d97706;
+    --color-event-badge-bg: #fef3c7;
+    --color-event-badge-text: #d97706;
 
-  /* UI tokens (light) */
-  --color-background: #ffffff;
-  --color-foreground: #09090b;
-  --color-card: #ffffff;
-  --color-card-foreground: #09090b;
-  --color-primary: #18181b;
-  --color-primary-foreground: #fafafa;
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #18181b;
-}
+    /* UI tokens (light) */
+    --color-background: #ffffff;
+    --color-foreground: #09090b;
+    --color-card: #ffffff;
+    --color-card-foreground: #09090b;
+    --color-primary: #18181b;
+    --color-primary-foreground: #fafafa;
+    --color-secondary: #f4f4f5;
+    --color-secondary-foreground: #18181b;
+    --color-muted: #f4f4f5;
+    --color-muted-foreground: #71717a;
+    --color-accent: #f4f4f5;
+    --color-accent-foreground: #18181b;
+    --color-destructive: #ef4444;
+    --color-destructive-foreground: #fafafa;
+    --color-border: #e4e4e7;
+    --color-input: #e4e4e7;
+    --color-ring: #18181b;
+  }
 
-html.dark {
-  @theme inline {
+  html.dark {
     --color-background: #09090b;
     --color-foreground: #fafafa;
     --color-card: #18181b;
@@ -71,30 +71,6 @@ html.dark {
     --color-border: #27272a;
     --color-input: #27272a;
     --color-ring: #d4d4d8;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not(.dark) {
-    @theme inline {
-      --color-background: #09090b;
-      --color-foreground: #fafafa;
-      --color-card: #18181b;
-      --color-card-foreground: #fafafa;
-      --color-primary: #fafafa;
-      --color-primary-foreground: #18181b;
-      --color-secondary: #27272a;
-      --color-secondary-foreground: #fafafa;
-      --color-muted: #27272a;
-      --color-muted-foreground: #a1a1aa;
-      --color-accent: #27272a;
-      --color-accent-foreground: #fafafa;
-      --color-destructive: #7f1d1d;
-      --color-destructive-foreground: #fafafa;
-      --color-border: #27272a;
-      --color-input: #27272a;
-      --color-ring: #d4d4d8;
-    }
   }
 }
 

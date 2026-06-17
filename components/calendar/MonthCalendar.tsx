@@ -34,22 +34,33 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
   )
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
-  function buildGrid(): string[] {
+  function buildWeeks(): string[][] {
     const monthStart = startOfMonth(currentMonth)
     const monthEnd = endOfMonth(currentMonth)
     const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 })
     const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
-    const days: string[] = []
+    const weeks: string[][] = []
+    let week: string[] = []
     let day = gridStart
+
     while (day <= gridEnd) {
-      days.push(format(day, "yyyy-MM-dd"))
+      week.push(format(day, "yyyy-MM-dd"))
+      if (week.length === 7) {
+        weeks.push(week)
+        week = []
+      }
       day = addDays(day, 1)
     }
-    return days
+
+    if (week.length > 0) {
+      weeks.push(week)
+    }
+
+    return weeks
   }
 
-  const grid = buildGrid()
+  const weeks = buildWeeks()
   const selectedState = selectedDay ? dayStates[selectedDay] : undefined
   const [person1, person2] = persons
 
@@ -81,29 +92,25 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
       </div>
 
       {/* Day grid with week numbers */}
-      <div className="grid grid-cols-8 gap-1">
-        {grid.map((dateKey, index) => {
-          const dayOfWeek = index % 7
-          const date = new Date(dateKey + "T12:00:00")
-          const isFirstDayOfWeek = dayOfWeek === 0
-          const weekNumber = getISOWeek(date)
+      <div className="space-y-1">
+        {weeks.map((week, weekIndex) => {
+          const firstDayOfWeek = new Date(week[0] + "T12:00:00")
+          const weekNumber = getISOWeek(firstDayOfWeek)
 
           return (
-            <div key={`week-${index}`} className="contents">
-              {isFirstDayOfWeek && (
-                <div className="text-center text-xs font-medium text-[var(--color-muted-foreground)] py-2 flex items-center justify-center">
-                  {weekNumber}
-                </div>
-              )}
-              {!isFirstDayOfWeek && index > 0 && (
-                <div></div>
-              )}
-              <DayCell
-                dateKey={dateKey}
-                state={dayStates[dateKey]}
-                isCurrentMonth={isSameMonth(date, currentMonth)}
-                onClick={setSelectedDay}
-              />
+            <div key={`week-${weekIndex}`} className="grid grid-cols-8 gap-1">
+              <div className="text-center text-xs font-medium text-[var(--color-muted-foreground)] py-2 flex items-center justify-center min-h-16">
+                {weekNumber}
+              </div>
+              {week.map((dateKey) => (
+                <DayCell
+                  key={dateKey}
+                  dateKey={dateKey}
+                  state={dayStates[dateKey]}
+                  isCurrentMonth={isSameMonth(new Date(dateKey + "T12:00:00"), currentMonth)}
+                  onClick={setSelectedDay}
+                />
+              ))}
             </div>
           )
         })}

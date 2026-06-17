@@ -72,9 +72,6 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{ev.title}</span>
-                    {ev.is_blocking && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">Bloquant</span>
-                    )}
                   </div>
                   <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
                     <span>{format(eventDate, "d MMM HH:mm", { locale: fr })}</span>

@@ -54,6 +54,8 @@ async function loadDashboardData() {
 
   // Filter shared events that occur before the next available slot
   const sharedEventsBefore: CalendarEvent[] = []
+  let filteredUpcomingEvents = upcomingEvents
+
   if (nextSlot) {
     const nextSlotDate = parseISO(nextSlot.date + "T00:00:00Z")
     sharedEventsBefore.push(
@@ -63,6 +65,10 @@ async function loadDashboardData() {
           parseISO(e.start_at) < nextSlotDate
       )
     )
+    // Only show events after the next available slot to avoid duplication
+    filteredUpcomingEvents = upcomingEvents.filter(
+      (e) => parseISO(e.start_at) >= nextSlotDate
+    )
   }
 
   return {
@@ -71,7 +77,7 @@ async function loadDashboardData() {
     ma,
     nextSlot,
     upcomingTransitions,
-    upcomingEvents,
+    upcomingEvents: filteredUpcomingEvents,
     sharedEventsBefore,
     persons,
   }

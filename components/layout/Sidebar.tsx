@@ -46,7 +46,7 @@ export function Sidebar() {
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 active
                   ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)] font-medium"
-                  : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"
+                  : "text-[var(--color-foreground)] opacity-65 hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)] hover:opacity-100"
               )}
             >
               <Icon className="h-4 w-4" />

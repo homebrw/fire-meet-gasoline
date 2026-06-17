@@ -28,7 +28,7 @@ export function BottomNav() {
                 "flex flex-1 flex-col items-center gap-1 py-2 text-xs transition-all duration-75 active:scale-95",
                 active
                   ? "text-[var(--color-damien)]"
-                  : "text-[var(--color-muted-foreground)]"
+                  : "text-[var(--color-foreground)] opacity-60"
               )}
             >
               <Icon className="h-5 w-5" />

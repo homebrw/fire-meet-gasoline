@@ -3,14 +3,13 @@
 import { useState } from "react"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Calendar, Trash2 } from "lucide-react"
 import { EventAttachmentsList } from "@/components/events/EventAttachmentsList"
-import { deleteEvent, deleteAttachment } from "@/lib/actions/events"
+import { deleteEvent } from "@/lib/actions/events"
 
 interface SharedEventCardProps {
   event: CalendarEvent
@@ -63,12 +62,6 @@ export function SharedEventCard({ event, persons }: SharedEventCardProps) {
               </p>
             )}
           </div>
-
-          {event.is_blocking && (
-            <Badge variant="destructive" className="text-xs w-fit">
-              Bloquant
-            </Badge>
-          )}
 
           <EventAttachmentsList eventId={event.id} />
 

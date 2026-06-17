@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { lightenColor } from "@/lib/utils"
 import { z } from "zod"
 
 const childSchema = z.object({
@@ -35,12 +36,22 @@ export async function createChild(data: z.infer<typeof childSchema>) {
   const validated = childSchema.parse(data)
   const fullName = `${validated.firstName} ${validated.lastName}`
 
+  // Get parent's color and generate a lighter variation for the child
+  const { data: parentData } = await supabase
+    .from("persons")
+    .select("color")
+    .eq("id", parent.id)
+    .single()
+
+  const parentColor = parentData?.color || "#06b6d4"
+  const childColor = lightenColor(parentColor, 30)
+
   const { error } = await supabase.from("persons").insert({
     name: fullName,
     parent_id: parent.id,
     is_child: true,
     date_of_birth: validated.dateOfBirth || null,
-    color: "#06b6d4", // cyan from design system
+    color: childColor,
   })
 
   if (error) {

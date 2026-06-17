@@ -41,7 +41,7 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold">Paramètres</h1>
       <div className="grid gap-3 sm:grid-cols-2">
         {sections.map(({ href, icon: Icon, title, description }) => (
-          <Link key={href} href={href}>
+          <Link key={href} href={href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] rounded-lg">
             <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">

@@ -179,3 +179,12 @@ export type EventFormData = {
   is_all_day: boolean
   visibility: EventVisibility
 }
+
+export type ActivityFeedItem = {
+  id: string
+  type: "rule" | "event" | "exception" | "presence" | "transition"
+  action: "created" | "updated"
+  resourceName: string
+  personName: string
+  timestamp: string
+}

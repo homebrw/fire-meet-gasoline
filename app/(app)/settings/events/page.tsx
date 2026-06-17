@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ChangeBadge } from "@/components/ui/change-badge"
+import { ItemTimestamp } from "@/components/ui/item-timestamp"
 import { Plus, Pencil, Trash2, Eye, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO } from "date-fns"
@@ -181,6 +183,10 @@ export default function EventsPage() {
                       ))}
                     </div>
                   )}
+                  <div className="pt-3 border-t border-[var(--color-border)] space-y-1">
+                    <ChangeBadge createdAt={ev.created_at} updatedAt={ev.updated_at} />
+                    <ItemTimestamp createdAt={ev.created_at} />
+                  </div>
                 </CardContent>
               </Card>
             )

@@ -18,8 +18,9 @@ interface RecurrenceRuleFormProps {
 }
 
 export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleFormProps) {
+  const adults = persons.filter((p) => !p.is_child)
   const [patternType, setPatternType] = useState<string>(rule?.pattern_type ?? "weekly_alternating")
-  const [personId, setPersonId] = useState<string>(rule?.person_id ?? persons[0]?.id ?? "")
+  const [personId, setPersonId] = useState<string>(rule?.person_id ?? adults[0]?.id ?? "")
   const [cycleLengthDays, setCycleLengthDays] = useState(rule?.cycle_length_days ?? 14)
   const [selectedDays, setSelectedDays] = useState<Set<number>>(
     new Set(rule?.custody_days ?? [])
@@ -74,7 +75,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             <SelectValue placeholder="Choisir une personne" />
           </SelectTrigger>
           <SelectContent>
-            {persons.map((p) => (
+            {adults.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
             ))}
           </SelectContent>
@@ -217,9 +218,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                             <button
                               type="button"
                               onClick={() => toggleDay(dayIndex)}
+                              aria-label={`Jour ${dayIndex} — ${DAY_NAMES[d]}${checked ? ' (sélectionné)' : ''}`}
                               title={`Jour ${dayIndex} — ${DAY_NAMES[d]}`}
                               className={cn(
-                                "h-8 w-8 rounded-md text-xs font-medium transition-colors",
+                                "h-9 w-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                                 checked
                                   ? "text-white"
                                   : "bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]"
@@ -259,7 +261,15 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
         />
       </div>
 
-      {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
+      {error && (
+        <div
+          className="p-3 rounded-md bg-red-50 dark:bg-red-950/30 border border-[var(--color-destructive)]"
+          role="alert"
+          aria-live="polite"
+        >
+          <p className="text-sm text-[var(--color-destructive)] font-medium">{error}</p>
+        </div>
+      )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Enregistrement…" : rule ? "Modifier" : "Créer la règle"}

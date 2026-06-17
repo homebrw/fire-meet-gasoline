@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Person } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +14,7 @@ interface ChildFormProps {
 }
 
 export function ChildForm({ child, onSuccess }: ChildFormProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -42,6 +44,7 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
           dateOfBirth: dateOfBirth || undefined,
         })
       }
+      router.refresh()
       onSuccess()
     } catch (err) {
       setError(
@@ -62,7 +65,7 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900 dark:text-red-200">
+        <div className="rounded-md bg-red-50 dark:bg-red-950/30 border border-red-500 p-3 text-sm text-red-700 dark:text-red-400" role="alert" aria-live="polite">
           {error}
         </div>
       )}

@@ -6,6 +6,7 @@ import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut }
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const navItems = [
   { href: "/today", label: "Aujourd'hui", icon: LayoutDashboard },
@@ -55,15 +56,18 @@ export function Sidebar() {
         })}
       </nav>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mt-4 justify-start gap-3 text-[var(--color-muted-foreground)]"
-        onClick={handleSignOut}
-      >
-        <LogOut className="h-4 w-4" />
-        Se déconnecter
-      </Button>
+      <div className="flex gap-2 border-t border-[var(--color-border)] pt-4 mt-4">
+        <ThemeToggle />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 justify-start gap-3 text-[var(--color-muted-foreground)]"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4" />
+          Se déconnecter
+        </Button>
+      </div>
     </aside>
   )
 }

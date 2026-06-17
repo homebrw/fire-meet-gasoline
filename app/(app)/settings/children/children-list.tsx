@@ -43,7 +43,9 @@ export function ChildrenList() {
   }
 
   useEffect(() => {
-    loadChildren()
+    ;(async () => {
+      await loadChildren()
+    })()
   }, [])
 
   useEffect(() => {

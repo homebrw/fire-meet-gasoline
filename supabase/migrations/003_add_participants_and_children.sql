@@ -43,15 +43,18 @@ ALTER TABLE event_participants ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "event_participants_select" ON event_participants
 FOR SELECT USING (is_app_member());
 
--- Only event owner can insert/update/delete participants
+-- Only event owner can insert/update/delete participants, or any member can for shared events
 CREATE POLICY "event_participants_insert" ON event_participants
 FOR INSERT WITH CHECK (
   is_app_member() AND
   EXISTS (
     SELECT 1 FROM events
     WHERE events.id = event_participants.event_id
-    AND events.owner_person_id IN (
-      SELECT id FROM persons WHERE auth_user_id = auth.uid()
+    AND (
+      events.owner_person_id IS NULL
+      OR events.owner_person_id IN (
+        SELECT id FROM persons WHERE auth_user_id = auth.uid()
+      )
     )
   )
 );
@@ -62,8 +65,11 @@ FOR UPDATE USING (
   EXISTS (
     SELECT 1 FROM events
     WHERE events.id = event_participants.event_id
-    AND events.owner_person_id IN (
-      SELECT id FROM persons WHERE auth_user_id = auth.uid()
+    AND (
+      events.owner_person_id IS NULL
+      OR events.owner_person_id IN (
+        SELECT id FROM persons WHERE auth_user_id = auth.uid()
+      )
     )
   )
 );
@@ -74,8 +80,11 @@ FOR DELETE USING (
   EXISTS (
     SELECT 1 FROM events
     WHERE events.id = event_participants.event_id
-    AND events.owner_person_id IN (
-      SELECT id FROM persons WHERE auth_user_id = auth.uid()
+    AND (
+      events.owner_person_id IS NULL
+      OR events.owner_person_id IN (
+        SELECT id FROM persons WHERE auth_user_id = auth.uid()
+      )
     )
   )
 );

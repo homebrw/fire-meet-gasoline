@@ -7,6 +7,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function indexById<T extends { id: string }>(items: T[]): Record<string, T> {
+  return Object.fromEntries(items.map((item) => [item.id, item]))
+}
+
 export function getWeekString(date: Date): string {
   const year = date.getFullYear()
   const week = String(getISOWeek(date)).padStart(2, "0")

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { DayState, Person } from "@/lib/types"
+import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/lib/types"
 import { getStateConfig } from "@/lib/recurrence/display"
 import {
   Sheet,
@@ -21,29 +21,35 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Plus, ArrowUp, ArrowDown } from "lucide-react"
+import { Plus } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
-import { cn } from "@/lib/utils"
+import { cn, indexById } from "@/lib/utils"
 import { EventCard } from "@/components/events/EventCard"
 import { EventForm } from "@/components/events/EventForm"
 import { AvailabilityWindowsList } from "@/components/shared/AvailabilityDetailSheet"
+import { TransitionRow } from "@/components/custody/TransitionRow"
 
 interface DayDetailSheetProps {
   dateKey: string
   state: DayState | undefined
   persons: Person[]
+  exceptions?: RecurrenceException[]
+  rules?: RecurrenceRule[]
   open: boolean
   onClose: () => void
 }
 
-export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDetailSheetProps) {
+export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules = [], open, onClose }: DayDetailSheetProps) {
   const router = useRouter()
   const date = parseISO(dateKey + "T12:00:00")
   const [person1, person2] = persons
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
   const config = state ? stateConfig[state.displayState] : null
+  const personById = indexById(persons)
+  const exceptionById = indexById(exceptions)
+  const ruleById = indexById(rules)
 
   return (
     <>
@@ -121,34 +127,12 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                   <p className="text-sm font-semibold mb-3">Changements de garde</p>
                   <ul className="space-y-2">
                     {state.custodyTransitions.map((t) => {
-                      const person = persons.find((p) => p.id === t.person_id)
-                      const isPickup = t.direction === "pickup"
-                      const Icon = isPickup ? ArrowUp : ArrowDown
+                      const person = personById[t.person_id]
+                      const exception = t.exception_id ? exceptionById[t.exception_id] : undefined
+                      const rule = exception ? ruleById[exception.recurrence_rule_id] : undefined
                       return (
-                        <li key={t.id} className="flex items-start gap-3 text-sm rounded-lg p-3 border" style={{borderColor: person?.color ?? "var(--color-border)", backgroundColor: person?.color ? person.color + "10" : "transparent"}}>
-                          <div className="flex items-center justify-center flex-shrink-0">
-                            <Icon
-                              className="h-4 w-4"
-                              style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
-                              strokeWidth={2.5}
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="h-2 w-2 rounded-full"
-                                style={{ backgroundColor: person?.color ?? "var(--color-muted-foreground)" }}
-                              />
-                              <span className="font-semibold">{person?.name ?? "?"}</span>
-                              <span className="text-xs text-[var(--color-muted-foreground)]">
-                                {isPickup ? "Récupération" : "Dépose"}
-                              </span>
-                            </div>
-                            <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                              <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span>
-                              {t.location && <span> — {t.location}</span>}
-                            </div>
-                          </div>
+                        <li key={t.id}>
+                          <TransitionRow transition={t} person={person} exception={exception} rule={rule} />
                         </li>
                       )
                     })}

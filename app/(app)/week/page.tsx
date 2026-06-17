@@ -48,7 +48,7 @@ export default async function WeekPage({
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Planning hebdomadaire</h1>
-      <WeekPlanning dayStates={dayStates} damien={damien} ma={ma} persons={persons} initialWeek={weekParam} />
+      <WeekPlanning dayStates={dayStates} damien={damien} ma={ma} persons={persons} exceptions={exceptions} rules={rules} initialWeek={weekParam} />
     </div>
   )
 }

@@ -22,6 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Trash2, ArrowLeft, Lock } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
+import { indexById } from "@/lib/utils"
+import { TransitionRow } from "@/components/custody/TransitionRow"
 
 export default function CustodyPage() {
   const [presences, setPresences] = useState<ChildPresence[]>([])
@@ -48,8 +50,8 @@ export default function CustodyPage() {
     }
     load()
   }, [])
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
-  const ruleById = Object.fromEntries(rules.map((r) => [r.id, r]))
+  const personById = indexById(persons)
+  const ruleById = indexById(rules)
 
   const generatedPresences = presences.filter((p) => p.recurrence_rule_id !== null)
   const manualPresences = presences.filter((p) => p.recurrence_rule_id === null)
@@ -176,23 +178,9 @@ export default function CustodyPage() {
                 const person = personById[t.person_id]
                 const rule = t.recurrence_rule_id ? ruleById[t.recurrence_rule_id] : null
                 return (
-                  <Card key={t.id} className="opacity-75">
-                    <CardHeader className="pb-1">
-                      <CardTitle className="text-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                          {person?.name} — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
-                        </div>
-                        {rule && <span className="text-xs text-[var(--color-muted-foreground)]">{rule.name}</span>}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-[var(--color-muted-foreground)]">
-                        {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
-                        {t.location && ` — ${t.location}`}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div key={t.id} className="opacity-75">
+                    <TransitionRow transition={t} person={person} ruleName={rule?.name} showDate />
+                  </div>
                 )
               })}
             </div>
@@ -226,30 +214,13 @@ export default function CustodyPage() {
               {manualTransitions.map((t) => {
                 const person = personById[t.person_id]
                 return (
-                  <Card key={t.id}>
-                    <CardHeader className="pb-1">
-                      <CardTitle className="text-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                          {person?.name} — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
-                        </div>
-                        <Button
-                          variant="ghost" size="icon"
-                          className="text-[var(--color-destructive)]"
-                          disabled={isPending}
-                          onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <p className="text-xs text-[var(--color-muted-foreground)]">
-                        {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
-                        {t.location && ` — ${t.location}`}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <TransitionRow
+                    key={t.id}
+                    transition={t}
+                    person={person}
+                    showDate
+                    onDelete={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
+                  />
                 )
               })}
             </div>

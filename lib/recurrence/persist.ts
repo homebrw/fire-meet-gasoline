@@ -33,7 +33,8 @@ export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
     start_at: period.start_at.toISOString(),
     end_at: period.end_at.toISOString(),
     recurrence_rule_id: rule.id,
-    is_exception: period.source === "exception",
+    is_exception: period.exception_id !== null,
+    exception_id: period.exception_id,
     notes: null,
   }))
 
@@ -48,7 +49,8 @@ export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
       direction: "pickup",
       location: rule.handoff_location ?? null,
       recurrence_rule_id: rule.id,
-      is_exception: period.source === "exception",
+      is_exception: period.exception_id !== null,
+      exception_id: period.exception_id,
       notes: null,
     })
 
@@ -59,7 +61,8 @@ export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
       direction: "dropoff",
       location: rule.handoff_location ?? null,
       recurrence_rule_id: rule.id,
-      is_exception: period.source === "exception",
+      is_exception: period.exception_id !== null,
+      exception_id: period.exception_id,
       notes: null,
     })
   }

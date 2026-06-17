@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { indexById } from "@/lib/utils"
+import { TRANSITION_DIRECTION_LABEL } from "@/lib/recurrence/labels"
 
 interface UpcomingTransitionsProps {
   transitions: CustodyTransition[]
@@ -10,7 +12,7 @@ interface UpcomingTransitionsProps {
 }
 
 export function UpcomingTransitions({ transitions, persons }: UpcomingTransitionsProps) {
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const personById = indexById(persons)
 
   return (
     <Card>
@@ -38,7 +40,7 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium">
-                      {person?.name ?? "?"} — {t.direction === "pickup" ? "récupère" : "dépose"}
+                      {person?.name ?? "?"} — {TRANSITION_DIRECTION_LABEL[t.direction]}
                     </p>
                     <p className="text-xs text-[var(--color-muted-foreground)]">
                       {format(parseISO(t.transition_at), "EEEE d MMMM à HH:mm", { locale: fr })}

@@ -19,24 +19,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
-import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
-import { datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
-
-const TYPE_LABELS: Record<string, string> = {
-  cancel: "Annulation",
-  move: "Déplacement",
-  extend: "Prolongation",
-  shorten: "Réduction",
-  add: "Ajout",
-}
+import { datetimeLocalToUTC, formatDatetimeLocal, indexById } from "@/lib/utils"
+import { RECURRENCE_EXCEPTION_TYPE_LABELS } from "@/lib/recurrence/labels"
+import { ExceptionDetail } from "@/components/custody/ExceptionDetail"
 
 export default function ExceptionsPage() {
   const [exceptions, setExceptions] = useState<RecurrenceException[]>([])
@@ -61,8 +52,8 @@ export default function ExceptionsPage() {
     load()
   }, [])
 
-  const ruleById = Object.fromEntries(rules.map((r) => [r.id, r]))
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const ruleById = indexById(rules)
+  const personById = indexById(persons)
 
   function handleDelete(id: string) {
     startTransition(async () => {
@@ -118,61 +109,49 @@ export default function ExceptionsPage() {
             const person = personById[exc.person_id]
             return (
               <Card key={exc.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline">{TYPE_LABELS[exc.type]}</Badge>
-                      <span className="text-[var(--color-muted-foreground)]">
-                        {rule?.name ?? "Règle inconnue"} — {person?.name ?? "?"}
-                      </span>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      <Dialog
-                        open={editExc?.id === exc.id}
-                        onOpenChange={(o) => !o && setEditExc(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditExc(exc)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Modifier l&apos;exception</DialogTitle>
-                          </DialogHeader>
-                          <ExceptionForm
-                            rules={rules}
-                            persons={persons}
-                            exception={exc}
-                            onSuccess={() => {
-                              setEditExc(null)
-                              location.reload()
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-[var(--color-destructive)]"
-                        disabled={isPending}
-                        onClick={() => handleDelete(exc.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xs text-[var(--color-muted-foreground)] space-y-0.5">
-                    {exc.original_start_at && (
-                      <p>Période originale : {format(parseISO(exc.original_start_at), "d MMM yyyy HH:mm", { locale: fr })}</p>
-                    )}
-                    {exc.override_start_at && (
-                      <p>Période : {format(parseISO(exc.override_start_at), "d MMM yyyy HH:mm", { locale: fr })}</p>
-                    )}
-                    {exc.reason && <p>Raison : {exc.reason}</p>}
-                  </div>
+                <CardContent className="pt-4">
+                  <ExceptionDetail
+                    exception={exc}
+                    rule={rule}
+                    person={person}
+                    actions={
+                      <>
+                        <Dialog
+                          open={editExc?.id === exc.id}
+                          onOpenChange={(o) => !o && setEditExc(null)}
+                        >
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => setEditExc(exc)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Modifier l&apos;exception</DialogTitle>
+                            </DialogHeader>
+                            <ExceptionForm
+                              rules={rules}
+                              persons={persons}
+                              exception={exc}
+                              onSuccess={() => {
+                                setEditExc(null)
+                                location.reload()
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-[var(--color-destructive)]"
+                          disabled={isPending}
+                          onClick={() => handleDelete(exc.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    }
+                  />
                 </CardContent>
               </Card>
             )
@@ -259,7 +238,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            {Object.entries(TYPE_LABELS).map(([v, l]) => (
+            {Object.entries(RECURRENCE_EXCEPTION_TYPE_LABELS).map(([v, l]) => (
               <SelectItem key={v} value={v}>{l}</SelectItem>
             ))}
           </SelectContent>

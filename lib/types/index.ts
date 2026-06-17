@@ -57,6 +57,7 @@ export type ChildPresence = {
   end_at: string
   recurrence_rule_id: string | null
   is_exception: boolean
+  exception_id: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -72,6 +73,7 @@ export type CustodyTransition = {
   location: string | null
   recurrence_rule_id: string | null
   is_exception: boolean
+  exception_id: string | null
   notes: string | null
   created_at: string
   updated_at: string
@@ -132,6 +134,7 @@ export type GeneratedPeriod = {
   end_at: Date
   rule_id: string
   source: "rule" | "exception" | "manual"
+  exception_id: string | null
 }
 
 export type DisplayState =

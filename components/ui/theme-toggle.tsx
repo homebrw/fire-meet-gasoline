@@ -14,6 +14,11 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  const handleClick = () => {
+    console.log("Toggle clicked, current theme:", theme);
+    toggleTheme();
+  };
+
   if (!mounted) {
     return (
       <Button variant="ghost" size="icon" disabled aria-label="Toggle theme">
@@ -26,7 +31,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggleTheme}
+      onClick={handleClick}
       aria-label="Toggle theme"
       title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >

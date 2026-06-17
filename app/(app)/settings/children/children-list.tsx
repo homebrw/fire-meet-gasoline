@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Person } from "@/lib/types"
 import { ChildCard } from "./child-card"
@@ -9,7 +9,7 @@ export function ChildrenList() {
   const [children, setChildren] = useState<Person[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadChildren = useCallback(async () => {
+  const loadChildren = async () => {
     try {
       const supabase = await createClient()
       const {
@@ -40,11 +40,11 @@ export function ChildrenList() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
     loadChildren()
-  }, [loadChildren])
+  }, [])
 
   useEffect(() => {
     let subscription: Awaited<ReturnType<typeof createClient>>
@@ -76,7 +76,7 @@ export function ChildrenList() {
     return () => {
       subscription?.unsubscribe()
     }
-  }, [loadChildren])
+  }, [])
 
   if (loading) {
     return <div className="text-sm text-gray-500">Chargement...</div>

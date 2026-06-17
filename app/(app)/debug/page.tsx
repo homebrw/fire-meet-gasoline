@@ -3,8 +3,7 @@ export const dynamic = "force-dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { subDays, addDays, startOfToday } from "date-fns"
-import type { RecurrenceRule, RecurrenceException } from "@/lib/types"
-import { Button } from "@/components/ui/button"
+import type { RecurrenceRule, RecurrenceException, Person } from "@/lib/types"
 
 export default async function DebugPage() {
   const supabase = await createClient()
@@ -20,7 +19,7 @@ export default async function DebugPage() {
 
   const rules = (rulesRes.data ?? []) as RecurrenceRule[]
   const exceptions = (exceptionsRes.data ?? []) as RecurrenceException[]
-  const persons = (personsRes.data ?? []) as any[]
+  const persons = (personsRes.data ?? []) as Person[]
 
   const periods = generateCustodyPeriods(rules, exceptions, from, to)
 

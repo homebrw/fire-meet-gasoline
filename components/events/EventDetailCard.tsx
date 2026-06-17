@@ -69,8 +69,14 @@ export function EventDetailCard({
 
       <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
         <p>
-          {format(parseISO(event.start_at), "HH:mm", { locale: fr })} –{" "}
-          {format(parseISO(event.end_at), "HH:mm", { locale: fr })}
+          {event.is_all_day ? (
+            "Journée entière"
+          ) : (
+            <>
+              {format(parseISO(event.start_at), "HH:mm", { locale: fr })} –{" "}
+              {format(parseISO(event.end_at), "HH:mm", { locale: fr })}
+            </>
+          )}
         </p>
         {event.location && <p>📍 {event.location}</p>}
       </div>

@@ -22,6 +22,8 @@ interface EventFormProps {
 
 export function EventForm({ persons, event, initialDate, onSuccess }: EventFormProps) {
   const [eventType, setEventType] = useState<string>(event?.type ?? "shared")
+  const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
+  const [allDayDate, setAllDayDate] = useState<string>(initialDate || event?.start_at?.slice(0, 10) || format(new Date(), "yyyy-MM-dd"))
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [participants, setParticipants] = useState<string[]>([])
@@ -100,27 +102,56 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
 
       <input type="hidden" name="created_by" value={persons[0]?.id ?? ""} />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="start_at">Début</Label>
-          <Input
-            id="start_at"
-            name="start_at"
-            type="datetime-local"
-            defaultValue={defaultStartAt}
-            required
+      <div className="space-y-3">
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            name="is_all_day"
+            value="true"
+            checked={isAllDay}
+            onChange={(e) => setIsAllDay(e.target.checked)}
+            className="rounded"
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="end_at">Fin</Label>
-          <Input
-            id="end_at"
-            name="end_at"
-            type="datetime-local"
-            defaultValue={defaultEndAt}
-            required
-          />
-        </div>
+          Journée entière
+        </label>
+
+        {isAllDay ? (
+          <div className="space-y-2">
+            <Label htmlFor="start_date">Date</Label>
+            <Input
+              id="start_date"
+              type="date"
+              value={allDayDate}
+              onChange={(e) => setAllDayDate(e.target.value)}
+              required
+            />
+            <input type="hidden" name="start_at" value={`${allDayDate}T00:00:00`} />
+            <input type="hidden" name="end_at" value={`${allDayDate}T23:59:59`} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="start_at">Début</Label>
+              <Input
+                id="start_at"
+                name="start_at"
+                type="datetime-local"
+                defaultValue={defaultStartAt}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_at">Fin</Label>
+              <Input
+                id="end_at"
+                name="end_at"
+                type="datetime-local"
+                defaultValue={defaultEndAt}
+                required
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">

@@ -14,6 +14,7 @@ const eventSchema = z.object({
   owner_person_id: z.string().uuid().nullable().optional(),
   created_by: z.string().uuid(),
   is_blocking: z.coerce.boolean().default(false),
+  is_all_day: z.coerce.boolean().default(false),
   visibility: z.enum(["both", "private"]).optional(),
   allow_participants_to_see_attachments: z.coerce.boolean().default(true),
 })

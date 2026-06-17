@@ -91,6 +91,7 @@ export type CalendarEvent = {
   owner_person_id: string | null
   created_by: string
   is_blocking: boolean
+  is_all_day: boolean
   visibility: EventVisibility
   allow_participants_to_see_attachments: boolean
   created_at: string
@@ -175,5 +176,6 @@ export type EventFormData = {
   type: EventType
   owner_person_id?: string
   is_blocking: boolean
+  is_all_day: boolean
   visibility: EventVisibility
 }

@@ -5,6 +5,7 @@ import {
   isWithinInterval,
   parseISO,
   startOfDay,
+  startOfWeek,
   format,
 } from "date-fns"
 import type {
@@ -60,24 +61,46 @@ function expandWeeklyAlternating(
   const windowStart = from < ruleStart ? ruleStart : from
   const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
-  const custodyDays: Date[] = []
-
-  let current = startOfDay(windowStart)
-  while (current <= windowEnd) {
-    const isoWeek = getISOWeek(current)
-    const isEven = isoWeek % 2 === 0
-    const matches =
-      (rule.week_parity === "even" && isEven) ||
-      (rule.week_parity === "odd" && !isEven)
-
-    if (matches) {
-      custodyDays.push(current)
-    }
-    current = addDays(current, 1)
+  // La garde commence au 1er lundi (a) >= starts_at et (b) dans une semaine de
+  // la bonne parité — « le prochain lundi impair ».
+  const mondayOfRuleStart = startOfWeek(ruleStart, { weekStartsOn: 1 })
+  let firstMonday =
+    mondayOfRuleStart >= startOfDay(ruleStart)
+      ? mondayOfRuleStart
+      : addDays(mondayOfRuleStart, 7)
+  while (!weekParityMatches(firstMonday, rule.week_parity)) {
+    firstMonday = addDays(firstMonday, 7)
   }
 
-  const rawPeriods = groupConsecutiveDays(custodyDays, rule)
-  return applyExceptions(rawPeriods, exceptions, rule.id)
+  // Démarrer une semaine avant la fenêtre pour capturer une période déjà en
+  // cours (ex. handoff du lundi matin), sans jamais précéder firstMonday.
+  let monday = addDays(startOfWeek(windowStart, { weekStartsOn: 1 }), -7)
+  if (monday < firstMonday) monday = firstMonday
+
+  const periods: GeneratedPeriod[] = []
+  while (monday <= windowEnd) {
+    if (monday >= firstMonday && weekParityMatches(monday, rule.week_parity)) {
+      const start_at = applyTime(monday, rule.custody_start_time)
+      const end_at = applyTime(addDays(monday, 7), rule.custody_end_time) // lundi suivant
+      if (end_at > windowStart) {
+        periods.push({
+          person_id: rule.person_id,
+          start_at,
+          end_at,
+          rule_id: rule.id,
+          source: "rule",
+        })
+      }
+    }
+    monday = addDays(monday, 7)
+  }
+
+  return applyExceptions(periods, exceptions, rule.id)
+}
+
+function weekParityMatches(date: Date, parity: "even" | "odd"): boolean {
+  const isEven = getISOWeek(date) % 2 === 0
+  return parity === "even" ? isEven : !isEven
 }
 
 // ─── custom_cycle ─────────────────────────────────────────────────────────────
@@ -122,10 +145,13 @@ function expandManual(
   const start = parseISO(rule.starts_at)
   if (start > to) return []
 
+  const end = rule.ends_at ? parseISO(rule.ends_at) : addDays(start, 1)
+  if (end < from) return []
+
   const period: GeneratedPeriod = {
     person_id: rule.person_id,
-    start_at: start > from ? start : from,
-    end_at: to,
+    start_at: applyTime(start > from ? start : from, rule.custody_start_time),
+    end_at: applyTime(end, rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
   }
@@ -148,7 +174,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
       periods.push({
         person_id: rule.person_id,
         start_at: applyTime(periodStart, rule.custody_start_time),
-        end_at: applyTime(prev, rule.custody_end_time, true),
+        end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
         rule_id: rule.id,
         source: "rule",
       })
@@ -160,7 +186,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
   periods.push({
     person_id: rule.person_id,
     start_at: applyTime(periodStart, rule.custody_start_time),
-    end_at: applyTime(prev, rule.custody_end_time, true),
+    end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
   })
@@ -217,7 +243,7 @@ function applyExceptions(
               })
           )
           result.push({
-            person_id: periods[0]?.person_id ?? "",
+            person_id: exc.person_id,
             start_at: parseISO(exc.override_start_at),
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,
@@ -255,7 +281,7 @@ function applyExceptions(
       case "add":
         if (exc.override_start_at && exc.override_end_at) {
           result.push({
-            person_id: periods[0]?.person_id ?? "",
+            person_id: exc.person_id,
             start_at: parseISO(exc.override_start_at),
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
+import { DayEventsModal } from "@/components/week/DayEventsModal"
 import {
   Sheet,
   SheetContent,
@@ -47,8 +48,10 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
   const [availabilityDetailOpen, setAvailabilityDetailOpen] = useState(false)
+  const [dayEventsOpen, setDayEventsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null)
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
@@ -277,23 +280,33 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
                 const events = state?.sharedEvents ?? []
                 return (
                   <td key={key} className="px-1 py-2 text-center">
-                    <div className="mx-auto flex items-center justify-center gap-1 flex-wrap h-min">
+                    <div className="mx-auto flex items-center justify-center gap-2 flex-wrap h-min">
                       {events.length > 0 ? (
-                        events.map((event) => (
+                        <>
                           <button
-                            key={event.id}
                             type="button"
-                            onClick={() => setSelectedEvent(event)}
-                            className="h-5 px-2 rounded text-xs font-medium transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-ring)] truncate"
+                            onClick={() => {
+                              setSelectedDayDate(key)
+                              setDayEventsOpen(true)
+                            }}
+                            className="px-3 py-1 rounded-full text-xs font-semibold transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-ring)]"
                             style={{
                               backgroundColor: 'var(--color-event-badge-bg)',
                               color: 'var(--color-event-badge-text)'
                             }}
-                            title={event.title}
+                            title={`${events.length} événement${events.length > 1 ? 's' : ''}`}
                           >
-                            {event.title}
+                            {events.length}
                           </button>
-                        ))
+                          <button
+                            type="button"
+                            onClick={() => handleDayClick(key)}
+                            className="h-5 w-5 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center"
+                            title="Ajouter un événement"
+                          >
+                            <Plus className="h-3 w-3 text-[var(--color-muted-foreground)]" />
+                          </button>
+                        </>
                       ) : (
                         <button
                           type="button"
@@ -353,6 +366,20 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Day events modal */}
+      {selectedDayDate && (
+        <DayEventsModal
+          dateKey={selectedDayDate}
+          events={dayStates[selectedDayDate]?.sharedEvents ?? []}
+          persons={persons}
+          open={dayEventsOpen}
+          onClose={() => {
+            setDayEventsOpen(false)
+            setSelectedDayDate(null)
+          }}
+        />
+      )}
 
       {/* Event detail/edit modal */}
       {selectedEvent && (

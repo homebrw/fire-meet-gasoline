@@ -1,7 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
-import type { CalendarEvent } from "@/lib/types"
+import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

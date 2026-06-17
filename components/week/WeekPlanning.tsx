@@ -15,7 +15,7 @@ import { fr } from "date-fns/locale"
 import type { DayState, Person, CalendarEvent } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown, CircleDashed } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -31,6 +31,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { AvailabilityDetailSheet } from "@/components/shared/AvailabilityDetailSheet"
 
 interface WeekPlanningProps {
   dayStates: Record<string, DayState>
@@ -45,6 +46,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
   )
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [availabilityDetailOpen, setAvailabilityDetailOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
 
@@ -65,12 +67,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
       color: ma?.color ?? "#ec4899",
       check: (s) => s.maHasChild,
     },
-    {
-      label: "Disponible",
-      short: "✓",
-      color: "#22c55e",
-      check: (s) => s.bothAvailable,
-    },
   ]
 
   function handleDayClick(date: string) {
@@ -81,6 +77,11 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
   function handleTransitionClick(date: string) {
     setSelectedDate(date)
     setDetailOpen(true)
+  }
+
+  function handleAvailabilityClick(date: string) {
+    setSelectedDate(date)
+    setAvailabilityDetailOpen(true)
   }
 
   return (
@@ -172,6 +173,54 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
                 })}
               </tr>
             ))}
+            {/* Availability row (full / partial / none) */}
+            <tr>
+              <td className="px-1 md:px-3 py-2 w-8 md:w-28">
+                <div className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--color-available)" }} />
+                  <span className="font-bold text-[10px] md:hidden">✓</span>
+                  <span className="font-medium text-xs hidden md:inline truncate">Disponible</span>
+                </div>
+              </td>
+              {dayKeys.map((key) => {
+                const state = dayStates[key]
+                if (state?.bothAvailable) {
+                  return (
+                    <td key={key} className="px-1 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAvailabilityClick(key)}
+                        className="mx-auto h-6 w-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{ backgroundColor: "var(--color-available)" + "30" }}
+                        title="Disponibles toute la journée"
+                      >
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: "var(--color-available)" }} />
+                      </button>
+                    </td>
+                  )
+                }
+                if (state?.partiallyAvailable) {
+                  return (
+                    <td key={key} className="px-1 py-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleAvailabilityClick(key)}
+                        className="mx-auto h-6 w-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{ backgroundColor: "var(--color-transition)" + "30" }}
+                        title="Disponibles une partie de la journée"
+                      >
+                        <CircleDashed className="h-3.5 w-3.5" style={{ color: "var(--color-transition)" }} strokeWidth={2.5} />
+                      </button>
+                    </td>
+                  )
+                }
+                return (
+                  <td key={key} className="px-1 py-2 text-center">
+                    <div className="mx-auto h-6 w-6" />
+                  </td>
+                )
+              })}
+            </tr>
             {/* Transitions row */}
             <tr>
               <td className="px-1 md:px-3 py-2 w-8 md:w-28">
@@ -271,6 +320,18 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
           persons={persons}
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
+        />
+      )}
+
+      {/* Availability detail sheet */}
+      {selectedDate && (
+        <AvailabilityDetailSheet
+          dateKey={selectedDate}
+          state={dayStates[selectedDate]}
+          damien={damien}
+          ma={ma}
+          open={availabilityDetailOpen}
+          onClose={() => setAvailabilityDetailOpen(false)}
         />
       )}
 

@@ -137,6 +137,13 @@ export type DisplayState =
   | "shared_event"
   | "custody_change"
 
+export type TimeWindow = {
+  start: string               // 'HH:MM'
+  end: string                 // 'HH:MM'
+  startsAtDayBoundary: boolean // true if window begins exactly at 00:00
+  endsAtDayBoundary: boolean   // true if window ends exactly at end of day
+}
+
 export type DayState = {
   date: string                          // 'YYYY-MM-DD'
   damienHasChildren: boolean
@@ -146,12 +153,12 @@ export type DayState = {
   hasTransition: boolean
   sharedEvents: CalendarEvent[]
   custodyTransitions: CustodyTransition[]
-  bothAvailable: boolean
+  bothAvailable: boolean                // fully available for the entire day
+  partiallyAvailable: boolean            // some, but not all, of the day is jointly free
+  commonAvailableWindows: TimeWindow[]  // joint-free time windows for the day
+  damienBusyWindows: TimeWindow[]       // merged busy intervals for person 1
+  maBusyWindows: TimeWindow[]           // merged busy intervals for person 2
   displayState: DisplayState
-  damienAvailableFrom: string | null    // 'HH:MM' or null if fully unavailable/fully available
-  damienAvailableUntil: string | null   // 'HH:MM' or null if fully unavailable/fully available
-  maAvailableFrom: string | null        // 'HH:MM' or null if fully unavailable/fully available
-  maAvailableUntil: string | null       // 'HH:MM' or null if fully unavailable/fully available
 }
 
 // ─── Form Schemas (used in forms) ─────────────────────────────────────────────

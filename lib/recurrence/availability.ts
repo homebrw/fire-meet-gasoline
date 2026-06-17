@@ -7,7 +7,56 @@ import type {
   CustodyTransition,
   DayState,
   DisplayState,
+  TimeWindow,
 } from "@/lib/types"
+
+type Interval = { start: Date; end: Date }
+
+function mergeIntervals(intervals: Interval[]): Interval[] {
+  if (intervals.length === 0) return []
+  const sorted = [...intervals].sort((a, b) => a.start.getTime() - b.start.getTime())
+  const merged: Interval[] = [sorted[0]]
+  for (const current of sorted.slice(1)) {
+    const last = merged[merged.length - 1]
+    if (current.start <= last.end) {
+      if (current.end > last.end) last.end = current.end
+    } else {
+      merged.push({ ...current })
+    }
+  }
+  return merged
+}
+
+function complement(busy: Interval[], dayStart: Date, dayEnd: Date): Interval[] {
+  const free: Interval[] = []
+  let cursor = dayStart
+  for (const interval of busy) {
+    if (interval.start > cursor) {
+      free.push({ start: cursor, end: interval.start })
+    }
+    if (interval.end > cursor) cursor = interval.end
+  }
+  if (cursor < dayEnd) {
+    free.push({ start: cursor, end: dayEnd })
+  }
+  return free
+}
+
+function toTimeWindow(interval: Interval, dayStart: Date, dayEnd: Date): TimeWindow {
+  return {
+    start: format(interval.start, "HH:mm"),
+    end: format(interval.end, "HH:mm"),
+    startsAtDayBoundary: interval.start <= dayStart,
+    endsAtDayBoundary: interval.end >= dayEnd,
+  }
+}
+
+function clip(start: Date, end: Date, dayStart: Date, dayEnd: Date): Interval | null {
+  const clippedStart = start > dayStart ? start : dayStart
+  const clippedEnd = end < dayEnd ? end : dayEnd
+  if (clippedStart >= clippedEnd) return null
+  return { start: clippedStart, end: clippedEnd }
+}
 
 export function computeDayStates(
   persons: Person[],
@@ -31,6 +80,15 @@ export function computeDayStates(
     const dayStart = startOfDay(current)
     const dayEnd = endOfDay(current)
 
+    const damienBusy: Interval[] = []
+    const maBusy: Interval[] = []
+
+    function pushTo(personId: string | undefined, interval: Interval | null) {
+      if (!interval) return
+      if (damien && personId === damien.id) damienBusy.push(interval)
+      if (ma && personId === ma.id) maBusy.push(interval)
+    }
+
     // Custody from recurrence engine
     let damienHasChildren = false
     let maHasChild = false
@@ -39,6 +97,7 @@ export function computeDayStates(
       if (period.start_at <= dayEnd && period.end_at >= dayStart) {
         if (damien && period.person_id === damien.id) damienHasChildren = true
         if (ma && period.person_id === ma.id) maHasChild = true
+        pushTo(period.person_id, clip(period.start_at, period.end_at, dayStart, dayEnd))
       }
     }
 
@@ -49,6 +108,7 @@ export function computeDayStates(
       if (presStart <= dayEnd && presEnd >= dayStart) {
         if (damien && presence.person_id === damien.id) damienHasChildren = true
         if (ma && presence.person_id === ma.id) maHasChild = true
+        pushTo(presence.person_id, clip(presStart, presEnd, dayStart, dayEnd))
       }
     }
 
@@ -63,12 +123,20 @@ export function computeDayStates(
       if (evStart <= dayEnd && evEnd >= dayStart) {
         dayEvents.push(event)
         if (event.is_blocking) {
+          // all-day events block the entire day regardless of the stored time-of-day
+          const interval = event.is_all_day
+            ? { start: dayStart, end: dayEnd }
+            : clip(evStart, evEnd, dayStart, dayEnd)
+
           if (!event.owner_person_id) {
             damienBlockingEvent = true
             maBlockingEvent = true
+            pushTo(damien?.id, interval)
+            pushTo(ma?.id, interval)
           } else {
             if (damien && event.owner_person_id === damien.id) damienBlockingEvent = true
             if (ma && event.owner_person_id === ma.id) maBlockingEvent = true
+            pushTo(event.owner_person_id, interval)
           }
         }
       }
@@ -84,12 +152,23 @@ export function computeDayStates(
     })
 
     const hasTransition = dayTransitions.length > 0
-    const bothAvailable =
-      !damienHasChildren && !maHasChild && !damienBlockingEvent && !maBlockingEvent
 
-    // Calculate partial availability windows based on transitions
-    const damienPartialAvail = calculatePartialAvailability(dayTransitions, damien?.id, ma?.id)
-    const maPartialAvail = calculatePartialAvailability(dayTransitions, ma?.id, damien?.id)
+    // Joint availability: merge each person's busy intervals, union them, and
+    // take the complement over the day to get the common free windows.
+    const damienMerged = mergeIntervals(damienBusy)
+    const maMerged = mergeIntervals(maBusy)
+    const unionBusy = mergeIntervals([...damienMerged, ...maMerged])
+    const freeWindows = complement(unionBusy, dayStart, dayEnd)
+
+    const bothAvailable =
+      freeWindows.length === 1 &&
+      freeWindows[0].start <= dayStart &&
+      freeWindows[0].end >= dayEnd
+    const partiallyAvailable = freeWindows.length > 0 && !bothAvailable
+
+    const commonAvailableWindows = freeWindows.map((w) => toTimeWindow(w, dayStart, dayEnd))
+    const damienBusyWindows = damienMerged.map((w) => toTimeWindow(w, dayStart, dayEnd))
+    const maBusyWindows = maMerged.map((w) => toTimeWindow(w, dayStart, dayEnd))
 
     const displayState = computeDisplayState({
       hasTransition,
@@ -110,11 +189,11 @@ export function computeDayStates(
       sharedEvents,
       custodyTransitions: dayTransitions,
       bothAvailable,
+      partiallyAvailable,
+      commonAvailableWindows,
+      damienBusyWindows,
+      maBusyWindows,
       displayState,
-      damienAvailableFrom: damienPartialAvail.availableFrom,
-      damienAvailableUntil: damienPartialAvail.availableUntil,
-      maAvailableFrom: maPartialAvail.availableFrom,
-      maAvailableUntil: maPartialAvail.availableUntil,
     })
 
     current = addDays(current, 1)
@@ -147,36 +226,6 @@ function computeDisplayState(args: {
   if (damienBlockingEvent) return "damien_unavailable"
   if (maBlockingEvent) return "ma_unavailable"
   return "available"
-}
-
-function calculatePartialAvailability(
-  dayTransitions: CustodyTransition[],
-  personId: string | undefined,
-  otherPersonId: string | undefined
-): { availableFrom: string | null; availableUntil: string | null } {
-  if (!personId || !otherPersonId) {
-    return { availableFrom: null, availableUntil: null }
-  }
-
-  let availableFrom: string | null = null
-  let availableUntil: string | null = null
-
-  // Look for transitions for the OTHER person (indicating when we become available)
-  for (const trans of dayTransitions) {
-    if (trans.person_id !== otherPersonId) continue
-
-    if (trans.direction === "pickup") {
-      // Other person picks up = we become available at this time
-      const time = trans.transition_at.split("T")[1]?.slice(0, 5)
-      if (time) availableUntil = time
-    } else if (trans.direction === "dropoff") {
-      // Other person drops off = we become available at this time
-      const time = trans.transition_at.split("T")[1]?.slice(0, 5)
-      if (time) availableFrom = time
-    }
-  }
-
-  return { availableFrom, availableUntil }
 }
 
 export function findNextAvailableSlot(

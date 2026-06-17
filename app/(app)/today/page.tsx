@@ -9,7 +9,7 @@ import {
   getUpcomingEvents,
 } from "@/lib/recurrence/availability"
 import { DashboardContent } from "@/components/dashboard/DashboardContent"
-import { subDays, addDays, startOfToday } from "date-fns"
+import { subDays, addDays, startOfToday, parseISO } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person } from "@/lib/types"
 
 
@@ -52,6 +52,19 @@ async function loadDashboardData() {
   const upcomingTransitions = getUpcomingTransitions(transitions, today, 14)
   const upcomingEvents = getUpcomingEvents(events, today, 14)
 
+  // Filter shared events that occur before the next available slot
+  const sharedEventsBefore: CalendarEvent[] = []
+  if (nextSlot) {
+    const nextSlotDate = parseISO(nextSlot.date + "T00:00:00Z")
+    sharedEventsBefore.push(
+      ...upcomingEvents.filter(
+        (e) =>
+          !e.owner_person_id &&
+          parseISO(e.start_at) < nextSlotDate
+      )
+    )
+  }
+
   return {
     todayState,
     damien,
@@ -59,6 +72,7 @@ async function loadDashboardData() {
     nextSlot,
     upcomingTransitions,
     upcomingEvents,
+    sharedEventsBefore,
     persons,
   }
 }
@@ -74,6 +88,7 @@ export default async function TodayPage() {
       nextSlot={data.nextSlot}
       upcomingTransitions={data.upcomingTransitions}
       upcomingEvents={data.upcomingEvents}
+      sharedEventsBefore={data.sharedEventsBefore}
       persons={data.persons}
     />
   )

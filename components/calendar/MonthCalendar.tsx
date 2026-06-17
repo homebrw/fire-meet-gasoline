@@ -11,6 +11,7 @@ import {
   addDays,
   format,
   isSameMonth,
+  getISOWeek,
 } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
@@ -67,8 +68,11 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
         </Button>
       </div>
 
-      {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-1">
+      {/* Weekday headers with week number column */}
+      <div className="grid grid-cols-8 gap-1">
+        <div className="text-center text-xs font-medium text-[var(--color-muted-foreground)] py-1">
+          Sem
+        </div>
         {WEEKDAYS.map((d) => (
           <div key={d} className="text-center text-xs font-medium text-[var(--color-muted-foreground)] py-1">
             {d}
@@ -76,17 +80,33 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
         ))}
       </div>
 
-      {/* Day grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {grid.map((dateKey) => (
-          <DayCell
-            key={dateKey}
-            dateKey={dateKey}
-            state={dayStates[dateKey]}
-            isCurrentMonth={isSameMonth(new Date(dateKey + "T12:00:00"), currentMonth)}
-            onClick={setSelectedDay}
-          />
-        ))}
+      {/* Day grid with week numbers */}
+      <div className="grid grid-cols-8 gap-1">
+        {grid.map((dateKey, index) => {
+          const dayOfWeek = index % 7
+          const date = new Date(dateKey + "T12:00:00")
+          const isFirstDayOfWeek = dayOfWeek === 0
+          const weekNumber = getISOWeek(date)
+
+          return (
+            <div key={`week-${index}`} className="contents">
+              {isFirstDayOfWeek && (
+                <div className="text-center text-xs font-medium text-[var(--color-muted-foreground)] py-2 flex items-center justify-center">
+                  {weekNumber}
+                </div>
+              )}
+              {!isFirstDayOfWeek && index > 0 && (
+                <div></div>
+              )}
+              <DayCell
+                dateKey={dateKey}
+                state={dayStates[dateKey]}
+                isCurrentMonth={isSameMonth(date, currentMonth)}
+                onClick={setSelectedDay}
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* Legend */}

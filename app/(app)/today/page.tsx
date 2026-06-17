@@ -8,14 +8,11 @@ import {
   getUpcomingTransitions,
   getUpcomingEvents,
 } from "@/lib/recurrence/availability"
-import { TodayStatus } from "@/components/dashboard/TodayStatus"
-import { NextAvailableSlot } from "@/components/dashboard/NextAvailableSlot"
-import { UpcomingTransitions } from "@/components/dashboard/UpcomingTransitions"
-import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents"
+import { DashboardContent } from "@/components/dashboard/DashboardContent"
 import { subDays, addDays, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person } from "@/lib/types"
 
-export default async function TodayPage() {
+async function loadDashboardData() {
   const supabase = await createClient()
   const today = startOfToday()
   const from = subDays(today, 7)
@@ -30,6 +27,9 @@ export default async function TodayPage() {
       supabase.from("events").select("*"),
       supabase.from("custody_transitions").select("*"),
     ])
+
+  if (personsRes.error) throw personsRes.error
+  if (rulesRes.error) throw rulesRes.error
 
   const persons = (personsRes.data ?? []) as Person[]
   const rules = (rulesRes.data ?? []) as RecurrenceRule[]
@@ -50,15 +50,29 @@ export default async function TodayPage() {
   const upcomingTransitions = getUpcomingTransitions(transitions, today, 14)
   const upcomingEvents = getUpcomingEvents(events, today, 14)
 
+  return {
+    todayState,
+    damien,
+    ma,
+    nextSlot,
+    upcomingTransitions,
+    upcomingEvents,
+    persons,
+  }
+}
+
+export default async function TodayPage() {
+  const data = await loadDashboardData()
+
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Aujourd&apos;hui</h1>
-      <TodayStatus state={todayState} damien={damien} ma={ma} />
-      <NextAvailableSlot slot={nextSlot} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <UpcomingTransitions transitions={upcomingTransitions} persons={persons} />
-        <UpcomingEvents events={upcomingEvents} persons={persons} />
-      </div>
-    </div>
+    <DashboardContent
+      todayState={data.todayState}
+      damien={data.damien}
+      ma={data.ma}
+      nextSlot={data.nextSlot}
+      upcomingTransitions={data.upcomingTransitions}
+      upcomingEvents={data.upcomingEvents}
+      persons={data.persons}
+    />
   )
 }

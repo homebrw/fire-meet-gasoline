@@ -117,7 +117,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             id="starts_at"
             name="starts_at"
             type="datetime-local"
-            defaultValue={rule?.starts_at ? rule.starts_at.slice(0, 16) : ""}
+            defaultValue={rule?.starts_at ? new Date(rule.starts_at).toISOString().slice(0, 16) : ""}
             required
           />
         </div>
@@ -127,7 +127,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             id="ends_at"
             name="ends_at"
             type="date"
-            defaultValue={rule?.ends_at ? rule.ends_at.slice(0, 10) : ""}
+            defaultValue={rule?.ends_at ? new Date(rule.ends_at).toISOString().split('T')[0] : ""}
           />
         </div>
       </div>

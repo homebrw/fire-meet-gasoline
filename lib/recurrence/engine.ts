@@ -52,7 +52,7 @@ function expandWeeklyAlternating(
   from: Date,
   to: Date
 ): GeneratedPeriod[] {
-  if (!rule.week_parity) return []
+  const weekParity = rule.week_parity || "odd"
 
   const ruleStart = parseISO(rule.starts_at)
   const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
@@ -66,8 +66,8 @@ function expandWeeklyAlternating(
     const isoWeek = getISOWeek(current)
     const isEven = isoWeek % 2 === 0
     const matches =
-      (rule.week_parity === "even" && isEven) ||
-      (rule.week_parity === "odd" && !isEven)
+      (weekParity === "even" && isEven) ||
+      (weekParity === "odd" && !isEven)
 
     if (matches) {
       custodyDays.push(current)

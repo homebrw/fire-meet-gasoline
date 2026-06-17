@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "./engine"
-import type { RecurrenceRule, RecurrenceException, ChildPresence, CustodyTransition } from "@/lib/types"
-import { addYears, format, parseISO } from "date-fns"
+import type { RecurrenceRule, ChildPresence, CustodyTransition } from "@/lib/types"
+import { addYears, parseISO } from "date-fns"
 
 export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
   const supabase = await createClient()

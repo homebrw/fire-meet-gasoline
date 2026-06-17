@@ -22,7 +22,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
 import {
@@ -30,10 +29,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet"
-import { Separator } from "@/components/ui/separator"
-import { getStateConfig } from "@/lib/recurrence/display"
 
 interface WeekPlanningProps {
   dayStates: Record<string, DayState>
@@ -256,8 +252,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
         <TransitionDetailSheet
           dateKey={selectedDate}
           state={dayStates[selectedDate]}
-          damien={damien}
-          ma={ma}
           persons={persons}
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
@@ -289,8 +283,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
 interface TransitionDetailSheetProps {
   dateKey: string
   state: DayState | undefined
-  damien: Person | undefined
-  ma: Person | undefined
   persons: Person[]
   open: boolean
   onClose: () => void
@@ -299,17 +291,11 @@ interface TransitionDetailSheetProps {
 function TransitionDetailSheet({
   dateKey,
   state,
-  damien,
-  ma,
   persons,
   open,
   onClose,
 }: TransitionDetailSheetProps) {
   const date = parseISO(dateKey + "T12:00:00")
-  const person1 = damien
-  const person2 = ma
-  const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
-  const config = state ? stateConfig[state.displayState] : null
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   if (!state) return null

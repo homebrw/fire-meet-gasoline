@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useEffect, useState, useTransition } from "react"
+import { Suspense, useEffect, useState, useTransition } from "react"
 import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { deleteEvent } from "@/lib/actions/events"
@@ -33,7 +33,7 @@ type EventParticipantData = {
   }>
 }
 
-export default function EventsPage() {
+function EventsPageContent() {
   const searchParams = useSearchParams()
   const initialDate = searchParams.get("date")
 
@@ -199,5 +199,13 @@ export default function EventsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <EventsPageContent />
+    </Suspense>
   )
 }

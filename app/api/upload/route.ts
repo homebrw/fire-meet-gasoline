@@ -45,9 +45,6 @@ export async function POST(request: Request) {
   // Check permissions: can upload if owner OR can see the event
   const isOwner = event.owner_person_id === currentPerson.id
   const isVisibleEvent = event.visibility === "both"
-  const isParticipant = isVisibleEvent
-    ? true
-    : event.owner_person_id === currentPerson.id
 
   if (!isOwner && !isVisibleEvent) {
     // For private events, check if user is a participant

@@ -40,8 +40,6 @@ async function loadDashboardData() {
   const events = (eventsRes.data ?? []) as CalendarEvent[]
   const transitions = (transitionsRes.data ?? []) as CustodyTransition[]
 
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
-
   const periods = generateCustodyPeriods(rules, exceptions, from, to)
   const dayStates = computeDayStates(persons, periods, presences, events, transitions, from, to)
 

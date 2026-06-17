@@ -88,7 +88,7 @@ export function EventsList({
                   {format(startDate, "EEEE d MMMM yyyy", { locale: fr })}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {event.visibility === "shared" && (
+                  {event.visibility === "both" && (
                     <Badge variant="secondary">Partagé</Badge>
                   )}
                   {eventParticipants.length > 0 && (

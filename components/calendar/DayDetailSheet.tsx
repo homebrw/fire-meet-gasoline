@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
+import { EventDetailCard } from "@/components/events/EventDetailCard"
 
 interface DayDetailSheetProps {
   dateKey: string
@@ -98,17 +99,17 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                 <Separator />
                 <div>
                   <p className="text-sm font-semibold mb-2">Événements communs</p>
-                  <ul className="space-y-2">
+                  <div className="space-y-3">
                     {state.sharedEvents.map((ev) => (
-                      <li key={ev.id} className="text-sm space-y-0.5">
-                        <p className="font-medium">{ev.title}</p>
-                        <p className="text-xs text-[var(--color-muted-foreground)]">
-                          {format(parseISO(ev.start_at), "HH:mm")} – {format(parseISO(ev.end_at), "HH:mm")}
-                          {ev.location && ` • ${ev.location}`}
-                        </p>
-                      </li>
+                      <EventDetailCard
+                        key={ev.id}
+                        event={ev}
+                        persons={persons}
+                        showAttachments={true}
+                        showParticipants={true}
+                      />
                     ))}
-                  </ul>
+                  </div>
                 </div>
               </>
             )}

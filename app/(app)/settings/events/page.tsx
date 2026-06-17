@@ -20,7 +20,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Eye } from "lucide-react"
+import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
@@ -112,6 +113,11 @@ export default function EventsPage() {
                   <CardTitle className="text-base flex items-center justify-between">
                     <span>{ev.title}</span>
                     <div className="flex gap-1">
+                      <Link href={`/settings/events/${ev.id}`}>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
                       <Dialog
                         open={editEvent?.id === ev.id}
                         onOpenChange={(o) => !o && setEditEvent(null)}

@@ -11,10 +11,10 @@ import { deleteAttachment } from "@/lib/actions/events"
 
 type ParticipantData = {
   person_id: string
-  persons?: {
+  persons?: Array<{
     name: string
     color: string
-  }
+  }>
 }
 
 interface EventDetailCardProps {
@@ -88,9 +88,9 @@ export function EventDetailCard({
               >
                 <div
                   className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: p.persons?.color || "#6b7280" }}
+                  style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
                 />
-                <span>{p.persons?.name || "?"}</span>
+                <span>{p.persons?.[0]?.name || "?"}</span>
               </div>
             ))}
           </div>

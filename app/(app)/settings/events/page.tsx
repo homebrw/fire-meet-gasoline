@@ -20,14 +20,25 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Eye } from "lucide-react"
+import Link from "next/link"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
-import { createEvent, updateEvent } from "@/lib/actions/events"
+import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
+import { ParticipantsSelector } from "./participants-selector"
+
+type EventParticipantData = {
+  person_id: string
+  persons?: Array<{
+    name: string
+    color: string
+  }>
+}
 
 export default function EventsPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
+  const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
   const [createOpen, setCreateOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -39,8 +50,22 @@ export default function EventsPage() {
         supabase.from("events").select("*").order("start_at"),
         supabase.from("persons").select("*"),
       ])
-      setEvents((evRes.data ?? []) as CalendarEvent[])
-      setPersons((persRes.data ?? []) as Person[])
+      const eventsData = (evRes.data ?? []) as CalendarEvent[]
+      const personsData = (persRes.data ?? []) as Person[]
+
+      setEvents(eventsData)
+      setPersons(personsData)
+
+      // Load participants for each event
+      const participantsMap: Record<string, EventParticipantData[]> = {}
+      for (const ev of eventsData) {
+        const { data: parts } = await supabase
+          .from("event_participants")
+          .select("person_id, persons(name, color)")
+          .eq("event_id", ev.id)
+        participantsMap[ev.id] = parts || []
+      }
+      setParticipants(participantsMap)
     }
     load()
   }, [])
@@ -96,6 +121,11 @@ export default function EventsPage() {
                   <CardTitle className="text-base flex items-center justify-between">
                     <span>{ev.title}</span>
                     <div className="flex gap-1">
+                      <Link href={`/settings/events/${ev.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
                       <Dialog
                         open={editEvent?.id === ev.id}
                         onOpenChange={(o) => !o && setEditEvent(null)}
@@ -131,7 +161,7 @@ export default function EventsPage() {
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   <div className="flex flex-wrap gap-2 text-xs">
                     <Badge variant={ev.type === "shared" ? "secondary" : "outline"}>
                       {ev.type === "shared" ? "Commun" : owner?.name ?? "Individuel"}
@@ -142,6 +172,19 @@ export default function EventsPage() {
                       {format(parseISO(ev.start_at), "d MMM HH:mm", { locale: fr })}
                     </span>
                   </div>
+                  {participants[ev.id] && participants[ev.id].length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {participants[ev.id].map((p: EventParticipantData) => (
+                        <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
+                          />
+                          <span>{p.persons?.[0]?.name || "?"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )
@@ -162,6 +205,11 @@ function EventForm({ persons, event, onSuccess }: EventFormProps) {
   const [eventType, setEventType] = useState<string>(event?.type ?? "shared")
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [participants, setParticipants] = useState<string[]>([])
+
+  // Separate parents and children
+  const parentPersons = persons.filter((p) => !p.is_child)
+  const childPersons = persons.filter((p) => p.is_child)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -172,6 +220,23 @@ function EventForm({ persons, event, onSuccess }: EventFormProps) {
       try {
         if (event) {
           await updateEvent(event.id, formData)
+          // Update participants for existing event
+          const existingParticipants = await getEventParticipants(event.id)
+          const existingIds = existingParticipants.map((p) => p.person_id)
+
+          // Remove participants not in new list
+          for (const id of existingIds) {
+            if (!participants.includes(id)) {
+              await removeEventParticipant(event.id, id)
+            }
+          }
+
+          // Add new participants
+          for (const id of participants) {
+            if (!existingIds.includes(id)) {
+              await addEventParticipant(event.id, id)
+            }
+          }
         } else {
           await createEvent(formData)
         }
@@ -275,6 +340,15 @@ function EventForm({ persons, event, onSuccess }: EventFormProps) {
           </Select>
         </div>
       )}
+
+      <div className="space-y-2 border-t pt-4">
+        <Label>Participants</Label>
+        <ParticipantsSelector
+          parents={parentPersons}
+          childPersonList={childPersons}
+          onChange={setParticipants}
+        />
+      </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { CalendarEvent, Person } from "@/lib/types"
@@ -12,6 +12,15 @@ import {
 } from "@/components/ui/sheet"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
+
+type EventParticipantData = {
+  person_id: string
+  persons?: {
+    name: string
+    color: string
+  }
+}
 
 interface DayEventsModalProps {
   dateKey: string
@@ -29,7 +38,29 @@ export function DayEventsModal({
   onClose,
 }: DayEventsModalProps) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
   const date = parseISO(dateKey + "T12:00:00")
+
+  useEffect(() => {
+    async function loadParticipants() {
+      const supabase = createClient()
+      const participantsMap: Record<string, EventParticipantData[]> = {}
+
+      for (const event of events) {
+        const { data: parts } = await supabase
+          .from("event_participants")
+          .select("person_id, persons(name, color)")
+          .eq("event_id", event.id)
+        participantsMap[event.id] = (parts || []) as unknown as EventParticipantData[]
+      }
+
+      setParticipants(participantsMap)
+    }
+
+    if (events.length > 0) {
+      loadParticipants()
+    }
+  }, [events])
 
   return (
     <>
@@ -67,6 +98,19 @@ export function DayEventsModal({
                           )}
                           {event.location && <div>📍 {event.location}</div>}
                         </div>
+                        {participants[event.id] && participants[event.id].length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {participants[event.id].map((p: EventParticipantData) => (
+                              <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
+                                <div
+                                  className="h-3 w-3 rounded-full"
+                                  style={{ backgroundColor: p.persons?.color || "#6b7280" }}
+                                />
+                                <span>{p.persons?.name || "?"}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </Button>
                   </li>

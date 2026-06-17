@@ -28,15 +28,15 @@ interface WeekPlanningProps {
   dayStates: Record<string, DayState>
   damien: Person | undefined
   ma: Person | undefined
+  persons: Person[]
 }
 
-export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
+export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningProps) {
   const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   )
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [persons, setPersons] = useState<Person[]>([])
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
@@ -206,7 +206,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
           </DialogHeader>
           {selectedDate && (
             <EventForm
-              persons={[damien, ma].filter(Boolean) as Person[]}
+              persons={persons}
               initialDate={selectedDate}
               onSuccess={() => {
                 setCreateEventOpen(false)

@@ -1,13 +1,21 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarDays } from "lucide-react"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
+
+type ParticipantData = {
+  person_id: string
+  persons?: Array<{
+    name: string
+    color: string
+  }>
+}
 
 interface UpcomingEventsProps {
   events: CalendarEvent[]
@@ -16,7 +24,25 @@ interface UpcomingEventsProps {
 
 export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const [participants, setParticipants] = useState<Record<string, ParticipantData[]>>({})
+
+  useEffect(() => {
+    async function loadParticipants() {
+      const supabase = createClient()
+      const participantsMap: Record<string, ParticipantData[]> = {}
+      for (const event of events) {
+        const { data: parts } = await supabase
+          .from("event_participants")
+          .select("person_id, persons(name, color)")
+          .eq("event_id", event.id)
+        participantsMap[event.id] = parts || []
+      }
+      setParticipants(participantsMap)
+    }
+    if (events.length > 0) {
+      loadParticipants()
+    }
+  }, [events])
 
   return (
     <Card>
@@ -34,7 +60,10 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
         ) : (
           <ul className="space-y-3">
             {events.map((ev) => {
-              const owner = ev.owner_person_id ? personById[ev.owner_person_id] : null
+              const eventDate = parseISO(ev.start_at)
+              const daysRemaining = differenceInDays(eventDate, new Date())
+              const eventParticipants = participants[ev.id] || []
+
               return (
                 <button
                   key={ev.id}
@@ -43,29 +72,36 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
                 >
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{ev.title}</span>
-                    {!ev.owner_person_id ? (
-                      <Badge variant="secondary" className="text-xs">Commun</Badge>
-                    ) : (
-                      <Badge
-                        className="text-xs"
-                        style={
-                          owner
-                            ? { backgroundColor: owner.color + "20", color: owner.color }
-                            : undefined
-                        }
-                      >
-                        {owner?.name ?? "Individuel"}
-                      </Badge>
-                    )}
                     {ev.is_blocking && (
-                      <Badge variant="destructive" className="text-xs">Bloquant</Badge>
+                      <span className="text-xs px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">Bloquant</span>
                     )}
                   </div>
-                  <p className="text-xs text-[var(--color-muted-foreground)]">
-                    {format(parseISO(ev.start_at), "EEEE d MMMM à HH:mm", { locale: fr })}
-                  </p>
+                  <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+                    <span>{format(eventDate, "d MMM HH:mm", { locale: fr })}</span>
+                    {daysRemaining >= 0 && (
+                      <span className="text-[var(--color-muted-foreground)]">
+                        {daysRemaining === 0 ? "aujourd'hui" : `dans ${daysRemaining} jour${daysRemaining > 1 ? "s" : ""}`}
+                      </span>
+                    )}
+                  </div>
                   {ev.location && (
                     <p className="text-xs text-[var(--color-muted-foreground)]">📍 {ev.location}</p>
+                  )}
+                  {eventParticipants.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {eventParticipants.map((p) => (
+                        <div
+                          key={p.person_id}
+                          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-800"
+                        >
+                          <div
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
+                          />
+                          <span className="text-gray-700 dark:text-gray-300">{p.persons?.[0]?.name || "?"}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </button>
               )

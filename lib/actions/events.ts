@@ -11,9 +11,9 @@ const eventSchema = z.object({
   end_at: z.string(),
   location: z.string().nullable().optional(),
   owner_person_id: z.preprocess(
-    (val) => val === "" ? undefined : val,
-    z.string().uuid().nullable().optional()
-  ),
+    (val) => val === "" || val === undefined ? null : val,
+    z.string().uuid().nullable()
+  ).optional(),
   created_by: z.string().uuid(),
   is_blocking: z.coerce.boolean().default(false),
   is_all_day: z.coerce.boolean().default(false),

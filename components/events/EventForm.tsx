@@ -4,12 +4,9 @@ import { useState, useTransition, useRef } from "react"
 import type { CalendarEvent, Person } from "@/lib/types"
 import { createEvent, updateEvent, addEventParticipant, removeEventParticipant, getEventParticipants } from "@/lib/actions/events"
 import { ParticipantsSelector } from "@/app/(app)/settings/events/participants-selector"
-import {
-  Button,
-} from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
 import { Upload, X } from "lucide-react"
@@ -23,7 +20,6 @@ interface EventFormProps {
 }
 
 export function EventForm({ persons, event, initialDate, onSuccess }: EventFormProps) {
-  const [ownerPersonId, setOwnerPersonId] = useState<string>(event?.owner_person_id ?? "")
   const [isAllDay, setIsAllDay] = useState<boolean>(event?.is_all_day ?? false)
   const [allDayDate, setAllDayDate] = useState<string>(initialDate || event?.start_at?.slice(0, 10) || format(new Date(), "yyyy-MM-dd"))
   const [isPending, startTransition] = useTransition()
@@ -151,19 +147,7 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         <Input id="title" name="title" defaultValue={event?.title} required />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="person-trigger">Personne (optionnel - laisser vide pour un événement commun)</Label>
-        <Select name="owner_person_id" value={ownerPersonId} onValueChange={setOwnerPersonId}>
-          <SelectTrigger id="person-trigger"><SelectValue placeholder="Choisir une personne ou laisser vide" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">Événement commun</SelectItem>
-            {persons.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
+      <input type="hidden" name="owner_person_id" value="" />
       <input type="hidden" name="created_by" value={persons[0]?.id ?? ""} />
 
       <div className="space-y-3">
@@ -251,18 +235,7 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         </label>
       </div>
 
-      {ownerPersonId && (
-        <div className="space-y-2">
-          <Label htmlFor="visibility-trigger">Visibilité</Label>
-          <Select name="visibility" defaultValue={event?.visibility ?? "both"}>
-            <SelectTrigger id="visibility-trigger"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="both">Visible par les deux</SelectItem>
-              <SelectItem value="private">Privé</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      <input type="hidden" name="visibility" value="both" />
 
       <div className="space-y-2 border-t pt-4">
         <Label htmlFor="participants">Participants</Label>

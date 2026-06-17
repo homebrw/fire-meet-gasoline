@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { CalendarEvent } from "@/lib/types"
 import { Card } from "@/components/ui/card"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
 import { EventAttachmentsList } from "./EventAttachmentsList"
 import { deleteAttachment } from "@/lib/actions/events"
@@ -68,16 +68,30 @@ export function EventDetailCard({
       </div>
 
       <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-        <p>
+        <p className="font-medium">
+          {format(parseISO(event.start_at), "EEEE d MMMM yyyy", { locale: fr })}
           {event.is_all_day ? (
-            "Journée entière"
+            " — Journée entière"
           ) : (
             <>
+              {" — "}
               {format(parseISO(event.start_at), "HH:mm", { locale: fr })} –{" "}
               {format(parseISO(event.end_at), "HH:mm", { locale: fr })}
             </>
           )}
         </p>
+        {(() => {
+          const eventDate = parseISO(event.start_at)
+          const daysRemaining = differenceInDays(eventDate, new Date())
+          if (daysRemaining >= 0) {
+            return (
+              <p className="text-gray-500 dark:text-gray-500">
+                {daysRemaining === 0 ? "Aujourd'hui" : `Dans ${daysRemaining} jour${daysRemaining > 1 ? "s" : ""}`}
+              </p>
+            )
+          }
+          return null
+        })()}
         {event.location && <p>📍 {event.location}</p>}
       </div>
 

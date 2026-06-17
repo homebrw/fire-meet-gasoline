@@ -62,7 +62,8 @@ export default function EventDetailPage() {
         }
 
         setEvent(eventData as CalendarEvent)
-        setIsOwner(currentPerson?.id === eventData.owner_person_id)
+        // All app members can upload files for events with visibility='both'
+        setIsOwner(eventData.visibility === 'both')
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Erreur lors du chargement"

@@ -162,7 +162,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm font-semibold mb-2">Événements communs</p>
+                  <p className="text-sm font-semibold mb-2">Événements</p>
                   <div className="space-y-3">
                     {state.sharedEvents.map((ev) => (
                       <button

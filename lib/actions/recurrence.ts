@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { generateAndPersistCustodyData, regenerateForRule } from "@/lib/recurrence/persist"
 
 const ruleSchema = z.object({
   person_id: z.string().uuid(),
@@ -34,9 +35,14 @@ export async function createRecurrenceRule(formData: FormData) {
     is_active: true,
   })
 
-  const { error } = await supabase.from("recurrence_rules").insert(data)
+  const { data: inserted, error } = await supabase.from("recurrence_rules").insert(data).select().single()
   if (error) throw new Error(error.message)
+
+  // Generate and persist custody data
+  await generateAndPersistCustodyData(inserted)
+
   revalidatePath("/settings/rules")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
@@ -55,7 +61,12 @@ export async function updateRecurrenceRule(id: string, formData: FormData) {
 
   const { error } = await supabase.from("recurrence_rules").update(data).eq("id", id)
   if (error) throw new Error(error.message)
+
+  // Regenerate custody data with updated rule
+  await regenerateForRule(id)
+
   revalidatePath("/settings/rules")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
@@ -63,9 +74,15 @@ export async function updateRecurrenceRule(id: string, formData: FormData) {
 
 export async function deleteRecurrenceRule(id: string) {
   const supabase = await createClient()
+
+  // Delete generated custody data
+  await supabase.from("child_presences").delete().eq("recurrence_rule_id", id)
+  await supabase.from("custody_transitions").delete().eq("recurrence_rule_id", id)
+
   const { error } = await supabase.from("recurrence_rules").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/settings/rules")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
@@ -88,7 +105,12 @@ export async function createRecurrenceException(formData: FormData) {
   const data = exceptionSchema.parse(Object.fromEntries(formData))
   const { error } = await supabase.from("recurrence_exceptions").insert(data)
   if (error) throw new Error(error.message)
+
+  // Regenerate custody data for the affected rule
+  await regenerateForRule(data.recurrence_rule_id)
+
   revalidatePath("/settings/exceptions")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
@@ -97,9 +119,24 @@ export async function createRecurrenceException(formData: FormData) {
 export async function updateRecurrenceException(id: string, formData: FormData) {
   const supabase = await createClient()
   const data = exceptionSchema.partial().parse(Object.fromEntries(formData))
+
+  // Fetch the exception to get the rule_id
+  const { data: exception, error: fetchError } = await supabase
+    .from("recurrence_exceptions")
+    .select("recurrence_rule_id")
+    .eq("id", id)
+    .single()
+
+  if (fetchError || !exception) throw new Error(`Failed to fetch exception: ${fetchError?.message}`)
+
   const { error } = await supabase.from("recurrence_exceptions").update(data).eq("id", id)
   if (error) throw new Error(error.message)
+
+  // Regenerate custody data for the affected rule
+  await regenerateForRule(exception.recurrence_rule_id)
+
   revalidatePath("/settings/exceptions")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
@@ -107,9 +144,24 @@ export async function updateRecurrenceException(id: string, formData: FormData) 
 
 export async function deleteRecurrenceException(id: string) {
   const supabase = await createClient()
+
+  // Fetch the exception to get the rule_id
+  const { data: exception, error: fetchError } = await supabase
+    .from("recurrence_exceptions")
+    .select("recurrence_rule_id")
+    .eq("id", id)
+    .single()
+
+  if (fetchError || !exception) throw new Error(`Failed to fetch exception: ${fetchError?.message}`)
+
   const { error } = await supabase.from("recurrence_exceptions").delete().eq("id", id)
   if (error) throw new Error(error.message)
+
+  // Regenerate custody data for the affected rule
+  await regenerateForRule(exception.recurrence_rule_id)
+
   revalidatePath("/settings/exceptions")
+  revalidatePath("/settings/custody")
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")

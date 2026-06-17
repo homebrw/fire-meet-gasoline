@@ -9,7 +9,7 @@ import {
   createChildPresence, deleteChildPresence,
   createCustodyTransition, deleteCustodyTransition,
 } from "@/lib/actions/custody"
-import type { ChildPresence, CustodyTransition, Person } from "@/lib/types"
+import type { ChildPresence, CustodyTransition, Person, RecurrenceRule } from "@/lib/types"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog"
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Trash2, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, ArrowLeft, Lock } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 
@@ -29,6 +29,7 @@ export default function CustodyPage() {
   const [presences, setPresences] = useState<ChildPresence[]>([])
   const [transitions, setTransitions] = useState<CustodyTransition[]>([])
   const [persons, setPersons] = useState<Person[]>([])
+  const [rules, setRules] = useState<RecurrenceRule[]>([])
   const [presenceOpen, setPresenceOpen] = useState(false)
   const [transitionOpen, setTransitionOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -36,18 +37,26 @@ export default function CustodyPage() {
   useEffect(() => {
     async function load() {
       const supabase = createClient()
-      const [presRes, transRes, persRes] = await Promise.all([
+      const [presRes, transRes, persRes, rulesRes] = await Promise.all([
         supabase.from("child_presences").select("*").order("start_at"),
         supabase.from("custody_transitions").select("*").order("transition_at"),
         supabase.from("persons").select("*"),
+        supabase.from("recurrence_rules").select("*"),
       ])
       setPresences((presRes.data ?? []) as ChildPresence[])
       setTransitions((transRes.data ?? []) as CustodyTransition[])
       setPersons((persRes.data ?? []) as Person[])
+      setRules((rulesRes.data ?? []) as RecurrenceRule[])
     }
     load()
   }, [])
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const ruleById = Object.fromEntries(rules.map((r) => [r.id, r]))
+
+  const generatedPresences = presences.filter((p) => p.recurrence_rule_id !== null)
+  const manualPresences = presences.filter((p) => p.recurrence_rule_id === null)
+  const generatedTransitions = transitions.filter((t) => t.recurrence_rule_id !== null)
+  const manualTransitions = transitions.filter((t) => t.recurrence_rule_id === null)
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
@@ -67,13 +76,45 @@ export default function CustodyPage() {
         </TabsList>
 
         <TabsContent value="presences" className="space-y-3 mt-4">
+          {generatedPresences.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)]">Périodes générées par les règles</h3>
+              </div>
+              {generatedPresences.map((p) => {
+                const person = personById[p.person_id]
+                const rule = p.recurrence_rule_id ? ruleById[p.recurrence_rule_id] : null
+                return (
+                  <Card key={p.id} className="opacity-75">
+                    <CardHeader className="pb-1">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: person?.color }} />
+                          {person?.name}
+                        </div>
+                        {rule && <span className="text-xs text-[var(--color-muted-foreground)]">{rule.name}</span>}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-[var(--color-muted-foreground)]">
+                        {format(parseISO(p.start_at), "d MMM yyyy HH:mm", { locale: fr })} →{" "}
+                        {format(parseISO(p.end_at), "d MMM yyyy HH:mm", { locale: fr })}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Dialog open={presenceOpen} onOpenChange={setPresenceOpen}>
               <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter une garde</Button>
+                <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter une garde manuelle</Button>
               </DialogTrigger>
               <DialogContent closeOnOutsideClick={false} className="max-w-md">
-                <DialogHeader><DialogTitle>Nouvelle période de garde</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Nouvelle période de garde manuelle</DialogTitle></DialogHeader>
                 <PresenceForm
                   persons={persons}
                   onSuccess={() => {
@@ -85,56 +126,91 @@ export default function CustodyPage() {
             </Dialog>
           </div>
 
-          {presences.length === 0 ? (
+          {manualPresences.length === 0 ? (
             <Card><CardContent className="py-6 text-center text-[var(--color-muted-foreground)] text-sm">
               Aucune garde manuelle
             </CardContent></Card>
           ) : (
-            presences.map((p) => {
-              const person = personById[p.person_id]
-              return (
-                <Card key={p.id}>
-                  <CardHeader className="pb-1">
-                    <CardTitle className="text-sm flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: person?.color }} />
-                        {person?.name}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Périodes manuelles</h3>
+              {manualPresences.map((p) => {
+                const person = personById[p.person_id]
+                return (
+                  <Card key={p.id}>
+                    <CardHeader className="pb-1">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: person?.color }} />
+                          {person?.name}
+                        </div>
+                        <Button
+                          variant="ghost" size="icon"
+                          className="text-[var(--color-destructive)]"
+                          disabled={isPending}
+                          onClick={() => startTransition(async () => { await deleteChildPresence(p.id); location.reload() })}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="text-xs text-[var(--color-muted-foreground)]">
+                        {format(parseISO(p.start_at), "d MMM yyyy HH:mm", { locale: fr })} →{" "}
+                        {format(parseISO(p.end_at), "d MMM yyyy HH:mm", { locale: fr })}
+                      </p>
+                      {p.notes && <p className="text-xs">{p.notes}</p>}
+                      <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
+                        <ChangeBadge createdAt={p.created_at} updatedAt={p.updated_at} />
+                        <ItemTimestamp createdAt={p.created_at} />
                       </div>
-                      <Button
-                        variant="ghost" size="icon"
-                        className="text-[var(--color-destructive)]"
-                        disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteChildPresence(p.id); location.reload() })}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-xs text-[var(--color-muted-foreground)]">
-                      {format(parseISO(p.start_at), "d MMM yyyy HH:mm", { locale: fr })} →{" "}
-                      {format(parseISO(p.end_at), "d MMM yyyy HH:mm", { locale: fr })}
-                    </p>
-                    {p.notes && <p className="text-xs">{p.notes}</p>}
-                    <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
-                      <ChangeBadge createdAt={p.created_at} updatedAt={p.updated_at} />
-                      <ItemTimestamp createdAt={p.created_at} />
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="transitions" className="space-y-3 mt-4">
+          {generatedTransitions.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-[var(--color-muted-foreground)]" />
+                <h3 className="text-sm font-semibold text-[var(--color-muted-foreground)]">Changements générés par les règles</h3>
+              </div>
+              {generatedTransitions.map((t) => {
+                const person = personById[t.person_id]
+                const rule = t.recurrence_rule_id ? ruleById[t.recurrence_rule_id] : null
+                return (
+                  <Card key={t.id} className="opacity-75">
+                    <CardHeader className="pb-1">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+                          {person?.name} — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
+                        </div>
+                        {rule && <span className="text-xs text-[var(--color-muted-foreground)]">{rule.name}</span>}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-[var(--color-muted-foreground)]">
+                        {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
+                        {t.location && ` — ${t.location}`}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Dialog open={transitionOpen} onOpenChange={setTransitionOpen}>
               <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter un changement</Button>
+                <Button size="sm"><Plus className="h-4 w-4 mr-1" />Ajouter un changement manuel</Button>
               </DialogTrigger>
               <DialogContent closeOnOutsideClick={false} className="max-w-md">
-                <DialogHeader><DialogTitle>Nouveau changement de garde</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Nouveau changement de garde manuel</DialogTitle></DialogHeader>
                 <TransitionForm
                   persons={persons}
                   onSuccess={() => {
@@ -146,44 +222,47 @@ export default function CustodyPage() {
             </Dialog>
           </div>
 
-          {transitions.length === 0 ? (
+          {manualTransitions.length === 0 ? (
             <Card><CardContent className="py-6 text-center text-[var(--color-muted-foreground)] text-sm">
-              Aucun changement de garde
+              Aucun changement manuel
             </CardContent></Card>
           ) : (
-            transitions.map((t) => {
-              const person = personById[t.person_id]
-              return (
-                <Card key={t.id}>
-                  <CardHeader className="pb-1">
-                    <CardTitle className="text-sm flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
-                        {person?.name} — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Changements manuels</h3>
+              {manualTransitions.map((t) => {
+                const person = personById[t.person_id]
+                return (
+                  <Card key={t.id}>
+                    <CardHeader className="pb-1">
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+                          {person?.name} — {t.direction === "pickup" ? "Récupération" : "Dépôt"}
+                        </div>
+                        <Button
+                          variant="ghost" size="icon"
+                          className="text-[var(--color-destructive)]"
+                          disabled={isPending}
+                          onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <p className="text-xs text-[var(--color-muted-foreground)]">
+                        {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
+                        {t.location && ` — ${t.location}`}
+                      </p>
+                      <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
+                        <ChangeBadge createdAt={t.created_at} updatedAt={t.updated_at} />
+                        <ItemTimestamp createdAt={t.created_at} />
                       </div>
-                      <Button
-                        variant="ghost" size="icon"
-                        className="text-[var(--color-destructive)]"
-                        disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <p className="text-xs text-[var(--color-muted-foreground)]">
-                      {format(parseISO(t.transition_at), "EEEE d MMM yyyy à HH:mm", { locale: fr })}
-                      {t.location && ` — ${t.location}`}
-                    </p>
-                    <div className="pt-2 border-t border-[var(--color-border)] space-y-1">
-                      <ChangeBadge createdAt={t.created_at} updatedAt={t.updated_at} />
-                      <ItemTimestamp createdAt={t.created_at} />
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           )}
         </TabsContent>
       </Tabs>

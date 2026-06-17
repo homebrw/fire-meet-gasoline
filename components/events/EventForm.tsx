@@ -323,6 +323,7 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
                       type="button"
                       onClick={() => removeFile(index)}
                       className="text-red-600 hover:text-red-700 flex-shrink-0"
+                      aria-label="Supprimer le fichier"
                     >
                       <X className="h-4 w-4" />
                     </button>

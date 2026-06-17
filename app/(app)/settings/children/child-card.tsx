@@ -41,10 +41,10 @@ export function ChildCard({ child }: { child: Person }) {
             title={child.name}
           />
           <div>
-            <p className="font-medium text-gray-900 dark:text-gray-50">
+            <p className="font-medium text-[var(--color-foreground)]">
               {child.name}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-[var(--color-muted-foreground)]">
               Né le {birthDate}
             </p>
           </div>

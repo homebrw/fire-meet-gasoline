@@ -82,13 +82,13 @@ export function ChildrenList() {
   }, [])
 
   if (loading) {
-    return <div className="text-sm text-gray-500">Chargement...</div>
+    return <div className="text-sm text-[var(--color-muted-foreground)]">Chargement...</div>
   }
 
   if (children.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-8 text-center">
+        <p className="text-sm text-[var(--color-muted-foreground)]">
           Aucun enfant créé. Commencez par ajouter un enfant.
         </p>
       </div>

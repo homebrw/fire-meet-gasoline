@@ -72,6 +72,7 @@ export function EventAttachmentsList({
                 size="icon"
                 className="h-6 w-6 text-red-600 hover:text-red-700"
                 onClick={() => handleDelete(attachment.id, attachment.storage_path)}
+                aria-label="Supprimer la pièce jointe"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

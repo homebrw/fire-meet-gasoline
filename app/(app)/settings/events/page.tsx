@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Eye, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, Eye, Pencil, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { EventForm } from "@/components/events/EventForm"
 import { EventCard } from "@/components/events/EventCard"
@@ -30,6 +30,7 @@ function EventsPageContent() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
   const [createOpen, setCreateOpen] = useState(false)
+  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -105,16 +106,40 @@ function EventsPageContent() {
                     <span>{ev.title}</span>
                     <div className="flex gap-1">
                       <Link href={`/settings/events/${ev.id}`}>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" aria-label="Voir l'événement">
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
+                      <Dialog
+                        open={editEvent?.id === ev.id}
+                        onOpenChange={(o) => !o && setEditEvent(null)}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" onClick={() => setEditEvent(ev)} aria-label="Modifier l'événement">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle>Modifier l&apos;événement</DialogTitle>
+                          </DialogHeader>
+                          <EventForm
+                            persons={persons}
+                            event={ev}
+                            onSuccess={() => {
+                              setEditEvent(null)
+                              router.refresh()
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
                         onClick={() => handleDelete(ev.id)}
+                        aria-label="Supprimer l'événement"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

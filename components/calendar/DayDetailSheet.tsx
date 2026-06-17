@@ -20,7 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, ArrowUp, ArrowDown } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
@@ -114,18 +114,40 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm font-semibold mb-2">Changements de garde</p>
+                  <p className="text-sm font-semibold mb-3">Changements de garde</p>
                   <ul className="space-y-2">
-                    {state.custodyTransitions.map((t) => (
-                      <li key={t.id} className="flex items-center gap-2 text-sm">
-                        <span className="h-2 w-2 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} />
-                        <span>
-                          {t.direction === "pickup" ? "Récupération" : "Dépôt"}{" "}
-                          à {format(parseISO(t.transition_at), "HH:mm")}
-                          {t.location && ` — ${t.location}`}
-                        </span>
-                      </li>
-                    ))}
+                    {state.custodyTransitions.map((t) => {
+                      const person = persons.find((p) => p.id === t.person_id)
+                      const isPickup = t.direction === "pickup"
+                      const Icon = isPickup ? ArrowUp : ArrowDown
+                      return (
+                        <li key={t.id} className="flex items-start gap-3 text-sm rounded-lg p-3 border" style={{borderColor: person?.color ?? "var(--color-border)", backgroundColor: person?.color ? person.color + "10" : "transparent"}}>
+                          <div className="flex items-center justify-center flex-shrink-0">
+                            <Icon
+                              className="h-4 w-4"
+                              style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
+                              strokeWidth={2.5}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: person?.color ?? "var(--color-muted-foreground)" }}
+                              />
+                              <span className="font-semibold">{person?.name ?? "?"}</span>
+                              <span className="text-xs text-[var(--color-muted-foreground)]">
+                                {isPickup ? "Récupération" : "Dépose"}
+                              </span>
+                            </div>
+                            <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">
+                              <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span>
+                              {t.location && <span> — {t.location}</span>}
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               </>

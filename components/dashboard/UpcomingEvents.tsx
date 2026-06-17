@@ -11,10 +11,10 @@ import { EventDetailModal } from "@/components/events/EventDetailModal"
 
 type ParticipantData = {
   person_id: string
-  persons?: Array<{
+  persons?: {
     name: string
     color: string
-  }>
+  }
 }
 
 interface UpcomingEventsProps {
@@ -93,9 +93,9 @@ export function UpcomingEvents({ events, persons }: UpcomingEventsProps) {
                         >
                           <div
                             className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: p.persons?.[0]?.color || "#6b7280" }}
+                            style={{ backgroundColor: p.persons?.color || "#6b7280" }}
                           />
-                          <span className="text-gray-700 dark:text-gray-300">{p.persons?.[0]?.name || "?"}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{p.persons?.name || "?"}</span>
                         </div>
                       ))}
                     </div>

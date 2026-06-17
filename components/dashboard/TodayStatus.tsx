@@ -48,7 +48,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
             <Badge variant={state.damienHasChildren ? "damien" : "outline"} className="text-xs">
               {state.damienHasChildren ? "Avec ses enfants" : "Sans enfants"}
             </Badge>
-            {state.damienBlockingEvent && (
+            {state.damienIndividualBlockingEvent && (
               <Badge variant="outline" className="text-xs ml-1">Événement bloquant</Badge>
             )}
           </div>
@@ -60,7 +60,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
             <Badge variant={state.maHasChild ? "ma" : "outline"} className="text-xs">
               {state.maHasChild ? "Avec sa fille" : "Sans enfant"}
             </Badge>
-            {state.maBlockingEvent && (
+            {state.maIndividualBlockingEvent && (
               <Badge variant="outline" className="text-xs ml-1">Événement bloquant</Badge>
             )}
           </div>

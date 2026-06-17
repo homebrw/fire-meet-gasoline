@@ -150,6 +150,11 @@ export type DayState = {
   maHasChild: boolean
   damienBlockingEvent: boolean
   maBlockingEvent: boolean
+  damienIndividualBlockingEvent: boolean   // Only Damien's personal blocking event
+  maIndividualBlockingEvent: boolean       // Only Ma's personal blocking event
+  sharedBlockingEvent: boolean             // Both have blocking event (owner_person_id === null)
+  damienPersonallyAvailable: boolean       // Damien free from personal events/custody
+  maPersonallyAvailable: boolean           // Ma free from personal events/custody
   hasTransition: boolean
   sharedEvents: CalendarEvent[]
   custodyTransitions: CustodyTransition[]

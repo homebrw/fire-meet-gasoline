@@ -99,7 +99,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                 <p className="text-sm">
                   {state.damienHasChildren ? "Avec ses enfants" : "Libre"}
                 </p>
-                {state.damienBlockingEvent && (
+                {state.damienIndividualBlockingEvent && (
                   <Badge variant="outline" className="mt-1 text-xs">Bloquant</Badge>
                 )}
               </div>
@@ -108,7 +108,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                 <p className="text-sm">
                   {state.maHasChild ? "Avec sa fille" : "Libre"}
                 </p>
-                {state.maBlockingEvent && (
+                {state.maIndividualBlockingEvent && (
                   <Badge variant="outline" className="mt-1 text-xs">Bloquant</Badge>
                 )}
               </div>

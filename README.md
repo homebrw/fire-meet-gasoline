@@ -1,197 +1,197 @@
 # Fire Meet Gasoline 🔥
 
-A modern calendar and event management web application built with **Next.js 16**, **React 19**, and **Supabase** for organizing events, custody schedules, and transition rules.
+Une application web moderne de gestion calendaire et d'événements construite avec **Next.js 16**, **React 19** et **Supabase** pour organiser les événements, les plannings de garde et les règles de transition.
 
-## Features
+## Fonctionnalités
 
-✨ **Core Capabilities**
-- 📅 Full calendar view with event management
-- 📋 Weekly planning with drag-and-drop support
-- 👥 Custody schedule management
-- ⚙️ Customizable event rules and exceptions
-- 🔐 Secure authentication with Supabase
-- 📱 Responsive mobile-first design
-- 🎨 Modern UI with Radix components
+✨ **Capacités principales**
+- 📅 Vue calendaire complète avec gestion d'événements
+- 📋 Planification hebdomadaire avec support du drag-and-drop
+- 👥 Gestion des plannings de garde
+- ⚙️ Règles d'événements et exceptions personnalisables
+- 🔐 Authentification sécurisée avec Supabase
+- 📱 Design responsive optimisé pour mobile
+- 🎨 Interface moderne avec composants Radix
 
-## Tech Stack
+## Stack Technologique
 
 - **Frontend**: Next.js 16.2.9, React 19.2.4, TypeScript 5
-- **Styling**: Tailwind CSS 4, Radix UI, shadcn components
+- **Styling**: Tailwind CSS 4, Radix UI, composants shadcn
 - **Backend**: Supabase (PostgreSQL + Auth)
-- **Forms**: React Hook Form + Zod validation
-- **Icons**: Lucide React
-- **Hosting**: Vercel-ready (or self-hosted)
+- **Formulaires**: React Hook Form + validation Zod
+- **Icônes**: Lucide React
+- **Hébergement**: Prêt pour Vercel (ou auto-hébergé)
 
-## Quick Start
+## Démarrage Rapide
 
-### Prerequisites
+### Prérequis
 - Node.js 18+
-- npm or yarn
-- Supabase account
+- npm ou yarn
+- Compte Supabase
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clonez le dépôt**
 ```bash
 git clone https://github.com/homebrw/fire-meet-gasoline.git
 cd fire-meet-gasoline
 ```
 
-2. **Install dependencies**
+2. **Installez les dépendances**
 ```bash
 npm install
 ```
 
-3. **Set up environment variables**
+3. **Configurez les variables d'environnement**
 
-Create a `.env.local` file in the root directory:
+Créez un fichier `.env.local` à la racine du projet:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=votre_url_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_clé_anon
+SUPABASE_SERVICE_ROLE_KEY=votre_clé_service_role
 ```
 
-Get these values from your [Supabase Dashboard](https://supabase.com/dashboard)
+Obtenez ces valeurs depuis votre [Tableau de Bord Supabase](https://supabase.com/dashboard)
 
-4. **Run the development server**
+4. **Lancez le serveur de développement**
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-## Project Structure
+## Structure du Projet
 
 ```
 fire-meet-gasoline/
-├── app/                          # Next.js App Router
-│   ├── (app)/                    # Protected routes with auth
-│   │   ├── today/                # Today's events view
-│   │   ├── week/                 # Weekly planner
-│   │   ├── calendar/             # Calendar views
-│   │   ├── settings/             # Configuration pages
-│   │   │   ├── rules/            # Event rules management
-│   │   │   ├── custody/          # Custody schedule setup
-│   │   │   ├── events/           # Event definitions
-│   │   │   └── exceptions/       # Exception handling
-│   │   └── layout.tsx            # App shell (sidebar + nav)
-│   ├── (auth)/                   # Auth routes
-│   │   └── login/                # Login page
-│   ├── api/                      # API routes
-│   │   ├── upload/               # File upload endpoint
-│   │   └── auth/callback/        # OAuth callback
-│   ├── layout.tsx                # Root layout
-│   ├── page.tsx                  # Landing page
-│   └── globals.css               # Tailwind styles
+├── app/                          # App Router Next.js
+│   ├── (app)/                    # Routes protégées par authentification
+│   │   ├── today/                # Vue des événements du jour
+│   │   ├── week/                 # Planificateur hebdomadaire
+│   │   ├── calendar/             # Vues calendaires
+│   │   ├── settings/             # Pages de configuration
+│   │   │   ├── rules/            # Gestion des règles d'événements
+│   │   │   ├── custody/          # Configuration des plannings de garde
+│   │   │   ├── events/           # Définitions d'événements
+│   │   │   └── exceptions/       # Gestion des exceptions
+│   │   └── layout.tsx            # Shell application (sidebar + nav)
+│   ├── (auth)/                   # Routes d'authentification
+│   │   └── login/                # Page de connexion
+│   ├── api/                      # Routes API
+│   │   ├── upload/               # Point de terminaison d'upload
+│   │   └── auth/callback/        # Callback OAuth
+│   ├── layout.tsx                # Layout racine
+│   ├── page.tsx                  # Page d'accueil
+│   └── globals.css               # Styles Tailwind
 ├── components/
-│   ├── ui/                       # Radix UI primitives
-│   ├── layout/                   # Sidebar, BottomNav components
-│   ├── dashboard/                # Dashboard cards
-│   ├── calendar/                 # Calendar components
-│   └── week/                     # Week planning components
-├── lib/                          # Utilities & helpers
-│   └── supabase.ts               # Supabase client config
-├── supabase/                     # Database migrations
-├── public/                       # Static assets
-└── proxy.ts                      # Middleware & auth logic
+│   ├── ui/                       # Primitives Radix UI
+│   ├── layout/                   # Composants Sidebar, BottomNav
+│   ├── dashboard/                # Cartes du tableau de bord
+│   ├── calendar/                 # Composants calendaires
+│   └── week/                     # Composants de planification
+├── lib/                          # Utilitaires et helpers
+│   └── supabase.ts               # Configuration client Supabase
+├── supabase/                     # Migrations de base de données
+├── public/                       # Ressources statiques
+└── proxy.ts                      # Middleware et logique d'authentification
 ```
 
-## Available Scripts
+## Scripts Disponibles
 
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Type-check and build for production |
-| `npm start` | Start production server |
-| `npm run lint` | Run ESLint linter |
+| Commande | Objectif |
+|----------|----------|
+| `npm run dev` | Démarrer le serveur de développement avec rechargement à chaud |
+| `npm run build` | Vérifier les types et construire pour la production |
+| `npm start` | Démarrer le serveur de production |
+| `npm run lint` | Exécuter le linter ESLint |
 
-## Development Guide
+## Guide de Développement
 
-### Code Style
-- **TypeScript**: Strict mode enabled
-- **Components**: Functional components with hooks
-- **Styling**: Tailwind CSS utilities only (no CSS modules)
-- **Imports**: Use `@/` alias for project root imports
+### Style de Code
+- **TypeScript**: Mode strict activé
+- **Composants**: Composants fonctionnels avec hooks
+- **Styling**: Utilitaires Tailwind CSS uniquement (pas de modules CSS)
+- **Imports**: Utilisez l'alias `@/` pour les imports à partir de la racine
 
-### Import Examples
+### Exemples d'Import
 ```typescript
 import { Button } from "@/components/ui/button"
 import { client } from "@/lib/supabase"
 import { calculateDates } from "@/lib/utils"
 ```
 
-### Adding Features
-1. Create page in `app/(app)/feature-name/`
-2. Add components in `components/feature-name/`
-3. Use React Hook Form + Zod for form validation
-4. Query Supabase using the provided client
+### Ajouter des Fonctionnalités
+1. Créez une page dans `app/(app)/nom-de-la-fonctionnalite/`
+2. Ajoutez les composants dans `components/nom-de-la-fonctionnalite/`
+3. Utilisez React Hook Form + Zod pour la validation de formulaires
+4. Interrogez Supabase en utilisant le client fourni
 
-## Authentication
+## Authentification
 
-The app uses **Supabase Authentication** with middleware protection:
-- Unauthenticated users are redirected to `/login`
-- Auth state is managed in `proxy.ts` middleware
-- OAuth callback handler at `/auth/callback`
-- All `/(app)/*` routes require authentication
+L'application utilise l'**Authentification Supabase** avec protection middleware:
+- Les utilisateurs non authentifiés sont redirigés vers `/login`
+- L'état d'authentification est géré dans le middleware `proxy.ts`
+- Gestionnaire de callback OAuth à `/auth/callback`
+- Toutes les routes `/(app)/*` nécessitent une authentification
 
-## Database
+## Base de Données
 
-Database schema and migrations are in `supabase/` directory:
-- Run migrations via Supabase dashboard or CLI
-- Use type-safe Supabase client for queries
-- Real-time subscriptions available
+Le schéma de base de données et les migrations se trouvent dans le répertoire `supabase/`:
+- Exécutez les migrations via le tableau de bord Supabase ou la CLI
+- Utilisez le client Supabase type-safe pour les requêtes
+- Les abonnements en temps réel sont disponibles
 
-## Deployment
+## Déploiement
 
-### Vercel (Recommended)
+### Vercel (Recommandé)
 ```bash
 npm run build
-# Deploy with Vercel CLI or Git push
+# Déployez avec la CLI Vercel ou un git push
 ```
 
-### Self-Hosted
+### Auto-Hébergé
 ```bash
 npm run build
 npm start
 ```
 
-Ensure environment variables are set in your hosting platform.
+Assurez-vous que les variables d'environnement sont définies sur votre plateforme d'hébergement.
 
-## Contributing
+## Contribution
 
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit changes (`git commit -m 'Add amazing feature'`)
-3. Push to branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
+1. Créez une branche de fonctionnalité (`git checkout -b feature/ma-fonctionnalite`)
+2. Committez vos changements (`git commit -m 'Ajouter ma fonctionnalité'`)
+3. Poussez vers la branche (`git push origin feature/ma-fonctionnalite`)
+4. Ouvrez une Pull Request
 
-## Troubleshooting
+## Dépannage
 
-### Port 3000 already in use
+### Le port 3000 est déjà utilisé
 ```bash
 npm run dev -- -p 3001
 ```
 
-### Supabase connection errors
-- Verify `.env.local` has correct credentials
-- Check Supabase project is active
-- Ensure network connectivity
+### Erreurs de connexion Supabase
+- Vérifiez que `.env.local` contient les bonnes identifiants
+- Vérifiez que le projet Supabase est actif
+- Assurez-vous d'avoir une connexion réseau
 
-### Build errors
-- Run `npm install` to update dependencies
-- Clear `.next` folder: `rm -rf .next`
-- Check Node.js version: `node --version`
+### Erreurs de build
+- Exécutez `npm install` pour mettre à jour les dépendances
+- Nettoyez le dossier `.next`: `rm -rf .next`
+- Vérifiez la version de Node.js: `node --version`
 
-## License
+## Licence
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Ce projet est sous licence MIT - voir le fichier LICENSE pour les détails.
 
 ## Support
 
-For issues and questions:
-- 📧 Create an issue on GitHub
-- 💬 Check existing issues for solutions
-- 📚 Review the [CLAUDE.md](./CLAUDE.md) for technical details
+Pour les problèmes et questions:
+- 📧 Créez une issue sur GitHub
+- 💬 Vérifiez les issues existantes pour des solutions
+- 📚 Consultez [CLAUDE.md](./CLAUDE.md) pour les détails techniques
 
 ---
 
-Built with ❤️ using Next.js and Supabase
+Construit avec ❤️ en utilisant Next.js et Supabase

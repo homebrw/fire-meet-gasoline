@@ -63,7 +63,7 @@ export function computeDayStates(
       if (evStart <= dayEnd && evEnd >= dayStart) {
         dayEvents.push(event)
         if (event.is_blocking) {
-          if (event.type === "shared") {
+          if (!event.owner_person_id) {
             damienBlockingEvent = true
             maBlockingEvent = true
           } else {
@@ -75,7 +75,7 @@ export function computeDayStates(
     }
 
     // Shared events (non-blocking, for display)
-    const sharedEvents = dayEvents.filter((e) => e.type === "shared")
+    const sharedEvents = dayEvents.filter((e) => !e.owner_person_id)
 
     // Transitions for this day
     const dayTransitions = transitions.filter((t) => {

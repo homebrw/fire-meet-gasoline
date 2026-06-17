@@ -77,7 +77,6 @@ export type CustodyTransition = {
   updated_at: string
 }
 
-export type EventType = "shared" | "individual"
 export type EventVisibility = "both" | "private"
 
 export type CalendarEvent = {
@@ -87,7 +86,6 @@ export type CalendarEvent = {
   start_at: string
   end_at: string
   location: string | null
-  type: EventType
   owner_person_id: string | null
   created_by: string
   is_blocking: boolean

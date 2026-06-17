@@ -10,7 +10,6 @@ const eventSchema = z.object({
   start_at: z.string(),
   end_at: z.string(),
   location: z.string().nullable().optional(),
-  type: z.enum(["shared", "individual"]).optional(),
   owner_person_id: z.string().uuid().nullable().optional(),
   created_by: z.string().uuid(),
   is_blocking: z.coerce.boolean().default(false),

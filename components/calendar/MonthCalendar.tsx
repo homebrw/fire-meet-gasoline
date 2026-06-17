@@ -112,6 +112,7 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
                   key={dateKey}
                   dateKey={dateKey}
                   state={dayStates[dateKey]}
+                  persons={persons}
                   isCurrentMonth={isSameMonth(new Date(dateKey + "T12:00:00"), currentMonth)}
                   onClick={setSelectedDay}
                 />
@@ -122,12 +123,13 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--color-muted-foreground)]">
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--color-muted-foreground)]">
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-blue-100 border border-blue-300" /> {person1?.name ?? "Personne 1"}</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-pink-100 border border-pink-300" /> {person2?.name ?? "Personne 2"}</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-violet-100 border border-violet-300" /> Chacun a ses enfants</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-green-100 border border-green-300" /> Disponible</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-100 border border-orange-300" /> Changement</span>
+        <span className="flex items-center gap-1"><span className="flex text-[0.6rem]">📤</span> Dépose</span>
+        <span className="flex items-center gap-1"><span className="flex text-[0.6rem]">📥</span> Récupération</span>
       </div>
 
       {/* Day detail sheet */}

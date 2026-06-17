@@ -1,7 +1,7 @@
 "use client"
 
 import { useTransition } from "react"
-import type { CalendarEvent, Person } from "@/lib/types"
+import type { CalendarEvent } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,6 @@ import { deleteEvent } from "@/lib/actions/events"
 
 interface EventsListProps {
   events: CalendarEvent[]
-  persons: Person[]
   participants: Record<string, Array<{ person_id: string; persons?: Array<{ name: string; color: string }> }>>
   isLoading?: boolean
   error?: { title: string; description: string; onRetry?: () => void }
@@ -23,7 +22,6 @@ interface EventsListProps {
 
 export function EventsList({
   events,
-  persons,
   participants,
   isLoading,
   error,

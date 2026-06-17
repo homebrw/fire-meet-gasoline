@@ -2,7 +2,8 @@
 
 export const dynamic = "force-dynamic"
 
-import { useEffect, useState, useTransition } from "react"
+import { Suspense, useEffect, useState, useTransition } from "react"
+import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { deleteEvent } from "@/lib/actions/events"
 import type { CalendarEvent, Person } from "@/lib/types"
@@ -32,11 +33,14 @@ type EventParticipantData = {
   }>
 }
 
-export default function EventsPage() {
+function EventsPageContent() {
+  const searchParams = useSearchParams()
+  const initialDate = searchParams.get("date")
+
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
   const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
-  const [createOpen, setCreateOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(!!initialDate)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -98,6 +102,7 @@ export default function EventsPage() {
             </DialogHeader>
             <EventForm
               persons={persons}
+              initialDate={initialDate ?? undefined}
               onSuccess={() => {
                 setCreateOpen(false)
                 location.reload()
@@ -194,5 +199,13 @@ export default function EventsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <EventsPageContent />
+    </Suspense>
   )
 }

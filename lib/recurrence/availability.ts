@@ -124,7 +124,6 @@ function computeDisplayState(args: {
   bothAvailable: boolean
 }): DisplayState {
   const {
-    hasTransition,
     damienHasChildren,
     maHasChild,
     damienBlockingEvent,
@@ -132,7 +131,6 @@ function computeDisplayState(args: {
     bothAvailable,
   } = args
 
-  if (hasTransition) return "custody_change"
   if (bothAvailable) return "available"
   if (damienHasChildren && maHasChild) return "both_kids"
   if (damienHasChildren) return "damien_kids"

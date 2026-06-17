@@ -5,7 +5,7 @@ export function formatRelativeTime(dateString: string | Date): string {
   try {
     const date = typeof dateString === "string" ? parseISO(dateString) : dateString
     return formatDistanceToNow(date, { locale: fr, addSuffix: true })
-  } catch (e) {
+  } catch {
     return "date invalide"
   }
 }
@@ -16,7 +16,7 @@ export function isNew(createdAt: string, hoursThreshold: number = 24): boolean {
     const now = new Date()
     const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60)
     return hoursDiff < hoursThreshold
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -27,7 +27,7 @@ export function isModified(createdAt: string | null, updatedAt: string | null): 
     const created = parseISO(createdAt)
     const updated = parseISO(updatedAt)
     return updated.getTime() > created.getTime()
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -41,7 +41,7 @@ export function formatLocaleDateTime(dateString: string | Date): string {
   try {
     const date = typeof dateString === "string" ? parseISO(dateString) : dateString
     return format(date, "d MMM HH:mm", { locale: fr })
-  } catch (e) {
+  } catch {
     return "date invalide"
   }
 }

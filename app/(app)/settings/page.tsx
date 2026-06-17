@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarClock, AlertCircle, Baby, Calendar, Users } from "lucide-react"
+import { CalendarClock, AlertCircle, Baby, Calendar, Users, History } from "lucide-react"
 
 const sections = [
   {
@@ -32,6 +32,12 @@ const sections = [
     icon: Calendar,
     title: "Événements",
     description: "Événements communs et individuels avec pièces jointes",
+  },
+  {
+    href: "/settings/activity",
+    icon: History,
+    title: "Activité récente",
+    description: "Historique des modifications et créations",
   },
 ]
 

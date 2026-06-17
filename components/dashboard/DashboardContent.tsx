@@ -1,11 +1,10 @@
 "use client"
 
-import type { DayState, Person, CalendarEvent, CustodyTransition, ActivityFeedItem } from "@/lib/types"
+import type { DayState, Person, CalendarEvent, CustodyTransition } from "@/lib/types"
 import { TodayStatus } from "./TodayStatus"
 import { NextAvailableSlot } from "./NextAvailableSlot"
 import { UpcomingTransitions } from "./UpcomingTransitions"
 import { UpcomingEvents } from "./UpcomingEvents"
-import { ActivityFeed } from "./ActivityFeed"
 import { EmptyState } from "@/components/state/EmptyState"
 import { CalendarDays } from "lucide-react"
 
@@ -17,7 +16,6 @@ interface DashboardContentProps {
   upcomingTransitions: CustodyTransition[]
   upcomingEvents: CalendarEvent[]
   persons: Person[]
-  activityFeed: ActivityFeedItem[]
 }
 
 export function DashboardContent({
@@ -28,7 +26,6 @@ export function DashboardContent({
   upcomingTransitions,
   upcomingEvents,
   persons,
-  activityFeed,
 }: DashboardContentProps) {
   const hasData = damien && ma
 
@@ -54,7 +51,6 @@ export function DashboardContent({
             <UpcomingTransitions transitions={upcomingTransitions} persons={persons} />
             <UpcomingEvents events={upcomingEvents} persons={persons} />
           </div>
-          <ActivityFeed items={activityFeed} />
         </>
       )}
     </div>

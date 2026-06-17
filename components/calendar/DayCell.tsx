@@ -1,21 +1,25 @@
 "use client"
 
-import type { DayState } from "@/lib/types"
+import type { DayState, Person } from "@/lib/types"
 import { DISPLAY_CLASSES } from "@/lib/recurrence/display"
 import { cn } from "@/lib/utils"
 import { format, parseISO, isToday } from "date-fns"
+import { ArrowDown, ArrowUp } from "lucide-react"
 
 interface DayCellProps {
   dateKey: string
   state: DayState | undefined
+  persons: Person[]
   isCurrentMonth: boolean
   onClick: (dateKey: string) => void
 }
 
-export function DayCell({ dateKey, state, isCurrentMonth, onClick }: DayCellProps) {
+export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: DayCellProps) {
   const date = parseISO(dateKey)
   const today = isToday(date)
   const config = state ? DISPLAY_CLASSES[state.displayState] : null
+
+  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   return (
     <button
@@ -41,10 +45,27 @@ export function DayCell({ dateKey, state, isCurrentMonth, onClick }: DayCellProp
       </span>
 
       {/* Indicators */}
-      <div className="mt-1 flex gap-0.5 flex-wrap justify-center">
-        {state?.hasTransition && (
-          <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} aria-label="Changement de garde" title="Changement de garde" />
-        )}
+      <div className="mt-1 flex gap-1 flex-wrap justify-center">
+        {/* Custody transitions */}
+        {state?.custodyTransitions.map((transition) => {
+          const person = personById[transition.person_id]
+          const isPickup = transition.direction === "pickup"
+          const Icon = isPickup ? ArrowUp : ArrowDown
+          return (
+            <div
+              key={`${transition.id}-${transition.direction}`}
+              className="relative"
+              title={`${person?.name ?? "?"} - ${isPickup ? "Récupération" : "Dépose"}`}
+            >
+              <Icon
+                className="h-3 w-3"
+                style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
+                strokeWidth={3}
+              />
+            </div>
+          )
+        })}
+        {/* Shared events */}
         {state?.sharedEvents.length ? (
           <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-event)'}} aria-label="Événement commun" title="Événement commun" />
         ) : null}

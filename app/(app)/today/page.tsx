@@ -12,6 +12,34 @@ import { DashboardContent } from "@/components/dashboard/DashboardContent"
 import { subDays, addDays, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, ActivityFeedItem } from "@/lib/types"
 
+interface ActivityData {
+  id: string
+  created_at: string
+  updated_at: string
+}
+
+interface RuleActivityData extends ActivityData {
+  name: string
+  person_id: string
+}
+
+interface EventActivityData extends ActivityData {
+  title: string
+  created_by: string
+}
+
+interface ExceptionActivityData extends ActivityData {
+  person_id: string
+}
+
+interface PresenceActivityData extends ActivityData {
+  person_id: string
+}
+
+interface TransitionActivityData extends ActivityData {
+  person_id: string
+}
+
 async function loadActivityFeed(
   supabase: Awaited<ReturnType<typeof createClient>>,
   personById: Record<string, Person>
@@ -53,7 +81,7 @@ async function loadActivityFeed(
 
   const items: ActivityFeedItem[] = []
 
-  rulesRes.data?.forEach((rule: any) => {
+  rulesRes.data?.forEach((rule: RuleActivityData) => {
     const isNew = rule.created_at === rule.updated_at
     items.push({
       id: rule.id,
@@ -65,7 +93,7 @@ async function loadActivityFeed(
     })
   })
 
-  eventsRes.data?.forEach((event: any) => {
+  eventsRes.data?.forEach((event: EventActivityData) => {
     const isNew = event.created_at === event.updated_at
     items.push({
       id: event.id,
@@ -77,7 +105,7 @@ async function loadActivityFeed(
     })
   })
 
-  exceptionsRes.data?.forEach((exc: any) => {
+  exceptionsRes.data?.forEach((exc: ExceptionActivityData) => {
     const isNew = exc.created_at === exc.updated_at
     items.push({
       id: exc.id,
@@ -89,7 +117,7 @@ async function loadActivityFeed(
     })
   })
 
-  presencesRes.data?.forEach((presence: any) => {
+  presencesRes.data?.forEach((presence: PresenceActivityData) => {
     const isNew = presence.created_at === presence.updated_at
     items.push({
       id: presence.id,
@@ -101,7 +129,7 @@ async function loadActivityFeed(
     })
   })
 
-  transitionsRes.data?.forEach((transition: any) => {
+  transitionsRes.data?.forEach((transition: TransitionActivityData) => {
     const isNew = transition.created_at === transition.updated_at
     items.push({
       id: transition.id,

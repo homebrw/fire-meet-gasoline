@@ -1,8 +1,14 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarClock, AlertCircle, Baby, Calendar } from "lucide-react"
+import { CalendarClock, AlertCircle, Baby, Calendar, Users } from "lucide-react"
 
 const sections = [
+  {
+    href: "/settings/children",
+    icon: Users,
+    title: "Enfants",
+    description: "Créez et gérez les informations de vos enfants",
+  },
   {
     href: "/settings/rules",
     icon: CalendarClock,

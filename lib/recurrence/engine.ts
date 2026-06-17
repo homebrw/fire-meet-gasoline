@@ -170,10 +170,10 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
 function applyTime(date: Date, time: string, endOfDay = false): Date {
   const [hours, minutes] = time.split(":").map(Number)
   const d = new Date(date)
-  d.setHours(hours, minutes, 0, 0)
+  d.setUTCHours(hours, minutes, 0, 0)
   if (endOfDay && hours === 0 && minutes === 0) {
     // If end time is midnight, treat as end of that day
-    d.setHours(23, 59, 59, 999)
+    d.setUTCHours(23, 59, 59, 999)
   }
   return d
 }

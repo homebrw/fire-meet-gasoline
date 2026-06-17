@@ -89,6 +89,7 @@ function expandWeeklyAlternating(
           end_at,
           rule_id: rule.id,
           source: "rule",
+          exception_id: null,
         })
       }
     }
@@ -154,6 +155,7 @@ function expandManual(
     end_at: applyTime(end, rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
+    exception_id: null,
   }
 
   return applyExceptions([period], exceptions, rule.id)
@@ -177,6 +179,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
         end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
         rule_id: rule.id,
         source: "rule",
+        exception_id: null,
       })
       periodStart = days[i]
     }
@@ -189,6 +192,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
     end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
+    exception_id: null,
   })
 
   return periods
@@ -248,6 +252,7 @@ function applyExceptions(
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,
             source: "exception",
+            exception_id: exc.id,
           })
         }
         break
@@ -258,7 +263,12 @@ function applyExceptions(
             if (
               isWithinInterval(originalStart, { start: p.start_at, end: p.end_at })
             ) {
-              return { ...p, end_at: parseISO(exc.override_end_at!) }
+              return {
+                ...p,
+                end_at: parseISO(exc.override_end_at!),
+                source: "exception" as const,
+                exception_id: exc.id,
+              }
             }
             return p
           })
@@ -271,7 +281,12 @@ function applyExceptions(
             if (
               isWithinInterval(originalStart, { start: p.start_at, end: p.end_at })
             ) {
-              return { ...p, end_at: parseISO(exc.override_end_at!) }
+              return {
+                ...p,
+                end_at: parseISO(exc.override_end_at!),
+                source: "exception" as const,
+                exception_id: exc.id,
+              }
             }
             return p
           })
@@ -286,6 +301,7 @@ function applyExceptions(
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,
             source: "exception",
+            exception_id: exc.id,
           })
         }
         break

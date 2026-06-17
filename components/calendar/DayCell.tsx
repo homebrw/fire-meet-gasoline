@@ -2,9 +2,10 @@
 
 import type { DayState, Person } from "@/lib/types"
 import { DISPLAY_CLASSES } from "@/lib/recurrence/display"
-import { cn } from "@/lib/utils"
+import { cn, indexById } from "@/lib/utils"
+import { TRANSITION_DIRECTION_LABEL } from "@/lib/recurrence/labels"
+import { TransitionIcon } from "@/components/custody/TransitionIcon"
 import { format, parseISO, isToday } from "date-fns"
-import { ArrowDown, ArrowUp } from "lucide-react"
 
 interface DayCellProps {
   dateKey: string
@@ -23,7 +24,7 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
       ? DISPLAY_CLASSES[state.displayState]
       : null
 
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const personById = indexById(persons)
 
   return (
     <button
@@ -53,20 +54,15 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
         {/* Custody transitions */}
         {state?.custodyTransitions.map((transition) => {
           const person = personById[transition.person_id]
-          const isPickup = transition.direction === "pickup"
-          const Icon = isPickup ? ArrowUp : ArrowDown
           return (
-            <div
+            <TransitionIcon
               key={`${transition.id}-${transition.direction}`}
-              className="relative"
-              title={`${person?.name ?? "?"} - ${isPickup ? "Récupération" : "Dépose"}`}
-            >
-              <Icon
-                className="h-3 w-3"
-                style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
-                strokeWidth={3}
-              />
-            </div>
+              direction={transition.direction}
+              color={person?.color}
+              className="h-3 w-3"
+              strokeWidth={3}
+              title={`${person?.name ?? "?"} - ${TRANSITION_DIRECTION_LABEL[transition.direction]}`}
+            />
           )
         })}
         {/* Shared events */}

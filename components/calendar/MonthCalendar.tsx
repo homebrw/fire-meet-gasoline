@@ -14,7 +14,7 @@ import {
   getISOWeek,
 } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { DayState, Person } from "@/lib/types"
+import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/lib/types"
 import { DayCell } from "./DayCell"
 import { DayDetailSheet } from "./DayDetailSheet"
 import { Button } from "@/components/ui/button"
@@ -26,9 +26,11 @@ interface MonthCalendarProps {
   initialMonth?: string
   dayStates: Record<string, DayState>
   persons: Person[]
+  exceptions?: RecurrenceException[]
+  rules?: RecurrenceRule[]
 }
 
-export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalendarProps) {
+export function MonthCalendar({ initialMonth, dayStates, persons, exceptions, rules }: MonthCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() =>
     initialMonth ? new Date(initialMonth + "-01") : startOfMonth(new Date())
   )
@@ -139,6 +141,8 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
           dateKey={selectedDay}
           state={selectedState}
           persons={persons}
+          exceptions={exceptions}
+          rules={rules}
           open={!!selectedDay}
           onClose={() => setSelectedDay(null)}
         />

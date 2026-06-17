@@ -13,11 +13,11 @@ import {
   parseISO,
 } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { DayState, Person } from "@/lib/types"
+import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown, CircleDashed } from "lucide-react"
-import { cn, getWeekString, parseWeekString } from "@/lib/utils"
+import { ChevronLeft, ChevronRight, Plus, Home, CircleDashed } from "lucide-react"
+import { cn, getWeekString, parseWeekString, indexById } from "@/lib/utils"
 import { revalidateWeekData } from "@/lib/actions/revalidate"
 import {
   Dialog,
@@ -34,16 +34,20 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { AvailabilityDetailSheet } from "@/components/shared/AvailabilityDetailSheet"
+import { TransitionIcon } from "@/components/custody/TransitionIcon"
+import { TransitionRow } from "@/components/custody/TransitionRow"
 
 interface WeekPlanningProps {
   dayStates: Record<string, DayState>
   damien: Person | undefined
   ma: Person | undefined
   persons: Person[]
+  exceptions: RecurrenceException[]
+  rules: RecurrenceRule[]
   initialWeek?: string
 }
 
-export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: WeekPlanningProps) {
+export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules, initialWeek }: WeekPlanningProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -266,14 +270,12 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
                       >
                         {transitions.map((transition) => {
                           const person = persons.find((p) => p.id === transition.person_id)
-                          const isPickup = transition.direction === "pickup"
-                          const Icon = isPickup ? ArrowUp : ArrowDown
                           return (
-                            <Icon
+                            <TransitionIcon
                               key={`${transition.id}-${transition.direction}`}
+                              direction={transition.direction}
+                              color={person?.color}
                               className="h-3.5 w-3.5"
-                              style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
-                              strokeWidth={2.5}
                             />
                           )
                         })}
@@ -350,6 +352,8 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
           dateKey={selectedDate}
           state={dayStates[selectedDate]}
           persons={persons}
+          exceptions={exceptions}
+          rules={rules}
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
         />
@@ -408,6 +412,8 @@ interface TransitionDetailSheetProps {
   dateKey: string
   state: DayState | undefined
   persons: Person[]
+  exceptions: RecurrenceException[]
+  rules: RecurrenceRule[]
   open: boolean
   onClose: () => void
 }
@@ -416,11 +422,15 @@ function TransitionDetailSheet({
   dateKey,
   state,
   persons,
+  exceptions,
+  rules,
   open,
   onClose,
 }: TransitionDetailSheetProps) {
   const date = parseISO(dateKey + "T12:00:00")
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
+  const personById = indexById(persons)
+  const exceptionById = indexById(exceptions)
+  const ruleById = indexById(rules)
 
   if (!state) return null
 
@@ -441,33 +451,11 @@ function TransitionDetailSheet({
             <ul className="space-y-2">
               {state.custodyTransitions.map((t) => {
                 const person = personById[t.person_id]
-                const isPickup = t.direction === "pickup"
-                const Icon = isPickup ? ArrowUp : ArrowDown
+                const exception = t.exception_id ? exceptionById[t.exception_id] : undefined
+                const rule = exception ? ruleById[exception.recurrence_rule_id] : undefined
                 return (
-                  <li key={t.id} className="flex items-start gap-3 text-sm rounded-lg p-3 border" style={{borderColor: person?.color ?? "var(--color-border)", backgroundColor: person?.color ? person.color + "10" : "transparent"}}>
-                    <div className="flex items-center justify-center flex-shrink-0">
-                      <Icon
-                        className="h-4 w-4"
-                        style={{ color: person?.color ?? "var(--color-muted-foreground)" }}
-                        strokeWidth={2.5}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: person?.color ?? "var(--color-muted-foreground)" }}
-                        />
-                        <span className="font-semibold">{person?.name ?? "?"}</span>
-                        <span className="text-xs text-[var(--color-muted-foreground)]">
-                          {isPickup ? "Récupération" : "Dépose"}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">
-                        <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span>
-                        {t.location && <span> — {t.location}</span>}
-                      </div>
-                    </div>
+                  <li key={t.id}>
+                    <TransitionRow transition={t} person={person} exception={exception} rule={rule} />
                   </li>
                 )
               })}

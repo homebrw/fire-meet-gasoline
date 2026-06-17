@@ -14,8 +14,13 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
   if (!state) {
     return (
       <Card>
-        <CardContent className="pt-4">
-          <p className="text-[var(--color-muted-foreground)] text-sm">Aucune donnée disponible</p>
+        <CardContent className="pt-6 pb-6 text-center">
+          <p className="text-[var(--color-muted-foreground)] text-sm mb-3">
+            Aujourd'hui — Aucune donnée disponible
+          </p>
+          <p className="text-xs text-[var(--color-muted-foreground)]">
+            Créez une première règle de garde pour voir votre planning
+          </p>
         </CardContent>
       </Card>
     )

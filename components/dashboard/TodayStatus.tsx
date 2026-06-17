@@ -3,6 +3,8 @@ import { getStateConfig } from "@/lib/recurrence/display"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { format, parseISO } from "date-fns"
+import { fr } from "date-fns/locale"
 
 interface TodayStatusProps {
   state: DayState | null
@@ -69,7 +71,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
             <p className="text-xs font-medium" style={{color: 'var(--color-transition)'}}>Changements aujourd&apos;hui</p>
             {state.custodyTransitions.map((t) => (
               <p key={t.id} className="text-xs text-[var(--color-muted-foreground)]">
-                {t.direction === "pickup" ? "↑ Récupération" : "↓ Dépôt"}{t.location ? ` — ${t.location}` : ""}
+                <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span> — {t.direction === "pickup" ? "↑ Récupération" : "↓ Dépôt"}{t.location ? ` (${t.location})` : ""}
               </p>
             ))}
           </div>

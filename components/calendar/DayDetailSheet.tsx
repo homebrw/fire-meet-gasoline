@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import type { DayState, Person } from "@/lib/types"
 import { getStateConfig } from "@/lib/recurrence/display"
 import {
@@ -9,12 +10,22 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { EventDetailCard } from "@/components/events/EventDetailCard"
+import { EventForm } from "@/components/events/EventForm"
 
 interface DayDetailSheetProps {
   dateKey: string
@@ -27,6 +38,7 @@ interface DayDetailSheetProps {
 export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDetailSheetProps) {
   const date = parseISO(dateKey + "T12:00:00")
   const [person1, person2] = persons
+  const [createEventOpen, setCreateEventOpen] = useState(false)
   const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
   const config = state ? stateConfig[state.displayState] : null
 
@@ -34,17 +46,43 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="text-left">
-          <SheetTitle className="capitalize">
-            {format(date, "EEEE d MMMM yyyy", { locale: fr })}
-          </SheetTitle>
-          {config && (
-            <SheetDescription asChild>
-              <div className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1 w-fit", config.bgClass)}>
-                <span className={cn("h-2 w-2 rounded-full", config.dotClass)} />
-                <span className={cn("text-sm font-medium", config.textClass)}>{config.label}</span>
-              </div>
-            </SheetDescription>
-          )}
+          <div className="flex items-start justify-between">
+            <div>
+              <SheetTitle className="capitalize">
+                {format(date, "EEEE d MMMM yyyy", { locale: fr })}
+              </SheetTitle>
+              {config && (
+                <SheetDescription asChild>
+                  <div className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1 w-fit", config.bgClass)}>
+                    <span className={cn("h-2 w-2 rounded-full", config.dotClass)} />
+                    <span className={cn("text-sm font-medium", config.textClass)}>{config.label}</span>
+                  </div>
+                </SheetDescription>
+              )}
+            </div>
+            <Dialog open={createEventOpen} onOpenChange={setCreateEventOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Événement
+                </Button>
+              </DialogTrigger>
+              <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Nouvel événement</DialogTitle>
+                </DialogHeader>
+                <EventForm
+                  persons={persons}
+                  initialDate={dateKey}
+                  onSuccess={() => {
+                    setCreateEventOpen(false)
+                    onClose()
+                    location.reload()
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </SheetHeader>
 
         {state && (

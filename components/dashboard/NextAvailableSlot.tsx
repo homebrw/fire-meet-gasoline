@@ -24,7 +24,7 @@ export function NextAvailableSlot({ slot }: NextAvailableSlotProps) {
               {format(parseISO(slot.date), "EEEE d MMMM yyyy", { locale: fr })}
             </p>
             <p className="text-sm text-[var(--color-muted-foreground)] mt-1">
-              Disponible ensemble — pas d'enfants, pas d'événement bloquant
+              Disponible ensemble — pas d&apos;enfants, pas d&apos;événement bloquant
             </p>
           </div>
         ) : (

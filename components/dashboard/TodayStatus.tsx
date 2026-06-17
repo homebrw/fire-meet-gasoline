@@ -61,7 +61,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
 
         {state.custodyTransitions.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs font-medium text-orange-700">Changements aujourd'hui</p>
+            <p className="text-xs font-medium text-orange-700">Changements aujourd&apos;hui</p>
             {state.custodyTransitions.map((t) => (
               <p key={t.id} className="text-xs text-[var(--color-muted-foreground)]">
                 {t.direction === "pickup" ? "↑ Récupération" : "↓ Dépôt"}{t.location ? ` — ${t.location}` : ""}

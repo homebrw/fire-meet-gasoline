@@ -12,7 +12,7 @@ import { TodayStatus } from "@/components/dashboard/TodayStatus"
 import { NextAvailableSlot } from "@/components/dashboard/NextAvailableSlot"
 import { UpcomingTransitions } from "@/components/dashboard/UpcomingTransitions"
 import { UpcomingEvents } from "@/components/dashboard/UpcomingEvents"
-import { subDays, addDays, startOfToday, parseISO } from "date-fns"
+import { subDays, addDays, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person } from "@/lib/types"
 
 export default async function TodayPage() {
@@ -52,7 +52,7 @@ export default async function TodayPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Aujourd'hui</h1>
+      <h1 className="text-2xl font-bold">Aujourd&apos;hui</h1>
       <TodayStatus state={todayState} damien={damien} ma={ma} />
       <NextAvailableSlot slot={nextSlot} />
       <div className="grid gap-4 sm:grid-cols-2">

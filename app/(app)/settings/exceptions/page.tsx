@@ -44,19 +44,20 @@ export default function ExceptionsPage() {
   const [editExc, setEditExc] = useState<RecurrenceException | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  async function load() {
-    const supabase = createClient()
-    const [excRes, rulesRes, persRes] = await Promise.all([
-      supabase.from("recurrence_exceptions").select("*").order("created_at"),
-      supabase.from("recurrence_rules").select("*"),
-      supabase.from("persons").select("*"),
-    ])
-    setExceptions((excRes.data ?? []) as RecurrenceException[])
-    setRules((rulesRes.data ?? []) as RecurrenceRule[])
-    setPersons((persRes.data ?? []) as Person[])
-  }
-
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const [excRes, rulesRes, persRes] = await Promise.all([
+        supabase.from("recurrence_exceptions").select("*").order("created_at"),
+        supabase.from("recurrence_rules").select("*"),
+        supabase.from("persons").select("*"),
+      ])
+      setExceptions((excRes.data ?? []) as RecurrenceException[])
+      setRules((rulesRes.data ?? []) as RecurrenceRule[])
+      setPersons((persRes.data ?? []) as Person[])
+    }
+    load()
+  }, [])
 
   const ruleById = Object.fromEntries(rules.map((r) => [r.id, r]))
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
@@ -64,7 +65,7 @@ export default function ExceptionsPage() {
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteRecurrenceException(id)
-      await load()
+      location.reload()
     })
   }
 
@@ -86,7 +87,10 @@ export default function ExceptionsPage() {
             <ExceptionForm
               rules={rules}
               persons={persons}
-              onSuccess={() => { setCreateOpen(false); load() }}
+              onSuccess={() => {
+                setCreateOpen(false)
+                location.reload()
+              }}
             />
           </DialogContent>
         </Dialog>
@@ -125,13 +129,16 @@ export default function ExceptionsPage() {
                         </DialogTrigger>
                         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                           <DialogHeader>
-                            <DialogTitle>Modifier l'exception</DialogTitle>
+                            <DialogTitle>Modifier l&apos;exception</DialogTitle>
                           </DialogHeader>
                           <ExceptionForm
                             rules={rules}
                             persons={persons}
                             exception={exc}
-                            onSuccess={() => { setEditExc(null); load() }}
+                            onSuccess={() => {
+                              setEditExc(null)
+                              location.reload()
+                            }}
                           />
                         </DialogContent>
                       </Dialog>
@@ -225,7 +232,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label>Type d'exception</Label>
+        <Label>Type d&apos;exception</Label>
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>

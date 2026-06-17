@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -31,19 +30,20 @@ export default function CustodyPage() {
   const [transitionOpen, setTransitionOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  async function load() {
-    const supabase = createClient()
-    const [presRes, transRes, persRes] = await Promise.all([
-      supabase.from("child_presences").select("*").order("start_at"),
-      supabase.from("custody_transitions").select("*").order("transition_at"),
-      supabase.from("persons").select("*"),
-    ])
-    setPresences((presRes.data ?? []) as ChildPresence[])
-    setTransitions((transRes.data ?? []) as CustodyTransition[])
-    setPersons((persRes.data ?? []) as Person[])
-  }
-
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const [presRes, transRes, persRes] = await Promise.all([
+        supabase.from("child_presences").select("*").order("start_at"),
+        supabase.from("custody_transitions").select("*").order("transition_at"),
+        supabase.from("persons").select("*"),
+      ])
+      setPresences((presRes.data ?? []) as ChildPresence[])
+      setTransitions((transRes.data ?? []) as CustodyTransition[])
+      setPersons((persRes.data ?? []) as Person[])
+    }
+    load()
+  }, [])
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
   return (
@@ -66,7 +66,10 @@ export default function CustodyPage() {
                 <DialogHeader><DialogTitle>Nouvelle période de garde</DialogTitle></DialogHeader>
                 <PresenceForm
                   persons={persons}
-                  onSuccess={() => { setPresenceOpen(false); load() }}
+                  onSuccess={() => {
+                    setPresenceOpen(false)
+                    location.reload()
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -91,7 +94,7 @@ export default function CustodyPage() {
                         variant="ghost" size="icon"
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteChildPresence(p.id); load() })}
+                        onClick={() => startTransition(async () => { await deleteChildPresence(p.id); location.reload() })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -120,7 +123,10 @@ export default function CustodyPage() {
                 <DialogHeader><DialogTitle>Nouveau changement de garde</DialogTitle></DialogHeader>
                 <TransitionForm
                   persons={persons}
-                  onSuccess={() => { setTransitionOpen(false); load() }}
+                  onSuccess={() => {
+                    setTransitionOpen(false)
+                    location.reload()
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -145,7 +151,7 @@ export default function CustodyPage() {
                         variant="ghost" size="icon"
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); load() })}
+                        onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

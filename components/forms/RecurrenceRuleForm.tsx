@@ -165,7 +165,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             </SelectContent>
           </Select>
           <p className="text-xs text-[var(--color-muted-foreground)]">
-            Semaines ISO : lundi = jour 1. La parité se calcule d'après le numéro de semaine ISO.
+            Semaines ISO : lundi = jour 1. La parité se calcule d&apos;après le numéro de semaine ISO.
           </p>
         </div>
       )}

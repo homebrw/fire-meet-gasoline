@@ -27,17 +27,18 @@ export default function RulesPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  async function load() {
-    const supabase = createClient()
-    const [rulesRes, personsRes] = await Promise.all([
-      supabase.from("recurrence_rules").select("*").order("created_at"),
-      supabase.from("persons").select("*"),
-    ])
-    setRules((rulesRes.data ?? []) as RecurrenceRule[])
-    setPersons((personsRes.data ?? []) as Person[])
-  }
-
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const [rulesRes, personsRes] = await Promise.all([
+        supabase.from("recurrence_rules").select("*").order("created_at"),
+        supabase.from("persons").select("*"),
+      ])
+      setRules((rulesRes.data ?? []) as RecurrenceRule[])
+      setPersons((personsRes.data ?? []) as Person[])
+    }
+    load()
+  }, [])
 
   const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
 
@@ -50,7 +51,7 @@ export default function RulesPage() {
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteRecurrenceRule(id)
-      await load()
+      location.reload()
     })
   }
 
@@ -71,7 +72,10 @@ export default function RulesPage() {
             </DialogHeader>
             <RecurrenceRuleForm
               persons={persons}
-              onSuccess={() => { setCreateOpen(false); load() }}
+              onSuccess={() => {
+                setCreateOpen(false)
+                location.reload()
+              }}
             />
           </DialogContent>
         </Dialog>
@@ -115,7 +119,10 @@ export default function RulesPage() {
                           <RecurrenceRuleForm
                             persons={persons}
                             rule={rule}
-                            onSuccess={() => { setEditRule(null); load() }}
+                            onSuccess={() => {
+                              setEditRule(null)
+                              location.reload()
+                            }}
                           />
                         </DialogContent>
                       </Dialog>

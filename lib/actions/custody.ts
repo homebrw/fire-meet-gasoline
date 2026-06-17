@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { datetimeLocalToUTC } from "@/lib/utils"
 
 const presenceSchema = z.object({
   person_id: z.string().uuid(),
@@ -16,6 +17,15 @@ const presenceSchema = z.object({
 export async function createChildPresence(formData: FormData) {
   const supabase = await createClient()
   const data = presenceSchema.parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.start_at && !data.start_at.includes("Z")) {
+    data.start_at = datetimeLocalToUTC(data.start_at)
+  }
+  if (data.end_at && !data.end_at.includes("Z")) {
+    data.end_at = datetimeLocalToUTC(data.end_at)
+  }
+
   const { error } = await supabase.from("child_presences").insert(data)
   if (error) throw new Error(error.message)
   revalidatePath("/settings/custody")
@@ -27,6 +37,15 @@ export async function createChildPresence(formData: FormData) {
 export async function updateChildPresence(id: string, formData: FormData) {
   const supabase = await createClient()
   const data = presenceSchema.partial().parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.start_at && !data.start_at.includes("Z")) {
+    data.start_at = datetimeLocalToUTC(data.start_at)
+  }
+  if (data.end_at && !data.end_at.includes("Z")) {
+    data.end_at = datetimeLocalToUTC(data.end_at)
+  }
+
   const { error } = await supabase.from("child_presences").update(data).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/settings/custody")
@@ -58,6 +77,12 @@ const transitionSchema = z.object({
 export async function createCustodyTransition(formData: FormData) {
   const supabase = await createClient()
   const data = transitionSchema.parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.transition_at && !data.transition_at.includes("Z")) {
+    data.transition_at = datetimeLocalToUTC(data.transition_at)
+  }
+
   const { error } = await supabase.from("custody_transitions").insert(data)
   if (error) throw new Error(error.message)
   revalidatePath("/settings/custody")
@@ -69,6 +94,12 @@ export async function createCustodyTransition(formData: FormData) {
 export async function updateCustodyTransition(id: string, formData: FormData) {
   const supabase = await createClient()
   const data = transitionSchema.partial().parse(Object.fromEntries(formData))
+
+  // Convert datetime-local to UTC
+  if (data.transition_at && !data.transition_at.includes("Z")) {
+    data.transition_at = datetimeLocalToUTC(data.transition_at)
+  }
+
   const { error } = await supabase.from("custody_transitions").update(data).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/settings/custody")

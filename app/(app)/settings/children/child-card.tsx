@@ -4,8 +4,6 @@ import { useState } from "react"
 import { Person } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { ChangeBadge } from "@/components/ui/change-badge"
-import { ItemTimestamp } from "@/components/ui/item-timestamp"
 import { deleteChild } from "@/lib/actions/children"
 import { ChildEditDialog } from "./child-edit-dialog"
 
@@ -49,10 +47,6 @@ export function ChildCard({ child }: { child: Person }) {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Né le {birthDate}
             </p>
-            <div className="flex items-center gap-2 mt-1">
-              <ChangeBadge createdAt={child.created_at} updatedAt={child.updated_at} />
-              <ItemTimestamp createdAt={child.created_at} />
-            </div>
           </div>
         </div>
 

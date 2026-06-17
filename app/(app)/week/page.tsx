@@ -1,12 +1,9 @@
 export const dynamic = "force-dynamic"
 
-import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { computeDayStates } from "@/lib/recurrence/availability"
 import { WeekPlanning } from "@/components/week/WeekPlanning"
-import { Button } from "@/components/ui/button"
-import { Home } from "lucide-react"
 import { subWeeks, addWeeks, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, DayState } from "@/lib/types"
 
@@ -43,14 +40,7 @@ export default async function WeekPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
-      <div className="flex items-center gap-3 mb-4">
-        <Button asChild variant="ghost" size="icon">
-          <Link href="/today">
-            <Home className="w-5 h-5" />
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-bold">Planning hebdomadaire</h1>
-      </div>
+      <h1 className="text-2xl font-bold mb-4">Planning hebdomadaire</h1>
       <WeekPlanning dayStates={dayStates} damien={damien} ma={ma} />
     </div>
   )

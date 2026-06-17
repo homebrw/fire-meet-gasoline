@@ -14,7 +14,7 @@ import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -89,9 +89,14 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
             Semaine {weekNumber}
           </p>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
+            <Home className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Table */}

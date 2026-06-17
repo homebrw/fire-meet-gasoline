@@ -26,11 +26,22 @@ export function generateCustodyPeriods(
 
   for (const rule of rules) {
     if (!rule.is_active) continue
+
+    console.log(`[DEBUG] Processing rule: ${rule.name} (id: ${rule.id})`, {
+      pattern_type: rule.pattern_type,
+      week_parity: rule.week_parity,
+      starts_at: rule.starts_at,
+      ends_at: rule.ends_at,
+      is_active: rule.is_active,
+    })
+
     const ruleExceptions = exceptionsByRule.get(rule.id) ?? []
 
     switch (rule.pattern_type) {
       case "weekly_alternating":
-        all.push(...expandWeeklyAlternating(rule, ruleExceptions, from, to))
+        const periods = expandWeeklyAlternating(rule, ruleExceptions, from, to)
+        console.log(`[DEBUG] Generated ${periods.length} periods for ${rule.name}`)
+        all.push(...periods)
         break
       case "custom_cycle":
         all.push(...expandCustomCycle(rule, ruleExceptions, from, to))
@@ -38,9 +49,12 @@ export function generateCustodyPeriods(
       case "manual":
         all.push(...expandManual(rule, ruleExceptions, from, to))
         break
+      default:
+        console.warn(`[DEBUG] Unknown pattern_type for rule ${rule.name}: ${rule.pattern_type}`)
     }
   }
 
+  console.log(`[DEBUG] Total periods generated: ${all.length}`)
   return all.sort((a, b) => a.start_at.getTime() - b.start_at.getTime())
 }
 

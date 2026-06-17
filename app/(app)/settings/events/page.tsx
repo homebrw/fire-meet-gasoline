@@ -65,8 +65,6 @@ export default function EventsPage() {
     load()
   }, [])
 
-  const personById = Object.fromEntries(persons.map((p) => [p.id, p]))
-
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteEvent(id)

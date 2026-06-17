@@ -1,12 +1,10 @@
 "use client"
 
-import { Suspense, useState } from "react"
 import type { DayState, Person, CalendarEvent, CustodyTransition } from "@/lib/types"
 import { TodayStatus } from "./TodayStatus"
 import { NextAvailableSlot } from "./NextAvailableSlot"
 import { UpcomingTransitions } from "./UpcomingTransitions"
 import { UpcomingEvents } from "./UpcomingEvents"
-import { LoadingState } from "@/components/state/LoadingState"
 import { EmptyState } from "@/components/state/EmptyState"
 import { CalendarDays } from "lucide-react"
 

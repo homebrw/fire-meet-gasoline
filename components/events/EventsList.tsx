@@ -1,18 +1,11 @@
 "use client"
 
 import { useTransition } from "react"
-import type { CalendarEvent, Person } from "@/lib/types"
+import type { CalendarEvent } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Pencil, Trash2, Plus } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { ContentCard } from "@/components/state"

@@ -16,7 +16,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
       <Card>
         <CardContent className="pt-6 pb-6 text-center">
           <p className="text-[var(--color-muted-foreground)] text-sm mb-3">
-            Aujourd'hui — Aucune donnée disponible
+            Aujourd&apos;hui — Aucune donnée disponible
           </p>
           <p className="text-xs text-[var(--color-muted-foreground)]">
             Créez une première règle de garde pour voir votre planning

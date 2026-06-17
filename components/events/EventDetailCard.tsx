@@ -100,11 +100,11 @@ export function EventDetailCard({
           <p className="text-xs font-medium mb-2 text-gray-700 dark:text-gray-300">
             Participants
           </p>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-2">
             {participants.map((p) => (
               <div
                 key={p.person_id}
-                className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800"
+                className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800"
               >
                 <div
                   className="h-3 w-3 rounded-full"

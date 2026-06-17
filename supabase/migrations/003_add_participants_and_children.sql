@@ -85,7 +85,8 @@ FOR DELETE USING (
 -- ============================================================
 
 -- Drop old policy and create new one that includes participants
-DROP POLICY "event_attachments_select" ON event_attachments;
+DROP POLICY IF EXISTS "event_attachments_select" ON event_attachments;
+DROP POLICY IF EXISTS "members_all" ON event_attachments;
 
 CREATE POLICY "event_attachments_select" ON event_attachments
 FOR SELECT USING (
@@ -123,7 +124,7 @@ FOR SELECT USING (
 );
 
 -- Update event_attachments insert policy to allow participants
-DROP POLICY "event_attachments_insert" ON event_attachments;
+DROP POLICY IF EXISTS "event_attachments_insert" ON event_attachments;
 
 CREATE POLICY "event_attachments_insert" ON event_attachments
 FOR INSERT WITH CHECK (

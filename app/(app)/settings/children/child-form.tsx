@@ -52,11 +52,12 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
     }
   }
 
-  const [firstName, lastName] = child?.name.split(" ", 1).length === 2
-    ? child.name.split(" ", 1)
-    : child
-      ? [child.name, ""]
-      : ["", ""]
+  const [firstName, lastName] = child
+    ? (() => {
+        const parts = child.name.split(" ")
+        return [parts[0], parts.slice(1).join(" ")] as const
+      })()
+    : ["", ""]
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

@@ -16,7 +16,7 @@ export default function ChildrenPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Enfants</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-[var(--color-muted-foreground)]">
             Gérez les informations de vos enfants
           </p>
         </div>

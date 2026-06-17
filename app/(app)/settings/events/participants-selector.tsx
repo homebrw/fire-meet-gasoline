@@ -39,7 +39,7 @@ export function ParticipantsSelector({
     <div className="space-y-3">
       {parents.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <p className="text-sm font-medium text-[var(--color-foreground)]">
             Parents
           </p>
           <Card className="p-3 space-y-2">
@@ -69,7 +69,7 @@ export function ParticipantsSelector({
 
       {childPersonList.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <p className="text-sm font-medium text-[var(--color-foreground)]">
             Enfants
           </p>
           <Card className="p-3 space-y-2">

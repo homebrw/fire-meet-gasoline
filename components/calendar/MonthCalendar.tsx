@@ -68,17 +68,17 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} aria-label="Mois précédent">
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-lg font-semibold capitalize">
           {format(currentMonth, "MMMM yyyy", { locale: fr })}
         </h2>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(startOfMonth(new Date()))}>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(startOfMonth(new Date()))} aria-label="Retour à aujourd'hui">
             <Home className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} aria-label="Mois suivant">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

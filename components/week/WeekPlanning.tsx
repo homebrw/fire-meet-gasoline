@@ -110,7 +110,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
     <div className="space-y-4">
       {/* Navigation */}
       <div className="flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={() => setWeekStart(subWeeks(weekStart, 1))}>
+        <Button variant="ghost" size="icon" onClick={() => setWeekStart(subWeeks(weekStart, 1))} aria-label="Semaine précédente">
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <div className="text-center">
@@ -122,10 +122,10 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
           </p>
         </div>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
+          <Button variant="ghost" size="icon" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))} aria-label="Retour à aujourd'hui">
             <Home className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
+          <Button variant="ghost" size="icon" onClick={() => setWeekStart(addWeeks(weekStart, 1))} aria-label="Semaine suivante">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

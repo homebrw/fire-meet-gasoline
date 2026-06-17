@@ -83,7 +83,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <div className="p-4 md:p-6">
-        <p className="text-sm text-gray-500">Chargement...</p>
+        <p className="text-sm text-[var(--color-muted-foreground)]">Chargement...</p>
       </div>
     )
   }
@@ -121,7 +121,7 @@ export default function EventDetailPage() {
       {isOwner && currentPersonId && (
         <Card className="p-4">
           <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <p className="text-sm font-medium text-[var(--color-foreground)]">
               Ajouter une pièce jointe
             </p>
             {uploadError && (

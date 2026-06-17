@@ -116,7 +116,7 @@ export default function RulesPage() {
                         onOpenChange={(o) => !o && setEditRule(null)}
                       >
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditRule(rule)}>
+                          <Button variant="ghost" size="icon" onClick={() => setEditRule(rule)} aria-label="Modifier la règle">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                         </DialogTrigger>
@@ -140,6 +140,7 @@ export default function RulesPage() {
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
                         onClick={() => handleDelete(rule.id)}
+                        aria-label="Supprimer la règle"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

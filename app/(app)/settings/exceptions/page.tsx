@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -231,7 +232,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label>Type d'exception</Label>
+        <Label>Type d&apos;exception</Label>
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>

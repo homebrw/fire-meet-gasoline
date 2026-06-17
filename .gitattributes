@@ -1,0 +1,4 @@
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+tailwind.config.js linguist-language=JavaScript
+.claude/ linguist-detectable=false

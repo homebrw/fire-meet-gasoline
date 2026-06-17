@@ -44,7 +44,7 @@ export function EventDetailCard({
           .eq("event_id", event.id)
 
         if (data) {
-          setParticipants(data)
+          setParticipants(data as unknown as ParticipantData[])
         }
       } catch (error) {
         console.error("Error loading participants:", error)

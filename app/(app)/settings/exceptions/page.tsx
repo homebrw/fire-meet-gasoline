@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic"
 
 import { useEffect, useState, useTransition } from "react"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import {
   createRecurrenceException,
@@ -24,7 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 
@@ -71,6 +72,13 @@ export default function ExceptionsPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
+      <Link href="/settings">
+        <Button variant="ghost" size="sm" className="gap-2 mb-2">
+          <ArrowLeft className="h-4 w-4" />
+          Retour aux paramètres
+        </Button>
+      </Link>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Exceptions</h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>

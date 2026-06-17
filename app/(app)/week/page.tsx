@@ -7,7 +7,14 @@ import { WeekPlanning } from "@/components/week/WeekPlanning"
 import { subWeeks, addWeeks, startOfToday } from "date-fns"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, DayState } from "@/lib/types"
 
-export default async function WeekPage() {
+export default async function WeekPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>
+}) {
+  const params = await searchParams
+  const weekParam = params.week
+
   const supabase = await createClient()
   const today = startOfToday()
   const from = subWeeks(today, 4)
@@ -41,7 +48,7 @@ export default async function WeekPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Planning hebdomadaire</h1>
-      <WeekPlanning dayStates={dayStates} damien={damien} ma={ma} persons={persons} />
+      <WeekPlanning dayStates={dayStates} damien={damien} ma={ma} persons={persons} initialWeek={weekParam} />
     </div>
   )
 }

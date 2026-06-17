@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   addWeeks,
   subWeeks,
@@ -16,7 +17,8 @@ import type { DayState, Person, CalendarEvent } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown, CircleDashed } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, getWeekString, parseWeekString } from "@/lib/utils"
+import { revalidateWeekData } from "@/lib/actions/revalidate"
 import {
   Dialog,
   DialogContent,
@@ -38,17 +40,31 @@ interface WeekPlanningProps {
   damien: Person | undefined
   ma: Person | undefined
   persons: Person[]
+  initialWeek?: string
 }
 
-export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningProps) {
-  const [weekStart, setWeekStart] = useState(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  )
+export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: WeekPlanningProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const [weekStart, setWeekStart] = useState(() => {
+    if (initialWeek) {
+      return parseWeekString(initialWeek)
+    }
+    return startOfWeek(new Date(), { weekStartsOn: 1 })
+  })
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
   const [availabilityDetailOpen, setAvailabilityDetailOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+
+  useEffect(() => {
+    const weekStr = getWeekString(weekStart)
+    const newSearchParams = new URLSearchParams(searchParams)
+    newSearchParams.set("week", weekStr)
+    router.push(`/week?${newSearchParams.toString()}`, { scroll: false })
+  }, [weekStart, router, searchParams])
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
@@ -82,6 +98,11 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
   function handleAvailabilityClick(date: string) {
     setSelectedDate(date)
     setAvailabilityDetailOpen(true)
+  }
+
+  async function handleRevalidate() {
+    await revalidateWeekData()
+    router.refresh()
   }
 
   return (
@@ -347,8 +368,9 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
               initialDate={selectedDate}
               onSuccess={() => {
                 setCreateEventOpen(false)
-                location.reload()
+                handleRevalidate()
               }}
+              onRevalidateNeeded={handleRevalidate}
             />
           )}
         </DialogContent>
@@ -363,9 +385,10 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
           onOpenChange={(isOpen) => {
             if (!isOpen) {
               setSelectedEvent(null)
-              location.reload()
+              handleRevalidate()
             }
           }}
+          onRevalidateNeeded={handleRevalidate}
         />
       )}
     </div>

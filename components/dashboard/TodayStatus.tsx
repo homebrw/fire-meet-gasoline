@@ -35,7 +35,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: damien?.color ?? "#3b82f6" }} />
+              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: damien?.color ?? "var(--color-damien)" }} />
               <p className="text-xs font-semibold text-[var(--color-foreground)]">{damien?.name ?? "Personne 1"}</p>
             </div>
             <Badge variant={state.damienHasChildren ? "damien" : "outline"} className="text-xs">
@@ -47,7 +47,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: ma?.color ?? "#ec4899" }} />
+              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: ma?.color ?? "var(--color-ma)" }} />
               <p className="text-xs font-semibold text-[var(--color-foreground)]">{ma?.name ?? "Personne 2"}</p>
             </div>
             <Badge variant={state.maHasChild ? "ma" : "outline"} className="text-xs">
@@ -76,15 +76,15 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
 
 function getBorderColor(state: string): string {
   const map: Record<string, string> = {
-    damien_kids: "border-blue-500",
-    ma_kid: "border-pink-500",
-    both_kids: "border-violet-500",
-    available: "border-green-500",
-    custody_change: "border-orange-500",
-    damien_unavailable: "border-gray-400",
-    ma_unavailable: "border-gray-400",
-    both_unavailable: "border-gray-400",
-    shared_event: "border-amber-500",
+    damien_kids: "border-[var(--color-damien)]",
+    ma_kid: "border-[var(--color-ma)]",
+    both_kids: "border-[var(--color-both-kids)]",
+    available: "border-[var(--color-available)]",
+    custody_change: "border-[var(--color-transition)]",
+    damien_unavailable: "border-[var(--color-unavailable)]",
+    ma_unavailable: "border-[var(--color-unavailable)]",
+    both_unavailable: "border-[var(--color-unavailable)]",
+    shared_event: "border-[var(--color-event)]",
   }
-  return map[state] ?? "border-gray-300"
+  return map[state] ?? "border-[var(--color-border)]"
 }

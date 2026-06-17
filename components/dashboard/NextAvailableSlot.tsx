@@ -10,7 +10,7 @@ interface NextAvailableSlotProps {
 
 export function NextAvailableSlot({ slot }: NextAvailableSlotProps) {
   return (
-    <Card className="border-l-4 border-green-500">
+    <Card className="border-l-4 border-[var(--color-available)]">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <CalendarCheck className="h-4 w-4" style={{color: 'var(--color-available)'}} />

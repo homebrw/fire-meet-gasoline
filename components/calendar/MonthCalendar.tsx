@@ -18,7 +18,7 @@ import type { DayState, Person } from "@/lib/types"
 import { DayCell } from "./DayCell"
 import { DayDetailSheet } from "./DayDetailSheet"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Home } from "lucide-react"
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
@@ -74,9 +74,14 @@ export function MonthCalendar({ initialMonth, dayStates, persons }: MonthCalenda
         <h2 className="text-lg font-semibold capitalize">
           {format(currentMonth, "MMMM yyyy", { locale: fr })}
         </h2>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(startOfMonth(new Date()))}>
+            <Home className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Weekday headers with week number column */}

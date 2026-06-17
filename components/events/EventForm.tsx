@@ -71,14 +71,16 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">Titre</Label>
+        <Label htmlFor="title">
+          Titre <span className="text-[var(--color-destructive)]">*</span>
+        </Label>
         <Input id="title" name="title" defaultValue={event?.title} required />
       </div>
 
       <div className="space-y-2">
-        <Label>Type</Label>
+        <Label htmlFor="type-trigger">Type</Label>
         <Select name="type" value={eventType} onValueChange={setEventType}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger id="type-trigger"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="shared">Commun</SelectItem>
             <SelectItem value="individual">Individuel</SelectItem>
@@ -88,9 +90,9 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
 
       {eventType === "individual" && (
         <div className="space-y-2">
-          <Label>Personne</Label>
+          <Label htmlFor="person-trigger">Personne</Label>
           <Select name="owner_person_id" defaultValue={event?.owner_person_id ?? ""}>
-            <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+            <SelectTrigger id="person-trigger"><SelectValue placeholder="Choisir" /></SelectTrigger>
             <SelectContent>
               {persons.map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -105,19 +107,23 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
       <div className="space-y-3">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
+            id="is-all-day"
             type="checkbox"
             name="is_all_day"
             value="true"
             checked={isAllDay}
             onChange={(e) => setIsAllDay(e.target.checked)}
             className="rounded"
+            aria-label="Événement sur une journée entière"
           />
           Journée entière
         </label>
 
         {isAllDay ? (
           <div className="space-y-2">
-            <Label htmlFor="start_date">Date</Label>
+            <Label htmlFor="start_date">
+              Date <span className="text-[var(--color-destructive)]">*</span>
+            </Label>
             <Input
               id="start_date"
               type="date"
@@ -131,7 +137,9 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="start_at">Début</Label>
+              <Label htmlFor="start_at">
+                Début <span className="text-[var(--color-destructive)]">*</span>
+              </Label>
               <Input
                 id="start_at"
                 name="start_at"
@@ -141,7 +149,9 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end_at">Fin</Label>
+              <Label htmlFor="end_at">
+                Fin <span className="text-[var(--color-destructive)]">*</span>
+              </Label>
               <Input
                 id="end_at"
                 name="end_at"
@@ -167,11 +177,13 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
       <div className="flex gap-4">
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
+            id="is-blocking"
             type="checkbox"
             name="is_blocking"
             value="true"
             defaultChecked={event?.is_blocking}
             className="rounded"
+            aria-label="Marquer cet événement comme bloquant"
           />
           Bloquant (annule la disponibilité)
         </label>
@@ -179,9 +191,9 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
 
       {eventType === "individual" && (
         <div className="space-y-2">
-          <Label>Visibilité</Label>
+          <Label htmlFor="visibility-trigger">Visibilité</Label>
           <Select name="visibility" defaultValue={event?.visibility ?? "both"}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="visibility-trigger"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="both">Visible par les deux</SelectItem>
               <SelectItem value="private">Privé</SelectItem>
@@ -191,12 +203,14 @@ export function EventForm({ persons, event, initialDate, onSuccess }: EventFormP
       )}
 
       <div className="space-y-2 border-t pt-4">
-        <Label>Participants</Label>
-        <ParticipantsSelector
-          parents={parentPersons}
-          childPersonList={childPersons}
-          onChange={setParticipants}
-        />
+        <Label htmlFor="participants">Participants</Label>
+        <div id="participants">
+          <ParticipantsSelector
+            parents={parentPersons}
+            childPersonList={childPersons}
+            onChange={setParticipants}
+          />
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

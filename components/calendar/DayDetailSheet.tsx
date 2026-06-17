@@ -116,7 +116,7 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
             {/* Availability summary */}
             <Separator />
             <div className="rounded-lg p-3" style={{backgroundColor: state.bothAvailable ? 'var(--color-available-light)' : 'var(--color-unavailable-light)'}}>
-              <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available)' : 'var(--color-unavailable)'}}>
+              <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available)' : 'var(--color-primary)'}}>
                 {state.bothAvailable
                   ? "✓ Disponibles ensemble"
                   : "✗ Pas disponibles ensemble"}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { CalendarEvent, Person } from "@/lib/types"
+import { CalendarEvent } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { EventDetailCard } from "@/components/events/EventDetailCard"
@@ -16,7 +16,6 @@ export default function EventDetailPage() {
   const eventId = params.id as string
 
   const [event, setEvent] = useState<CalendarEvent | null>(null)
-  const [persons, setPersons] = useState<Person[]>([])
   const [currentPersonId, setCurrentPersonId] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -64,13 +63,6 @@ export default function EventDetailPage() {
 
         setEvent(eventData as CalendarEvent)
         setIsOwner(currentPerson?.id === eventData.owner_person_id)
-
-        // Get persons
-        const { data: personsData } = await supabase
-          .from("persons")
-          .select("*")
-
-        setPersons((personsData || []) as Person[])
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Erreur lors du chargement"

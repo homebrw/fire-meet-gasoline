@@ -12,7 +12,7 @@ import {
   parseISO,
 } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { DayState, Person } from "@/lib/types"
+import type { DayState, Person, CalendarEvent } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown } from "lucide-react"
@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
+import { EventDetailModal } from "@/components/events/EventDetailModal"
 import {
   Sheet,
   SheetContent,
@@ -45,6 +46,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
   const [createEventOpen, setCreateEventOpen] = useState(false)
   const [detailOpen, setDetailOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
@@ -223,22 +225,36 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
               </td>
               {dayKeys.map((key) => {
                 const state = dayStates[key]
-                const evCount = state?.sharedEvents.length ?? 0
+                const events = state?.sharedEvents ?? []
                 return (
                   <td key={key} className="px-1 py-2 text-center">
-                    <button
-                      type="button"
-                      onClick={() => handleDayClick(key)}
-                      className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center relative group"
-                    >
-                      {evCount > 0 ? (
-                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium" style={{backgroundColor: 'var(--color-event-badge-bg)', color: 'var(--color-event-badge-text)'}}>
-                          {evCount}
-                        </span>
+                    <div className="mx-auto flex items-center justify-center gap-1 flex-wrap h-min">
+                      {events.length > 0 ? (
+                        events.map((event) => (
+                          <button
+                            key={event.id}
+                            type="button"
+                            onClick={() => setSelectedEvent(event)}
+                            className="h-5 px-2 rounded text-xs font-medium transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-ring)] truncate"
+                            style={{
+                              backgroundColor: 'var(--color-event-badge-bg)',
+                              color: 'var(--color-event-badge-text)'
+                            }}
+                            title={event.title}
+                          >
+                            {event.title}
+                          </button>
+                        ))
                       ) : (
-                        <Plus className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <button
+                          type="button"
+                          onClick={() => handleDayClick(key)}
+                          className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center group"
+                        >
+                          <Plus className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
                       )}
-                    </button>
+                    </div>
                   </td>
                 )
               })}
@@ -276,6 +292,21 @@ export function WeekPlanning({ dayStates, damien, ma, persons }: WeekPlanningPro
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Event detail/edit modal */}
+      {selectedEvent && (
+        <EventDetailModal
+          event={selectedEvent}
+          persons={persons}
+          open={!!selectedEvent}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setSelectedEvent(null)
+              location.reload()
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

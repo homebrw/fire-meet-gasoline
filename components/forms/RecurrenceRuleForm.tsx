@@ -55,9 +55,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
     const endsAt = formData.get("ends_at")
     if (endsAt && typeof endsAt === "string") {
-      const utcDate = new Date(endsAt + "T00:00:00")
-      const correctedDate = new Date(utcDate.getTime() - utcDate.getTimezoneOffset() * 60000)
-      formData.set("ends_at", correctedDate.toISOString())
+      formData.set("ends_at", datetimeLocalToUTC(`${endsAt}T00:00:00`))
     }
 
     startTransition(async () => {

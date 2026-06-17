@@ -12,6 +12,7 @@ import type {
   RecurrenceException,
   GeneratedPeriod,
 } from "@/lib/types"
+import { zonedTimeToUtc } from "@/lib/timezone"
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -169,13 +170,16 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
 
 function applyTime(date: Date, time: string, endOfDay = false): Date {
   const [hours, minutes] = time.split(":").map(Number)
-  const d = new Date(date)
-  d.setUTCHours(hours, minutes, 0, 0)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
   if (endOfDay && hours === 0 && minutes === 0) {
     // If end time is midnight, treat as end of that day
-    d.setUTCHours(23, 59, 59, 999)
+    const endOfLocalDay = zonedTimeToUtc(year, month, day, 23, 59)
+    return new Date(endOfLocalDay.getTime() + 59999)
   }
-  return d
+  return zonedTimeToUtc(year, month, day, hours, minutes)
 }
 
 function applyExceptions(

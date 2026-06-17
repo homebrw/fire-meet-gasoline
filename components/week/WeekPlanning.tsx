@@ -8,13 +8,21 @@ import {
   addDays,
   format,
   isToday,
+  getISOWeek,
 } from "date-fns"
 import { fr } from "date-fns/locale"
 import type { DayState, Person } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { EventForm } from "@/components/events/EventForm"
 
 interface WeekPlanningProps {
   dayStates: Record<string, DayState>
@@ -26,9 +34,13 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
   const [weekStart, setWeekStart] = useState(() =>
     startOfWeek(new Date(), { weekStartsOn: 1 })
   )
+  const [createEventOpen, setCreateEventOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [persons, setPersons] = useState<Person[]>([])
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const dayKeys = days.map((d) => format(d, "yyyy-MM-dd"))
+  const weekNumber = getISOWeek(weekStart)
 
   const rows: { label: string; short: string; color?: string; check: (s: DayState) => boolean }[] = [
     {
@@ -57,6 +69,11 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
     },
   ]
 
+  function handleDayClick(date: string) {
+    setSelectedDate(date)
+    setCreateEventOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       {/* Navigation */}
@@ -64,9 +81,14 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
         <Button variant="ghost" size="icon" onClick={() => setWeekStart(subWeeks(weekStart, 1))}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <p className="text-sm font-medium">
-          {format(weekStart, "d MMM", { locale: fr })} – {format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}
-        </p>
+        <div className="text-center">
+          <p className="text-sm font-medium">
+            {format(weekStart, "d MMM", { locale: fr })} – {format(addDays(weekStart, 6), "d MMM yyyy", { locale: fr })}
+          </p>
+          <p className="text-xs text-[var(--color-muted-foreground)]">
+            Semaine {weekNumber}
+          </p>
+        </div>
         <Button variant="ghost" size="icon" onClick={() => setWeekStart(addWeeks(weekStart, 1))}>
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -150,11 +172,19 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
                 const evCount = state?.sharedEvents.length ?? 0
                 return (
                   <td key={key} className="px-1 py-2 text-center">
-                    {evCount > 0 ? (
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium" style={{backgroundColor: 'var(--color-event-badge-bg)', color: 'var(--color-event-badge-text)'}}>
-                        {evCount}
-                      </span>
-                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => handleDayClick(key)}
+                      className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center relative group"
+                    >
+                      {evCount > 0 ? (
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium" style={{backgroundColor: 'var(--color-event-badge-bg)', color: 'var(--color-event-badge-text)'}}>
+                          {evCount}
+                        </span>
+                      ) : (
+                        <Plus className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </button>
                   </td>
                 )
               })}
@@ -162,6 +192,25 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Event creation dialog */}
+      <Dialog open={createEventOpen} onOpenChange={setCreateEventOpen}>
+        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nouvel événement</DialogTitle>
+          </DialogHeader>
+          {selectedDate && (
+            <EventForm
+              persons={[damien, ma].filter(Boolean) as Person[]}
+              initialDate={selectedDate}
+              onSuccess={() => {
+                setCreateEventOpen(false)
+                location.reload()
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

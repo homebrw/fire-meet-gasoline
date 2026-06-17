@@ -69,6 +69,10 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
         {state?.sharedEvents.length ? (
           <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-event)'}} aria-label="Événement commun" title="Événement commun" />
         ) : null}
+        {/* Partial joint availability */}
+        {state?.partiallyAvailable ? (
+          <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} aria-label="Disponibles une partie de la journée" title="Disponibles une partie de la journée" />
+        ) : null}
       </div>
     </button>
   )

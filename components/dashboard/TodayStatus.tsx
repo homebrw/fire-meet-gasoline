@@ -66,6 +66,17 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
           </div>
         </div>
 
+        {state.partiallyAvailable && (
+          <div className="rounded-md px-3 py-2" style={{ backgroundColor: 'var(--color-available-light)' }}>
+            <p className="text-xs font-medium" style={{ color: 'var(--color-available)' }}>
+              Disponibles ensemble{" "}
+              {state.commonAvailableWindows
+                .map((w) => `${w.startsAtDayBoundary ? "00:00" : w.start} – ${w.endsAtDayBoundary ? "23:59" : w.end}`)
+                .join(", ")}
+            </p>
+          </div>
+        )}
+
         {state.custodyTransitions.length > 0 && (
           <div className="space-y-1">
             <p className="text-xs font-medium" style={{color: 'var(--color-transition)'}}>Changements aujourd&apos;hui</p>

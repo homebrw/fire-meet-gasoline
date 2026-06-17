@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
 import { EventDetailCard } from "@/components/events/EventDetailCard"
 import { EventForm } from "@/components/events/EventForm"
 import { EventDetailModal } from "@/components/events/EventDetailModal"
+import { AvailabilityWindowsList } from "@/components/shared/AvailabilityDetailSheet"
 import type { CalendarEvent } from "@/lib/types"
 
 interface DayDetailSheetProps {
@@ -184,13 +185,22 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
 
             {/* Availability summary */}
             <Separator />
-            <div className="rounded-lg p-3" style={{backgroundColor: state.bothAvailable ? 'var(--color-available-light)' : 'var(--color-unavailable-light)'}}>
-              <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available)' : 'var(--color-primary)'}}>
-                {state.bothAvailable
-                  ? "✓ Disponibles ensemble"
-                  : "✗ Pas disponibles ensemble"}
-              </p>
-            </div>
+            {state.bothAvailable || !state.partiallyAvailable ? (
+              <div className="rounded-lg p-3" style={{backgroundColor: state.bothAvailable ? 'var(--color-available-light)' : 'var(--color-unavailable-light)'}}>
+                <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available)' : 'var(--color-primary)'}}>
+                  {state.bothAvailable
+                    ? "✓ Disponibles ensemble"
+                    : "✗ Pas disponibles ensemble"}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg p-3" style={{backgroundColor: 'var(--color-transition-light)'}}>
+                <p className="text-sm font-medium mb-2" style={{color: 'var(--color-transition)'}}>
+                  Disponibles une partie de la journée
+                </p>
+                <AvailabilityWindowsList state={state} damien={person1} ma={person2} />
+              </div>
+            )}
           </div>
         )}
       </SheetContent>

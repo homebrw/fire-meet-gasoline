@@ -6,10 +6,12 @@ import type { CalendarEvent, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { format, parseISO, differenceInDays } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Calendar } from "lucide-react"
-import { EventDetailModal } from "@/components/events/EventDetailModal"
+import { Calendar, Trash2 } from "lucide-react"
+import { EventAttachmentsList } from "@/components/events/EventAttachmentsList"
+import { deleteEvent } from "@/lib/actions/events"
 
 type ParticipantData = {
   person_id: string
@@ -25,8 +27,9 @@ interface SharedEventCardProps {
 }
 
 export function SharedEventCard({ event, persons }: SharedEventCardProps) {
-  const [showModal, setShowModal] = useState(false)
   const [participants, setParticipants] = useState<ParticipantData[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     async function loadParticipants() {
@@ -44,6 +47,19 @@ export function SharedEventCard({ event, persons }: SharedEventCardProps) {
 
   const eventDate = parseISO(event.start_at)
   const daysRemaining = differenceInDays(eventDate, new Date())
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await deleteEvent(event.id)
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error("Error deleting event:", error)
+      alert("Erreur lors de la suppression de l'événement")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <>
@@ -103,24 +119,51 @@ export function SharedEventCard({ event, persons }: SharedEventCardProps) {
             </Badge>
           )}
 
+          <EventAttachmentsList eventId={event.id} />
+
           <Button
-            onClick={() => setShowModal(true)}
-            variant="outline"
-            className="w-full"
+            onClick={() => setShowDeleteConfirm(true)}
+            variant="destructive"
+            size="sm"
+            className="w-full gap-2"
           >
-            Voir les détails
+            <Trash2 className="h-4 w-4" />
+            Supprimer l&apos;événement
           </Button>
         </CardContent>
       </Card>
 
-      {showModal && (
-        <EventDetailModal
-          event={event}
-          persons={persons}
-          open={showModal}
-          onOpenChange={setShowModal}
-        />
-      )}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer l&apos;événement</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <p className="text-sm">
+              Êtes-vous sûr de vouloir supprimer l&apos;événement <strong>{event.title}</strong> ?
+            </p>
+            <p className="text-sm text-[var(--color-muted-foreground)]">
+              Cette action ne peut pas être annulée.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={isDeleting}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

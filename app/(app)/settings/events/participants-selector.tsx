@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { Person } from "@/lib/types"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 
 interface ParticipantsSelectorProps {
@@ -50,9 +48,11 @@ export function ParticipantsSelector({
                 key={parent.id}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={selected.has(parent.id)}
-                  onCheckedChange={() => handleToggle(parent.id)}
+                  onChange={() => handleToggle(parent.id)}
+                  className="rounded"
                 />
                 <div className="flex items-center gap-2">
                   <div
@@ -78,9 +78,11 @@ export function ParticipantsSelector({
                 key={child.id}
                 className="flex items-center gap-3 cursor-pointer"
               >
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={selected.has(child.id)}
-                  onCheckedChange={() => handleToggle(child.id)}
+                  onChange={() => handleToggle(child.id)}
+                  className="rounded"
                 />
                 <div className="flex items-center gap-2">
                   <div

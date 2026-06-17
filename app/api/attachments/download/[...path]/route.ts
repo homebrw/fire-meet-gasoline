@@ -3,8 +3,9 @@ import { NextResponse } from "next/server"
 
 export async function GET(
   request: Request,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
+  const { path } = await params
   const supabase = await createClient()
 
   const {
@@ -15,7 +16,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const storagePath = params.path.join("/")
+  const storagePath = path.join("/")
 
   // Get attachment details
   const { data: attachment, error: attachmentError } = await supabase

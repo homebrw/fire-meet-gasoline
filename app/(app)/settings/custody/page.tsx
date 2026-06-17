@@ -94,7 +94,7 @@ export default function CustodyPage() {
                         variant="ghost" size="icon"
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteChildPresence(p.id); load() })}
+                        onClick={() => startTransition(async () => { await deleteChildPresence(p.id); location.reload() })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -123,7 +123,10 @@ export default function CustodyPage() {
                 <DialogHeader><DialogTitle>Nouveau changement de garde</DialogTitle></DialogHeader>
                 <TransitionForm
                   persons={persons}
-                  onSuccess={() => { setTransitionOpen(false); load() }}
+                  onSuccess={() => {
+                    setTransitionOpen(false)
+                    location.reload()
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -148,7 +151,7 @@ export default function CustodyPage() {
                         variant="ghost" size="icon"
                         className="text-[var(--color-destructive)]"
                         disabled={isPending}
-                        onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); load() })}
+                        onClick={() => startTransition(async () => { await deleteCustodyTransition(t.id); location.reload() })}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

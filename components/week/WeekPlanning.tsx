@@ -13,7 +13,7 @@ import {
   parseISO,
 } from "date-fns"
 import { fr } from "date-fns/locale"
-import type { DayState, Person, CalendarEvent } from "@/lib/types"
+import type { DayState, Person } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Plus, Home, ArrowUp, ArrowDown, CircleDashed } from "lucide-react"
@@ -26,7 +26,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
-import { EventDetailModal } from "@/components/events/EventDetailModal"
 import { DayEventsModal } from "@/components/week/DayEventsModal"
 import {
   Sheet,
@@ -59,7 +58,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
   const [availabilityDetailOpen, setAvailabilityDetailOpen] = useState(false)
   const [dayEventsOpen, setDayEventsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null)
 
   useEffect(() => {
@@ -400,22 +398,6 @@ export function WeekPlanning({ dayStates, damien, ma, persons, initialWeek }: We
             setDayEventsOpen(false)
             setSelectedDayDate(null)
           }}
-        />
-      )}
-
-      {/* Event detail/edit modal */}
-      {selectedEvent && (
-        <EventDetailModal
-          event={selectedEvent}
-          persons={persons}
-          open={!!selectedEvent}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setSelectedEvent(null)
-              handleRevalidate()
-            }
-          }}
-          onRevalidateNeeded={handleRevalidate}
         />
       )}
     </div>

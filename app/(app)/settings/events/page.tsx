@@ -17,19 +17,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2, Eye, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, Eye, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
 import { EventForm } from "@/components/events/EventForm"
-
-type EventParticipantData = {
-  person_id: string
-  persons?: {
-    name: string
-    color: string
-  }
-}
+import { EventCard } from "@/components/events/EventCard"
 
 function EventsPageContent() {
   const searchParams = useSearchParams()
@@ -38,9 +29,7 @@ function EventsPageContent() {
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
-  const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
   const [createOpen, setCreateOpen] = useState(false)
-  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -55,17 +44,6 @@ function EventsPageContent() {
 
       setEvents(eventsData)
       setPersons(personsData)
-
-      // Load participants for each event
-      const participantsMap: Record<string, EventParticipantData[]> = {}
-      for (const ev of eventsData) {
-        const { data: parts } = await supabase
-          .from("event_participants")
-          .select("person_id, persons(name, color)")
-          .eq("event_id", ev.id)
-        participantsMap[ev.id] = (parts || []) as unknown as EventParticipantData[]
-      }
-      setParticipants(participantsMap)
     }
     load()
   }, [])
@@ -131,29 +109,6 @@ function EventsPageContent() {
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
-                      <Dialog
-                        open={editEvent?.id === ev.id}
-                        onOpenChange={(o) => !o && setEditEvent(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditEvent(ev)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Modifier l&apos;événement</DialogTitle>
-                          </DialogHeader>
-                          <EventForm
-                            persons={persons}
-                            event={ev}
-                            onSuccess={() => {
-                              setEditEvent(null)
-                              router.refresh()
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -170,23 +125,12 @@ function EventsPageContent() {
                   <div className="flex flex-wrap gap-2 text-xs">
                     {ev.is_blocking && <Badge variant="destructive">Bloquant</Badge>}
                     {!ev.allow_participants_to_see_attachments && <Badge variant="outline">PJ restreintes</Badge>}
-                    <span className="text-[var(--color-muted-foreground)]">
-                      {format(parseISO(ev.start_at), "d MMM HH:mm", { locale: fr })}
-                    </span>
                   </div>
-                  {participants[ev.id] && participants[ev.id].length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {participants[ev.id].map((p: EventParticipantData) => (
-                        <div key={p.person_id} className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs dark:bg-gray-800">
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: p.persons?.color || "#6b7280" }}
-                          />
-                          <span>{p.persons?.name || "?"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <EventCard
+                    event={ev}
+                    persons={persons}
+                    onRevalidateNeeded={async () => router.refresh()}
+                  />
                 </CardContent>
               </Card>
             )

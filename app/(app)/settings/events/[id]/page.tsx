@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { CalendarEvent } from "@/lib/types"
+import { CalendarEvent, Person } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { EventDetailCard } from "@/components/events/EventDetailCard"
+import { EventCard } from "@/components/events/EventCard"
 import { FileUploadButton } from "@/components/file-upload/FileUploadButton"
 import { ChevronLeft } from "lucide-react"
 
@@ -16,6 +16,7 @@ export default function EventDetailPage() {
   const eventId = params.id as string
 
   const [event, setEvent] = useState<CalendarEvent | null>(null)
+  const [persons, setPersons] = useState<Person[]>([])
   const [currentPersonId, setCurrentPersonId] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -48,6 +49,9 @@ export default function EventDetailPage() {
         if (currentPerson) {
           setCurrentPersonId(currentPerson.id)
         }
+
+        const { data: personsData } = await supabase.from("persons").select("*")
+        setPersons((personsData ?? []) as Person[])
 
         // Get event
         const { data: eventData, error: eventError } = await supabase
@@ -105,12 +109,14 @@ export default function EventDetailPage() {
         <h1 className="text-2xl font-bold">{event.title}</h1>
       </div>
 
-      <EventDetailCard
-        event={event}
-        showAttachments={true}
-        showParticipants={true}
-        canDeleteAttachments={isOwner}
-      />
+      <Card className="p-4">
+        <EventCard
+          event={event}
+          persons={persons}
+          canDeleteAttachments={isOwner}
+          onRevalidateNeeded={async () => setRefreshCount((prev) => prev + 1)}
+        />
+      </Card>
 
       {isOwner && currentPersonId && (
         <Card className="p-4">

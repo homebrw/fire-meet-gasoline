@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { getISOWeek, startOfWeek, addWeeks } from "date-fns"
+import { zonedTimeToUtc, APP_TIMEZONE } from "@/lib/timezone"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -40,18 +41,30 @@ export function datetimeLocalToUTC(datetimeLocal: string): string {
   const [year, month, day] = datePart.split("-").map(Number)
   const [hours, minutes] = timePart.split(":").map(Number)
 
-  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0)
-  return localDate.toISOString()
+  return zonedTimeToUtc(year, month, day, hours, minutes).toISOString()
 }
 
 export function formatDatetimeLocal(isoString: string): string {
   const date = new Date(isoString)
 
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  const hours = String(date.getHours()).padStart(2, "0")
-  const minutes = String(date.getMinutes()).padStart(2, "0")
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+
+  const parts = dtf.formatToParts(date)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
+
+  const year = get("year")
+  const month = get("month")
+  const day = get("day")
+  const hours = get("hour")
+  const minutes = get("minute")
 
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }

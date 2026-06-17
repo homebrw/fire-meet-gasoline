@@ -145,10 +145,13 @@ function expandManual(
   const start = parseISO(rule.starts_at)
   if (start > to) return []
 
+  const end = rule.ends_at ? parseISO(rule.ends_at) : addDays(start, 1)
+  if (end < from) return []
+
   const period: GeneratedPeriod = {
     person_id: rule.person_id,
-    start_at: start > from ? start : from,
-    end_at: to,
+    start_at: applyTime(start > from ? start : from, rule.custody_start_time),
+    end_at: applyTime(end, rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
   }
@@ -171,7 +174,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
       periods.push({
         person_id: rule.person_id,
         start_at: applyTime(periodStart, rule.custody_start_time),
-        end_at: applyTime(prev, rule.custody_end_time, true),
+        end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
         rule_id: rule.id,
         source: "rule",
       })
@@ -183,7 +186,7 @@ function groupConsecutiveDays(days: Date[], rule: RecurrenceRule): GeneratedPeri
   periods.push({
     person_id: rule.person_id,
     start_at: applyTime(periodStart, rule.custody_start_time),
-    end_at: applyTime(prev, rule.custody_end_time, true),
+    end_at: applyTime(addDays(prev, 1), rule.custody_end_time),
     rule_id: rule.id,
     source: "rule",
   })
@@ -240,7 +243,7 @@ function applyExceptions(
               })
           )
           result.push({
-            person_id: periods[0]?.person_id ?? "",
+            person_id: exc.person_id,
             start_at: parseISO(exc.override_start_at),
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,
@@ -278,7 +281,7 @@ function applyExceptions(
       case "add":
         if (exc.override_start_at && exc.override_end_at) {
           result.push({
-            person_id: periods[0]?.person_id ?? "",
+            person_id: exc.person_id,
             start_at: parseISO(exc.override_start_at),
             end_at: parseISO(exc.override_end_at),
             rule_id: ruleId,

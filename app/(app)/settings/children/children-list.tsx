@@ -49,12 +49,12 @@ export function ChildrenList() {
   }, [])
 
   useEffect(() => {
-    let subscription: Awaited<ReturnType<typeof createClient>>
+    let subscription: any = null
 
     const setupSubscription = async () => {
       try {
-        subscription = await createClient()
-        subscription
+        const supabase = await createClient()
+        subscription = supabase
           .channel("persons_changes")
           .on(
             "postgres_changes",

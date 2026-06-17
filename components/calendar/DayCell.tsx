@@ -42,10 +42,10 @@ export function DayCell({ dateKey, state, isCurrentMonth, onClick }: DayCellProp
       {/* Indicators */}
       <div className="mt-1 flex gap-0.5 flex-wrap justify-center">
         {state?.hasTransition && (
-          <span className="h-1.5 w-1.5 rounded-full bg-orange-500" title="Changement de garde" />
+          <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-transition)'}} title="Changement de garde" />
         )}
         {state?.sharedEvents.length ? (
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Événement commun" />
+          <span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-event)'}} title="Événement commun" />
         ) : null}
       </div>
     </button>

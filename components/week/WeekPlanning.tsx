@@ -140,7 +140,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
             <tr>
               <td className="px-1 md:px-3 py-2 w-8 md:w-28">
                 <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 rounded-full flex-shrink-0 bg-amber-500" />
+                  <span className="h-2 w-2 rounded-full flex-shrink-0" style={{backgroundColor: 'var(--color-event)'}} />
                   <span className="font-bold text-[10px] md:hidden text-[var(--color-muted-foreground)]">Ev</span>
                   <span className="text-xs font-medium hidden md:inline text-[var(--color-muted-foreground)]">Événements</span>
                 </div>
@@ -151,7 +151,7 @@ export function WeekPlanning({ dayStates, damien, ma }: WeekPlanningProps) {
                 return (
                   <td key={key} className="px-1 py-2 text-center">
                     {evCount > 0 ? (
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium" style={{backgroundColor: 'var(--color-event-badge-bg)', color: 'var(--color-event-badge-text)'}}>
                         {evCount}
                       </span>
                     ) : null}

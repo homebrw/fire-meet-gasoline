@@ -8,16 +8,27 @@
   /* State colors */
   --color-damien: #3b82f6;
   --color-damien-light: #dbeafe;
+  --color-damien-badge-bg: #dbeafe;
+  --color-damien-badge-text: #1e40af;
   --color-ma: #ec4899;
   --color-ma-light: #fce7f3;
+  --color-ma-badge-bg: #fce7f3;
+  --color-ma-badge-text: #be123c;
   --color-both-kids: #8b5cf6;
   --color-both-kids-light: #ede9fe;
   --color-available: #22c55e;
   --color-available-light: #dcfce7;
+  --color-available-badge-bg: #dcfce7;
+  --color-available-badge-text: #166534;
   --color-transition: #f97316;
   --color-transition-light: #ffedd5;
+  --color-transition-badge-bg: #ffedd5;
+  --color-transition-badge-text: #c2410c;
   --color-unavailable: #6b7280;
   --color-unavailable-light: #f3f4f6;
+  --color-event: #d97706;
+  --color-event-badge-bg: #fef3c7;
+  --color-event-badge-text: #d97706;
 
   /* UI tokens (light) */
   --color-background: #ffffff;

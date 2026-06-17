@@ -26,6 +26,8 @@ import { fr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { EventDetailCard } from "@/components/events/EventDetailCard"
 import { EventForm } from "@/components/events/EventForm"
+import { EventDetailModal } from "@/components/events/EventDetailModal"
+import type { CalendarEvent } from "@/lib/types"
 
 interface DayDetailSheetProps {
   dateKey: string
@@ -39,12 +41,14 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
   const date = parseISO(dateKey + "T12:00:00")
   const [person1, person2] = persons
   const [createEventOpen, setCreateEventOpen] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const stateConfig = getStateConfig(person1?.name ?? "Personne 1", person2?.name ?? "Personne 2")
   const config = state ? stateConfig[state.displayState] : null
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
+    <>
+      <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader className="text-left">
           <div className="flex items-start justify-between">
             <div>
@@ -161,12 +165,17 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
                   <p className="text-sm font-semibold mb-2">Événements communs</p>
                   <div className="space-y-3">
                     {state.sharedEvents.map((ev) => (
-                      <EventDetailCard
+                      <button
                         key={ev.id}
-                        event={ev}
-                        showAttachments={true}
-                        showParticipants={true}
-                      />
+                        onClick={() => setSelectedEvent(ev)}
+                        className="w-full text-left hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--color-ring)] focus:ring-offset-2 rounded"
+                      >
+                        <EventDetailCard
+                          event={ev}
+                          showAttachments={true}
+                          showParticipants={true}
+                        />
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -185,6 +194,21 @@ export function DayDetailSheet({ dateKey, state, persons, open, onClose }: DayDe
           </div>
         )}
       </SheetContent>
-    </Sheet>
+      </Sheet>
+
+      {selectedEvent && (
+        <EventDetailModal
+          event={selectedEvent}
+          persons={persons}
+          open={!!selectedEvent}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setSelectedEvent(null)
+              location.reload()
+            }
+          }}
+        />
+      )}
+    </>
   )
 }

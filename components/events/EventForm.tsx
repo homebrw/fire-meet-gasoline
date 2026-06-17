@@ -58,7 +58,11 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       if (!event) return
       await deleteEvent(event.id)
       setShowDeleteConfirm(false)
-      router.push("/settings/events")
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push("/settings/events")
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de la suppression")
       setIsDeleting(false)

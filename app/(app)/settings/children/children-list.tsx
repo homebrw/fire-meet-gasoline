@@ -49,12 +49,12 @@ export function ChildrenList() {
   }, [])
 
   useEffect(() => {
-    let subscription: any = null
+    const subscriptionRef = { current: null as unknown }
 
     const setupSubscription = async () => {
       try {
         const supabase = await createClient()
-        subscription = supabase
+        subscriptionRef.current = supabase
           .channel("persons_changes")
           .on(
             "postgres_changes",
@@ -76,7 +76,8 @@ export function ChildrenList() {
     setupSubscription()
 
     return () => {
-      subscription?.unsubscribe()
+      const sub = subscriptionRef.current as { unsubscribe?: () => void }
+      sub?.unsubscribe?.()
     }
   }, [])
 

@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic"
 
 import { Suspense, useEffect, useState, useTransition } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { deleteEvent } from "@/lib/actions/events"
 import type { CalendarEvent, Person } from "@/lib/types"
@@ -33,12 +33,13 @@ type EventParticipantData = {
 
 function EventsPageContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initialDate = searchParams.get("date")
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [persons, setPersons] = useState<Person[]>([])
   const [participants, setParticipants] = useState<Record<string, EventParticipantData[]>>({})
-  const [createOpen, setCreateOpen] = useState(!!initialDate)
+  const [createOpen, setCreateOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -72,7 +73,7 @@ function EventsPageContent() {
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteEvent(id)
-      location.reload()
+      router.refresh()
     })
   }
 
@@ -103,7 +104,7 @@ function EventsPageContent() {
               initialDate={initialDate ?? undefined}
               onSuccess={() => {
                 setCreateOpen(false)
-                location.reload()
+                router.refresh()
               }}
             />
           </DialogContent>
@@ -148,7 +149,7 @@ function EventsPageContent() {
                             event={ev}
                             onSuccess={() => {
                               setEditEvent(null)
-                              location.reload()
+                              router.refresh()
                             }}
                           />
                         </DialogContent>

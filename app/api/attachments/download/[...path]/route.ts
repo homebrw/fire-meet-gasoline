@@ -32,7 +32,7 @@ export async function GET(
   // Get event details
   const { data: event, error: eventError } = await supabase
     .from("events")
-    .select("id, owner_person_id, allow_participants_to_see_attachments")
+    .select("id, visibility, owner_person_id")
     .eq("id", attachment.event_id)
     .single()
 
@@ -51,11 +51,12 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // Check permissions
+  // Check permissions: can download if can see event
   const isOwner = event.owner_person_id === currentPerson.id
+  const isVisibleEvent = event.visibility === "both"
 
-  let isParticipant = false
-  if (!isOwner && event.allow_participants_to_see_attachments) {
+  if (!isOwner && !isVisibleEvent) {
+    // For private events, check if user is a participant
     const { data: participant } = await supabase
       .from("event_participants")
       .select("id")
@@ -63,11 +64,9 @@ export async function GET(
       .eq("person_id", currentPerson.id)
       .single()
 
-    isParticipant = !!participant
-  }
-
-  if (!isOwner && !isParticipant) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    if (!participant) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
   }
 
   // Get the file from storage

@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Eye, Pencil, ArrowLeft } from "lucide-react"
+import { Plus, Trash2, Eye, Pencil, ArrowLeft, ChevronDown } from "lucide-react"
 import Link from "next/link"
 import { EventForm } from "@/components/events/EventForm"
 import { EventCard } from "@/components/events/EventCard"
@@ -32,6 +32,7 @@ function EventsPageContent() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [pastOpen, setPastOpen] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -54,6 +55,77 @@ function EventsPageContent() {
       await deleteEvent(id)
       router.refresh()
     })
+  }
+
+  const now = Date.now()
+  const upcomingEvents = events
+    .filter((ev) => new Date(ev.start_at).getTime() >= now)
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+  const pastEvents = events
+    .filter((ev) => new Date(ev.start_at).getTime() < now)
+    .sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime())
+
+  function renderEventCard(ev: CalendarEvent) {
+    return (
+      <Card key={ev.id}>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>{ev.title}</span>
+            <div className="flex gap-1">
+              <Link href={`/settings/events/${ev.id}`}>
+                <Button variant="ghost" size="icon" aria-label="Voir l'événement">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+              <Dialog
+                open={editEvent?.id === ev.id}
+                onOpenChange={(o) => !o && setEditEvent(null)}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setEditEvent(ev)} aria-label="Modifier l'événement">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Modifier l&apos;événement</DialogTitle>
+                  </DialogHeader>
+                  <EventForm
+                    persons={persons}
+                    event={ev}
+                    onSuccess={() => {
+                      setEditEvent(null)
+                      router.refresh()
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-[var(--color-destructive)]"
+                disabled={isPending}
+                onClick={() => handleDelete(ev.id)}
+                aria-label="Supprimer l'événement"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2 text-xs">
+            {ev.is_blocking && <Badge variant="destructive">Bloquant</Badge>}
+            {!ev.allow_participants_to_see_attachments && <Badge variant="outline">PJ restreintes</Badge>}
+          </div>
+          <EventCard
+            event={ev}
+            persons={persons}
+            onRevalidateNeeded={async () => router.refresh()}
+          />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -97,69 +169,38 @@ function EventsPageContent() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {events.map((ev) => {
-            return (
-              <Card key={ev.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>{ev.title}</span>
-                    <div className="flex gap-1">
-                      <Link href={`/settings/events/${ev.id}`}>
-                        <Button variant="ghost" size="icon" aria-label="Voir l'événement">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                      </Link>
-                      <Dialog
-                        open={editEvent?.id === ev.id}
-                        onOpenChange={(o) => !o && setEditEvent(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={() => setEditEvent(ev)} aria-label="Modifier l'événement">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent closeOnOutsideClick={false} className="max-w-lg max-h-[90vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle>Modifier l&apos;événement</DialogTitle>
-                          </DialogHeader>
-                          <EventForm
-                            persons={persons}
-                            event={ev}
-                            onSuccess={() => {
-                              setEditEvent(null)
-                              router.refresh()
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-[var(--color-destructive)]"
-                        disabled={isPending}
-                        onClick={() => handleDelete(ev.id)}
-                        aria-label="Supprimer l'événement"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {ev.is_blocking && <Badge variant="destructive">Bloquant</Badge>}
-                    {!ev.allow_participants_to_see_attachments && <Badge variant="outline">PJ restreintes</Badge>}
-                  </div>
-                  <EventCard
-                    event={ev}
-                    persons={persons}
-                    onRevalidateNeeded={async () => router.refresh()}
-                  />
-                </CardContent>
-              </Card>
-            )
-          })}
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-[var(--color-muted-foreground)]">
+              Événements à venir
+            </h2>
+            {upcomingEvents.length === 0 ? (
+              <p className="text-sm text-[var(--color-muted-foreground)]">
+                Aucun événement à venir.
+              </p>
+            ) : (
+              <div className="space-y-3">{upcomingEvents.map(renderEventCard)}</div>
+            )}
+          </div>
+
+          {pastEvents.length > 0 && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setPastOpen((o) => !o)}
+                className="flex items-center gap-2 text-sm font-semibold text-[var(--color-muted-foreground)]"
+                aria-expanded={pastOpen}
+              >
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${pastOpen ? "rotate-180" : ""}`}
+                />
+                Événements passés
+              </button>
+              {pastOpen && (
+                <div className="space-y-3">{pastEvents.map(renderEventCard)}</div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -78,6 +78,23 @@
     --color-event-light: #1f2937;
     --color-event-badge-bg: #1f2937;
     --color-event-badge-text: #fbbf24;
+
+    /* Dark mode status/availability badge colors */
+    --color-damien-light: #1e3a5f;
+    --color-damien-badge-bg: #1e3a5f;
+    --color-damien-badge-text: #93c5fd;
+    --color-ma-light: #4a1d3d;
+    --color-ma-badge-bg: #4a1d3d;
+    --color-ma-badge-text: #f9a8d4;
+    --color-both-kids-light: #164e4e;
+    --color-both-kids-badge-bg: #164e4e;
+    --color-both-kids-badge-text: #67e8f9;
+    --color-available-light: #14532d;
+    --color-available-badge-bg: #14532d;
+    --color-available-badge-text: #86efac;
+    --color-transition-light: #451a03;
+    --color-transition-badge-bg: #451a03;
+    --color-transition-badge-text: #fdba74;
   }
 }
 

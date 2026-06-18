@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
+/* Tailwind v4 defaults dark: to prefers-color-scheme; tie it to the .dark
+   class our theme toggle controls instead, so it matches every CSS variable
+   below rather than the device's OS-level scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─── App color tokens ─────────────────────────────────────────────────── */
 @layer base {
   :root {
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
+    color-scheme: light dark;
 
     /* State colors */
     --color-damien: #3b82f6;
@@ -29,6 +35,8 @@
     --color-transition-badge-text: #c2410c;
     --color-unavailable: #6b7280;
     --color-unavailable-light: #f3f4f6;
+    --color-unavailable-badge-bg: #f3f4f6;
+    --color-unavailable-badge-text: #374151;
     --color-event: #78350f;
     --color-event-light: #fef3c7;
     --color-event-badge-bg: #fef3c7;
@@ -43,6 +51,7 @@
     --color-primary-foreground: #fafafa;
     --color-secondary: #f4f4f5;
     --color-secondary-foreground: #18181b;
+    --color-secondary-surface: #f4f4f5;
     --color-muted: #f4f4f5;
     --color-muted-foreground: #52525b;
     --color-accent: #f4f4f5;
@@ -55,6 +64,7 @@
   }
 
   html.dark {
+    color-scheme: dark;
     --color-background: #09090b;
     --color-foreground: #fafafa;
     --color-card: #18181b;
@@ -63,6 +73,7 @@
     --color-primary-foreground: #18181b;
     --color-secondary: #27272a;
     --color-secondary-foreground: #fafafa;
+    --color-secondary-surface: #27272a;
     --color-muted: #27272a;
     --color-muted-foreground: #d4d4d8;
     --color-accent: #27272a;
@@ -78,6 +89,11 @@
     --color-event-light: #1f2937;
     --color-event-badge-bg: #1f2937;
     --color-event-badge-text: #fbbf24;
+
+    /* Dark mode unavailable badge colors */
+    --color-unavailable-light: #27272a;
+    --color-unavailable-badge-bg: #27272a;
+    --color-unavailable-badge-text: #d4d4d8;
 
     /* Dark mode status/availability badge colors */
     --color-damien-light: #1e3a5f;

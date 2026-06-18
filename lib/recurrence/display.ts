@@ -5,15 +5,15 @@ type StateConfig = Classes & { label: string }
 
 // Color classes only — no person names needed (used by DayCell)
 export const DISPLAY_CLASSES: Record<DisplayState, Classes> = {
-  damien_kids:       { bgClass: "bg-blue-100",   textClass: "text-blue-800",   dotClass: "bg-blue-500" },
-  ma_kid:            { bgClass: "bg-pink-100",   textClass: "text-pink-800",   dotClass: "bg-pink-500" },
-  both_kids:         { bgClass: "bg-cyan-100", textClass: "text-cyan-800", dotClass: "bg-cyan-500" },
-  available:         { bgClass: "bg-green-100",  textClass: "text-green-800",  dotClass: "bg-green-500" },
-  damien_unavailable:{ bgClass: "bg-gray-100",   textClass: "text-gray-700",   dotClass: "bg-gray-400" },
-  ma_unavailable:    { bgClass: "bg-gray-100",   textClass: "text-gray-700",   dotClass: "bg-gray-400" },
-  both_unavailable:  { bgClass: "bg-gray-100",   textClass: "text-gray-700",   dotClass: "bg-gray-400" },
-  shared_event:      { bgClass: "bg-amber-100",  textClass: "text-amber-800",  dotClass: "bg-amber-500" },
-  custody_change:    { bgClass: "bg-orange-100", textClass: "text-orange-800", dotClass: "bg-orange-500" },
+  damien_kids:        { bgClass: "bg-[var(--color-damien-badge-bg)]",      textClass: "text-[var(--color-damien-badge-text)]",      dotClass: "bg-[var(--color-damien)]" },
+  ma_kid:              { bgClass: "bg-[var(--color-ma-badge-bg)]",          textClass: "text-[var(--color-ma-badge-text)]",          dotClass: "bg-[var(--color-ma)]" },
+  both_kids:           { bgClass: "bg-[var(--color-both-kids-badge-bg)]",   textClass: "text-[var(--color-both-kids-badge-text)]",   dotClass: "bg-[var(--color-both-kids)]" },
+  available:           { bgClass: "bg-[var(--color-available-badge-bg)]",  textClass: "text-[var(--color-available-badge-text)]",  dotClass: "bg-[var(--color-available)]" },
+  damien_unavailable:  { bgClass: "bg-[var(--color-unavailable-badge-bg)]", textClass: "text-[var(--color-unavailable-badge-text)]", dotClass: "bg-[var(--color-unavailable)]" },
+  ma_unavailable:      { bgClass: "bg-[var(--color-unavailable-badge-bg)]", textClass: "text-[var(--color-unavailable-badge-text)]", dotClass: "bg-[var(--color-unavailable)]" },
+  both_unavailable:    { bgClass: "bg-[var(--color-unavailable-badge-bg)]", textClass: "text-[var(--color-unavailable-badge-text)]", dotClass: "bg-[var(--color-unavailable)]" },
+  shared_event:        { bgClass: "bg-[var(--color-event-badge-bg)]",       textClass: "text-[var(--color-event-badge-text)]",       dotClass: "bg-[var(--color-event)]" },
+  custody_change:      { bgClass: "bg-[var(--color-transition-badge-bg)]",  textClass: "text-[var(--color-transition-badge-text)]",  dotClass: "bg-[var(--color-transition)]" },
 }
 
 // Full config with labels — pass person names from the DB (used by status badges)

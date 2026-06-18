@@ -7,23 +7,39 @@ interface TransitionIconProps {
   className?: string
   strokeWidth?: number
   title?: string
+  withBackground?: boolean
 }
 
 export function TransitionIcon({
   direction,
   color,
-  className = "h-3.5 w-3.5",
-  strokeWidth = 2.5,
+  className = "h-4 w-4",
+  strokeWidth = 3,
   title,
+  withBackground = false,
 }: TransitionIconProps) {
   const Icon = direction === "pickup" ? ArrowUp : ArrowDown
+  const iconColor = color ?? "var(--color-muted-foreground)"
+
   const icon = (
     <Icon
       className={className}
-      style={{ color: color ?? "var(--color-muted-foreground)" }}
+      style={{ color: iconColor }}
       strokeWidth={strokeWidth}
     />
   )
+
+  if (withBackground) {
+    return (
+      <span
+        className="inline-flex items-center justify-center rounded p-1 flex-shrink-0"
+        style={{ backgroundColor: typeof iconColor === 'string' ? iconColor + "15" : "transparent" }}
+        title={title}
+      >
+        {icon}
+      </span>
+    )
+  }
 
   if (title) {
     return <span title={title}>{icon}</span>

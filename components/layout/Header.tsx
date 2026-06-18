@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Header() {
   return (
-    <header className="md:hidden sticky top-0 z-30 border-b border-[var(--color-border)] bg-[var(--color-background)] px-4 py-3 flex items-center justify-between">
+    <header className="md:hidden sticky top-0 z-30 border-b border-[var(--color-border)] bg-[var(--color-background)] px-4 py-3 pt-safe flex items-center justify-between">
       <Link href="/today" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-transition)]">
           <Heart className="h-3.5 w-3.5 text-white" />

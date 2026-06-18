@@ -276,7 +276,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                               key={`${transition.id}-${transition.direction}`}
                               direction={transition.direction}
                               color={person?.color}
-                              className="h-3.5 w-3.5"
+                              className="h-5 w-5"
                             />
                           )
                         })}

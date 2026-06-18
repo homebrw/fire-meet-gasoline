@@ -285,7 +285,7 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       <div className="space-y-2 border-t pt-4">
         <Label htmlFor="attachments">Pièces jointes</Label>
         <div className="space-y-3">
-          <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-900 transition">
+          <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-[var(--color-secondary-surface)] transition">
             <input
               ref={fileInputRef}
               type="file"
@@ -297,32 +297,32 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 min-h-11 py-2"
+              className="inline-flex items-center gap-2 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] min-h-11 py-2"
             >
               <Upload className="h-4 w-4" />
               Ajouter des pièces jointes
             </button>
-            <p className="text-xs text-gray-500 mt-1">ou glissez-déposez ici</p>
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">ou glissez-déposez ici</p>
           </div>
 
           {selectedFiles.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <p className="text-sm font-medium text-[var(--color-foreground)]">
                 Fichiers sélectionnés ({selectedFiles.length})
               </p>
               <div className="space-y-1">
                 {selectedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between rounded-lg bg-gray-50 p-2 text-xs dark:bg-gray-800"
+                    className="flex items-center justify-between rounded-lg bg-[var(--color-secondary-surface)] p-2 text-xs"
                   >
-                    <span className="truncate text-gray-700 dark:text-gray-300">
+                    <span className="truncate text-[var(--color-foreground)]">
                       {file.name}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
-                      className="text-red-600 hover:text-red-700 flex-shrink-0"
+                      className="text-[var(--color-destructive)] hover:opacity-80 flex-shrink-0"
                       aria-label="Supprimer le fichier"
                     >
                       <X className="h-4 w-4" />

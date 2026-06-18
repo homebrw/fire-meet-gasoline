@@ -17,6 +17,7 @@ const badgeVariants = cva(
         ma: "border-transparent bg-[var(--color-ma-badge-bg)] text-[var(--color-ma-badge-text)]",
         available: "border-transparent bg-[var(--color-available-badge-bg)] text-[var(--color-available-badge-text)]",
         transition: "border-transparent bg-[var(--color-transition-badge-bg)] text-[var(--color-transition-badge-text)]",
+        event: "border-transparent bg-[var(--color-event-badge-bg)] text-[var(--color-event-badge-text)]",
       },
     },
     defaultVariants: {

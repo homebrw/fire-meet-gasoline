@@ -25,11 +25,11 @@ export function ActivityFeed({ items, maxItems = 10 }: ActivityFeedProps) {
   }
 
   const colors: Record<string, string> = {
-    rule: "bg-blue-50 dark:bg-blue-950",
+    rule: "bg-[var(--color-damien-light)]",
     event: "bg-purple-50 dark:bg-purple-950",
-    exception: "bg-orange-50 dark:bg-orange-950",
-    presence: "bg-green-50 dark:bg-green-950",
-    transition: "bg-amber-50 dark:bg-amber-950",
+    exception: "bg-[var(--color-transition-light)]",
+    presence: "bg-[var(--color-available-light)]",
+    transition: "bg-[var(--color-event-light)]",
   }
 
   const typeLabels: Record<string, string> = {

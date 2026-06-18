@@ -10,10 +10,10 @@ interface SharedEventCardProps {
 
 export function SharedEventCard({ event, persons }: SharedEventCardProps) {
   return (
-    <Card className="border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30">
+    <Card className="border-[var(--color-event-badge-text)]/30 bg-[var(--color-event-light)]">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <Calendar className="h-4 w-4 text-[var(--color-event-badge-text)]" />
           Événement
         </CardTitle>
       </CardHeader>

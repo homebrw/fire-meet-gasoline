@@ -2,7 +2,6 @@
 
 import { useTransition } from "react"
 import type { CalendarEvent } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Pencil, Trash2 } from "lucide-react"
@@ -55,48 +54,46 @@ export function EventsList({
           const startDate = parseISO(event.start_at)
 
           return (
-            <Card key={event.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center justify-between">
-                  <div className="flex-1">{event.title}</div>
-                  <div className="flex gap-1">
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(event)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
+            <div key={event.id} className="rounded-lg border border-[var(--color-border)] p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 font-semibold text-sm">{event.title}</div>
+                <div className="flex gap-1">
+                  {onEdit && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-[var(--color-destructive)]"
-                      disabled={isPending}
-                      onClick={() => handleDelete(event.id)}
+                      aria-label="Modifier l'événement"
+                      onClick={() => onEdit(event)}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sm text-[var(--color-muted-foreground)]">
-                  {format(startDate, "EEEE d MMMM yyyy", { locale: fr })}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {event.visibility === "both" && (
-                    <Badge variant="secondary">Partagé</Badge>
                   )}
-                  {eventParticipants.length > 0 && (
-                    <Badge variant="outline">
-                      {eventParticipants.length} participant{eventParticipants.length > 1 ? "s" : ""}
-                    </Badge>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-[var(--color-destructive)]"
+                    aria-label="Supprimer l'événement"
+                    disabled={isPending}
+                    onClick={() => handleDelete(event.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="text-sm text-[var(--color-muted-foreground)]">
+                {format(startDate, "EEEE d MMMM yyyy", { locale: fr })}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {event.visibility === "both" && (
+                  <Badge variant="secondary">Partagé</Badge>
+                )}
+                {eventParticipants.length > 0 && (
+                  <Badge variant="outline">
+                    {eventParticipants.length} participant{eventParticipants.length > 1 ? "s" : ""}
+                  </Badge>
+                )}
+              </div>
+            </div>
           )
         })}
       </div>

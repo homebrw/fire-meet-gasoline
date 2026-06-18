@@ -16,6 +16,7 @@ import { fr } from "date-fns/locale"
 import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/lib/types"
 
 import { Button } from "@/components/ui/button"
+import { badgeVariants } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Plus, Home, CircleDashed } from "lucide-react"
 import { cn, getWeekString, parseWeekString, indexById } from "@/lib/utils"
 import { revalidateWeekData } from "@/lib/actions/revalidate"
@@ -310,11 +311,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                               setSelectedDayDate(key)
                               setDayEventsOpen(true)
                             }}
-                            className="px-3 py-1 rounded-full text-xs font-semibold transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-ring)]"
-                            style={{
-                              backgroundColor: 'var(--color-event-badge-bg)',
-                              color: 'var(--color-event-badge-text)'
-                            }}
+                            className={cn(badgeVariants({ variant: "event" }), "hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2")}
                             title={`${events.length} événement${events.length > 1 ? 's' : ''}`}
                           >
                             {events.length}
@@ -324,6 +321,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                             onClick={() => handleDayClick(key)}
                             className="h-11 w-11 -m-3 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center"
                             title="Ajouter un événement"
+                            aria-label="Ajouter un événement"
                           >
                             <Plus className="h-3 w-3 text-[var(--color-muted-foreground)]" />
                           </button>
@@ -333,6 +331,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                           type="button"
                           onClick={() => handleDayClick(key)}
                           className="mx-auto h-11 w-11 -m-2.5 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center group"
+                          aria-label="Ajouter un événement"
                         >
                           <Plus className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>

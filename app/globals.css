@@ -29,10 +29,10 @@
     --color-transition-badge-text: #c2410c;
     --color-unavailable: #6b7280;
     --color-unavailable-light: #f3f4f6;
-    --color-event: #d97706;
+    --color-event: #78350f;
     --color-event-light: #fef3c7;
     --color-event-badge-bg: #fef3c7;
-    --color-event-badge-text: #d97706;
+    --color-event-badge-text: #78350f;
 
     /* UI tokens (light) */
     --color-background: #ffffff;
@@ -74,6 +74,7 @@
     --color-ring: #d4d4d8;
 
     /* Dark mode event colors */
+    --color-event: #fbbf24;
     --color-event-light: #1f2937;
     --color-event-badge-bg: #1f2937;
     --color-event-badge-text: #fbbf24;

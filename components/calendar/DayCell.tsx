@@ -59,7 +59,7 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
               key={`${transition.id}-${transition.direction}`}
               direction={transition.direction}
               color={person?.color}
-              className="h-3 w-3"
+              className="h-3.5 w-3.5"
               strokeWidth={3}
               title={`${person?.name ?? "?"} - ${TRANSITION_DIRECTION_LABEL[transition.direction]}`}
             />

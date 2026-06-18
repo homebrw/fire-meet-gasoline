@@ -4,12 +4,13 @@ import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { computeDayStates } from "@/lib/recurrence/availability"
 import { MonthCalendar } from "@/components/calendar/MonthCalendar"
-import { subDays, addDays, startOfToday } from "date-fns"
+import { subDays, addDays } from "date-fns"
+import { todayInZone } from "@/lib/timezone"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, DayState } from "@/lib/types"
 
 export default async function CalendarPage() {
   const supabase = await createClient()
-  const today = startOfToday()
+  const today = todayInZone()
   const from = subDays(today, 90)
   const to = addDays(today, 365)
 

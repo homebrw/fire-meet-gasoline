@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { computeDayStates } from "@/lib/recurrence/availability"
 import { WeekPlanning } from "@/components/week/WeekPlanning"
-import { subWeeks, addWeeks, startOfToday } from "date-fns"
+import { subWeeks, addWeeks } from "date-fns"
+import { todayInZone } from "@/lib/timezone"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, DayState } from "@/lib/types"
 
 export default async function WeekPage({
@@ -16,7 +17,7 @@ export default async function WeekPage({
   const weekParam = params.week
 
   const supabase = await createClient()
-  const today = startOfToday()
+  const today = todayInZone()
   const from = subWeeks(today, 4)
   const to = addWeeks(today, 12)
 

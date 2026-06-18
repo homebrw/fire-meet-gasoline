@@ -55,3 +55,44 @@ export function formatTimeInZone(date: Date, timeZone: string = APP_TIMEZONE): s
   })
   return dtf.format(date)
 }
+
+/**
+ * Calcule les bornes (début/fin) d'une journée calendaire dans le fuseau
+ * donné, en instants UTC réels. Le jour calendaire est lu sur `date` via ses
+ * accesseurs locaux (année/mois/jour) — `date` doit donc représenter ce
+ * jour-là, peu importe l'heure exacte qu'elle porte.
+ *
+ * Sert à éviter que le découpage par jour (utilisé pour grouper périodes de
+ * garde, transitions, événements et disponibilités) ne se fasse selon le
+ * fuseau du runtime serveur (souvent UTC) au lieu du fuseau de l'app.
+ */
+export function zonedDayBounds(
+  date: Date,
+  timeZone: string = APP_TIMEZONE
+): { start: Date; end: Date } {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const start = zonedTimeToUtc(year, month, day, 0, 0, timeZone)
+  const end = new Date(zonedTimeToUtc(year, month, day, 23, 59, timeZone).getTime() + 59999)
+  return { start, end }
+}
+
+/**
+ * Renvoie un Date marqueur (heure locale système à minuit) représentant le
+ * jour calendaire "aujourd'hui" dans le fuseau donné. Utilisé comme point de
+ * départ des plages `from`/`to` pour que "aujourd'hui" corresponde au jour
+ * vécu par les utilisateurs (Europe/Paris), pas au jour du runtime serveur.
+ */
+export function todayInZone(timeZone: string = APP_TIMEZONE): Date {
+  const now = new Date()
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  const parts = dtf.formatToParts(now)
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  return new Date(get("year"), get("month") - 1, get("day"))
+}

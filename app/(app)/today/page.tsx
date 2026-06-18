@@ -9,14 +9,15 @@ import {
   getUpcomingEvents,
 } from "@/lib/recurrence/availability"
 import { DashboardContent } from "@/components/dashboard/DashboardContent"
-import { subDays, addDays, startOfToday, parseISO } from "date-fns"
+import { subDays, addDays, parseISO, format } from "date-fns"
+import { todayInZone } from "@/lib/timezone"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person } from "@/lib/types"
 
 
 
 async function loadDashboardData() {
   const supabase = await createClient()
-  const today = startOfToday()
+  const today = todayInZone()
   const from = subDays(today, 7)
   const to = addDays(today, 60)
 
@@ -43,7 +44,7 @@ async function loadDashboardData() {
   const periods = generateCustodyPeriods(rules, exceptions, from, to)
   const dayStates = computeDayStates(persons, periods, presences, events, transitions, from, to)
 
-  const todayKey = today.toISOString().slice(0, 10)
+  const todayKey = format(today, "yyyy-MM-dd")
   const todayState = dayStates.get(todayKey) ?? null
 
   const [damien, ma] = persons

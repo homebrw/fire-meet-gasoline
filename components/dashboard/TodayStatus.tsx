@@ -6,14 +6,18 @@ import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { TRANSITION_DIRECTION_LABEL } from "@/lib/recurrence/labels"
+import { ArrowUp, ArrowDown } from "lucide-react"
+import { indexById } from "@/lib/utils"
 
 interface TodayStatusProps {
   state: DayState | null
   damien: Person | undefined
   ma: Person | undefined
+  persons: Person[]
 }
 
-export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
+export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
+  const personById = indexById(persons)
   if (!state) {
     return (
       <Card>
@@ -81,11 +85,23 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
         {state.custodyTransitions.length > 0 && (
           <div className="space-y-1">
             <p className="text-xs font-medium" style={{color: 'var(--color-transition-badge-text)'}}>Changements aujourd&apos;hui</p>
-            {state.custodyTransitions.map((t) => (
-              <p key={t.id} className="text-xs text-[var(--color-muted-foreground)]">
-                <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span> — {TRANSITION_DIRECTION_LABEL[t.direction]}{t.location ? ` (${t.location})` : ""}
-              </p>
-            ))}
+            {state.custodyTransitions.map((t) => {
+              const person = personById[t.person_id]
+              const Icon = t.direction === "pickup" ? ArrowUp : ArrowDown
+              return (
+                <div key={t.id} className="flex items-center gap-2 text-xs">
+                  <Icon
+                    className="h-3.5 w-3.5 flex-shrink-0"
+                    style={{ color: person?.color ?? 'var(--color-transition-badge-text)' }}
+                  />
+                  <span className="font-semibold text-[var(--color-foreground)]">{person?.name ?? "?"}</span>
+                  <span className="text-[var(--color-muted-foreground)]">—</span>
+                  <span className="font-semibold text-[var(--color-muted-foreground)]">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span>
+                  <span className="text-[var(--color-muted-foreground)]">—</span>
+                  <span className="text-[var(--color-muted-foreground)]">{TRANSITION_DIRECTION_LABEL[t.direction]}{t.location ? ` (${t.location})` : ""}</span>
+                </div>
+              )
+            })}
           </div>
         )}
       </CardContent>

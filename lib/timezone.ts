@@ -40,3 +40,18 @@ export function zonedTimeToUtc(
   const diff = utcGuess.getTime() - asUTC
   return new Date(utcGuess.getTime() + diff)
 }
+
+/**
+ * Formate un instant en heure murale "HH:mm" dans le fuseau donné, sans
+ * dépendre du fuseau horaire du runtime (important côté serveur, où le
+ * fuseau système peut être UTC alors que l'app raisonne en heure de Paris).
+ */
+export function formatTimeInZone(date: Date, timeZone: string = APP_TIMEZONE): string {
+  const dtf = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+  return dtf.format(date)
+}

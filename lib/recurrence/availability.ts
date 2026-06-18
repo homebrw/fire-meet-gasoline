@@ -1,4 +1,5 @@
 import { addDays, parseISO, startOfDay, endOfDay, format } from "date-fns"
+import { formatTimeInZone } from "@/lib/timezone"
 import type {
   Person,
   GeneratedPeriod,
@@ -44,8 +45,8 @@ function complement(busy: Interval[], dayStart: Date, dayEnd: Date): Interval[] 
 
 function toTimeWindow(interval: Interval, dayStart: Date, dayEnd: Date): TimeWindow {
   return {
-    start: format(interval.start, "HH:mm"),
-    end: format(interval.end, "HH:mm"),
+    start: formatTimeInZone(interval.start),
+    end: formatTimeInZone(interval.end),
     startsAtDayBoundary: interval.start <= dayStart,
     endsAtDayBoundary: interval.end >= dayEnd,
   }

@@ -131,7 +131,7 @@ export function MonthCalendar({ initialMonth, dayStates, persons, exceptions, ru
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-both-kids-badge-bg)] border border-[var(--color-both-kids-badge-text)]" /> Chacun a ses enfants</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-available-badge-bg)] border border-[var(--color-available-badge-text)]" /> Disponible</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-transition-badge-bg)] border border-[var(--color-transition-badge-text)]" /> Dispo partielle</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-event-badge-bg)] border border-[var(--color-event-badge-text)]" /> Événement</span>
+        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full" style={{backgroundColor: 'var(--color-event)'}} /> Événement</span>
         <span className="flex items-center gap-1"><ArrowDown className="h-3 w-3 text-foreground" /> Dépose</span>
         <span className="flex items-center gap-1"><ArrowUp className="h-3 w-3 text-foreground" /> Récupération</span>
       </div>

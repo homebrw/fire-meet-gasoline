@@ -72,7 +72,7 @@ export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules
             </div>
             <Dialog open={createEventOpen} onOpenChange={setCreateEventOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="gap-2">
+                <Button size="sm" variant="outline" className="gap-2 h-11">
                   <Plus className="h-4 w-4" />
                   Événement
                 </Button>
@@ -100,7 +100,7 @@ export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules
             {/* Custody status */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg p-3" style={{backgroundColor: 'var(--color-damien-badge-bg)'}}>
-                <p className="text-xs font-semibold mb-1" style={{color: 'var(--color-damien)'}}>{person1?.name ?? "Personne 1"}</p>
+                <p className="text-xs font-semibold mb-1" style={{color: 'var(--color-damien-badge-text)'}}>{person1?.name ?? "Personne 1"}</p>
                 <p className="text-sm">
                   {state.damienHasChildren ? "Avec ses enfants" : "Libre"}
                 </p>
@@ -109,7 +109,7 @@ export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules
                 )}
               </div>
               <div className="rounded-lg p-3" style={{backgroundColor: 'var(--color-ma-badge-bg)'}}>
-                <p className="text-xs font-semibold mb-1" style={{color: 'var(--color-ma)'}}>{person2?.name ?? "Personne 2"}</p>
+                <p className="text-xs font-semibold mb-1" style={{color: 'var(--color-ma-badge-text)'}}>{person2?.name ?? "Personne 2"}</p>
                 <p className="text-sm">
                   {state.maHasChild ? "Avec sa fille" : "Libre"}
                 </p>
@@ -166,7 +166,7 @@ export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules
             <Separator />
             {state.bothAvailable || !state.partiallyAvailable ? (
               <div className="rounded-lg p-3" style={{backgroundColor: state.bothAvailable ? 'var(--color-available-light)' : 'var(--color-unavailable-light)'}}>
-                <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available)' : 'var(--color-primary)'}}>
+                <p className="text-sm font-medium" style={{color: state.bothAvailable ? 'var(--color-available-badge-text)' : 'var(--color-primary)'}}>
                   {state.bothAvailable
                     ? "✓ Disponibles ensemble"
                     : "✗ Pas disponibles ensemble"}
@@ -174,7 +174,7 @@ export function DayDetailSheet({ dateKey, state, persons, exceptions = [], rules
               </div>
             ) : (
               <div className="rounded-lg p-3" style={{backgroundColor: 'var(--color-transition-light)'}}>
-                <p className="text-sm font-medium mb-2" style={{color: 'var(--color-transition)'}}>
+                <p className="text-sm font-medium mb-2" style={{color: 'var(--color-transition-badge-text)'}}>
                   Disponibles une partie de la journée
                 </p>
                 <AvailabilityWindowsList state={state} damien={person1} ma={person2} />

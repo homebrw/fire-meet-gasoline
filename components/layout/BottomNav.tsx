@@ -28,7 +28,7 @@ export function BottomNav() {
                 "flex flex-1 flex-col items-center gap-1 py-2 text-xs transition-all duration-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] rounded-md",
                 active
                   ? "text-[var(--color-damien)]"
-                  : "text-[var(--color-foreground)] opacity-60"
+                  : "text-[var(--color-muted-foreground)]"
               )}
               aria-label={label}
               aria-current={active ? "page" : undefined}

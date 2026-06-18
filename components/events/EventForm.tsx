@@ -297,7 +297,7 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+              className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 min-h-11 py-2"
             >
               <Upload className="h-4 w-4" />
               Ajouter des pièces jointes

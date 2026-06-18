@@ -322,7 +322,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                           <button
                             type="button"
                             onClick={() => handleDayClick(key)}
-                            className="h-5 w-5 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center"
+                            className="h-11 w-11 -m-3 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center"
                             title="Ajouter un événement"
                           >
                             <Plus className="h-3 w-3 text-[var(--color-muted-foreground)]" />
@@ -332,7 +332,7 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
                         <button
                           type="button"
                           onClick={() => handleDayClick(key)}
-                          className="mx-auto h-6 w-6 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center group"
+                          className="mx-auto h-11 w-11 -m-2.5 rounded hover:bg-[var(--color-muted)] transition-colors flex items-center justify-center group"
                         >
                           <Plus className="h-4 w-4 text-[var(--color-muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>

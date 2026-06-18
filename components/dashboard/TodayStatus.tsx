@@ -69,7 +69,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
 
         {state.partiallyAvailable && (
           <div className="rounded-md px-3 py-2" style={{ backgroundColor: 'var(--color-available-light)' }}>
-            <p className="text-xs font-medium" style={{ color: 'var(--color-available)' }}>
+            <p className="text-xs font-medium" style={{ color: 'var(--color-available-badge-text)' }}>
               Disponibles ensemble{" "}
               {state.commonAvailableWindows
                 .map((w) => `${w.startsAtDayBoundary ? "00:00" : w.start} – ${w.endsAtDayBoundary ? "23:59" : w.end}`)
@@ -80,7 +80,7 @@ export function TodayStatus({ state, damien, ma }: TodayStatusProps) {
 
         {state.custodyTransitions.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs font-medium" style={{color: 'var(--color-transition)'}}>Changements aujourd&apos;hui</p>
+            <p className="text-xs font-medium" style={{color: 'var(--color-transition-badge-text)'}}>Changements aujourd&apos;hui</p>
             {state.custodyTransitions.map((t) => (
               <p key={t.id} className="text-xs text-[var(--color-muted-foreground)]">
                 <span className="font-semibold">{format(parseISO(t.transition_at), "HH:mm", { locale: fr })}</span> — {TRANSITION_DIRECTION_LABEL[t.direction]}{t.location ? ` (${t.location})` : ""}

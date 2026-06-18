@@ -57,7 +57,7 @@ export function TransitionRow({
             <button
               type="button"
               onClick={() => setShowException(true)}
-              className="text-xs font-medium rounded-full px-2 py-0.5 bg-[var(--color-muted)] hover:opacity-80 transition-opacity"
+              className="text-xs font-medium rounded-full px-3 py-2 -my-1.5 bg-[var(--color-muted)] hover:opacity-80 transition-opacity"
             >
               Modifié
             </button>
@@ -69,7 +69,7 @@ export function TransitionRow({
             <Button
               variant="ghost"
               size="icon"
-              className="ml-auto h-6 w-6 text-[var(--color-destructive)]"
+              className="ml-auto h-11 w-11 -m-2.5 text-[var(--color-destructive)]"
               onClick={onDelete}
               aria-label="Supprimer le changement de garde"
             >

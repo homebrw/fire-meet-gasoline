@@ -237,7 +237,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                   <tr>
                     <th className="text-left pb-2 pr-3 text-[var(--color-muted-foreground)] font-medium w-12" />
                     {dayLabels.map((d, i) => (
-                      <th key={i} className="text-center pb-2 w-9 text-[var(--color-muted-foreground)] font-medium">{d}</th>
+                      <th key={i} className="text-center pb-2 w-11 text-[var(--color-muted-foreground)] font-medium">{d}</th>
                     ))}
                   </tr>
                 </thead>
@@ -248,7 +248,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                       {Array.from({ length: 7 }, (_, d) => {
                         const dayIndex = w * 7 + d
                         if (dayIndex >= cycleLengthDays) {
-                          return <td key={d} className="py-1 w-9" />
+                          return <td key={d} className="py-1 w-11" />
                         }
                         const checked = selectedDays.has(dayIndex)
                         return (
@@ -259,7 +259,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
                               aria-label={`Jour ${dayIndex} — ${dayLabels[d]}${checked ? ' (sélectionné)' : ''}`}
                               title={`Jour ${dayIndex} — ${dayLabels[d]}`}
                               className={cn(
-                                "h-9 w-9 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+                                "h-11 w-11 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
                                 checked
                                   ? "text-white"
                                   : "bg-[var(--color-accent)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)]"

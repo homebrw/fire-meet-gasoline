@@ -70,7 +70,7 @@ export function EventAttachmentsList({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-red-600 hover:text-red-700"
+                className="h-11 w-11 -m-2.5 text-red-600 hover:text-red-700"
                 onClick={() => handleDelete(attachment.id, attachment.storage_path)}
                 aria-label="Supprimer la pièce jointe"
               >

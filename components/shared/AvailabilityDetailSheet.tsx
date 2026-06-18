@@ -21,14 +21,14 @@ export function AvailabilityWindowsList({ state, damien, ma }: AvailabilityWindo
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm font-semibold mb-2" style={{ color: "var(--color-available)" }}>
+        <p className="text-sm font-semibold mb-2" style={{ color: "var(--color-available-badge-text)" }}>
           Disponibles ensemble
         </p>
         {state.commonAvailableWindows.length > 0 ? (
           <ul className="space-y-1.5">
             {state.commonAvailableWindows.map((w, i) => (
               <li key={i}>
-                <TimeWindowBadge window={w} color="var(--color-available)" />
+                <TimeWindowBadge window={w} color="var(--color-available-badge-text)" />
               </li>
             ))}
           </ul>

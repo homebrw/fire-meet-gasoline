@@ -1,4 +1,5 @@
-import { addDays, parseISO, startOfDay, endOfDay, format } from "date-fns"
+import { addDays, parseISO, startOfDay, format } from "date-fns"
+import { formatTimeInZone, zonedDayBounds } from "@/lib/timezone"
 import type {
   Person,
   GeneratedPeriod,
@@ -44,8 +45,8 @@ function complement(busy: Interval[], dayStart: Date, dayEnd: Date): Interval[] 
 
 function toTimeWindow(interval: Interval, dayStart: Date, dayEnd: Date): TimeWindow {
   return {
-    start: format(interval.start, "HH:mm"),
-    end: format(interval.end, "HH:mm"),
+    start: formatTimeInZone(interval.start),
+    end: formatTimeInZone(interval.end),
     startsAtDayBoundary: interval.start <= dayStart,
     endsAtDayBoundary: interval.end >= dayEnd,
   }
@@ -77,8 +78,7 @@ export function computeDayStates(
 
   while (current <= end) {
     const dateKey = format(current, "yyyy-MM-dd")
-    const dayStart = startOfDay(current)
-    const dayEnd = endOfDay(current)
+    const { start: dayStart, end: dayEnd } = zonedDayBounds(current)
 
     const damienBusy: Interval[] = []
     const maBusy: Interval[] = []

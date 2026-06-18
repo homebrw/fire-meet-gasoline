@@ -20,10 +20,6 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Famille Sync",
   description: "Synchronisation des gardes et disponibilités",
-  icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

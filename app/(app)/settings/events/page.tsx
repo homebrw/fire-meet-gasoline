@@ -33,6 +33,7 @@ function EventsPageContent() {
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null)
   const [isPending, startTransition] = useTransition()
   const [pastOpen, setPastOpen] = useState(false)
+  const [now] = useState(() => Date.now())
 
   useEffect(() => {
     async function load() {
@@ -57,7 +58,6 @@ function EventsPageContent() {
     })
   }
 
-  const now = Date.now()
   const upcomingEvents = events
     .filter((ev) => new Date(ev.start_at).getTime() >= now)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())

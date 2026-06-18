@@ -89,7 +89,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
               const person = personById[t.person_id]
               const Icon = t.direction === "pickup" ? ArrowUp : ArrowDown
               return (
-                <div key={t.id} className="flex items-center gap-2 text-xs">
+                <div key={t.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                   <Icon
                     className="h-3.5 w-3.5 flex-shrink-0"
                     style={{ color: person?.color ?? 'var(--color-transition-badge-text)' }}

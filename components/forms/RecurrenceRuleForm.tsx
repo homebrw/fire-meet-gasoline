@@ -128,7 +128,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       </div>
 
       {/* Validity window */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="starts_at">Début de validité</Label>
           <Input
@@ -152,7 +152,7 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       </div>
 
       {/* Custody times */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="custody_start_time">Heure début de garde</Label>
           <Input

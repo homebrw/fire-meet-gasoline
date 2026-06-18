@@ -19,7 +19,7 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
   const date = parseISO(dateKey)
   const today = isToday(date)
   const config = state?.partiallyAvailable
-    ? { bgClass: "bg-orange-100", textClass: "text-orange-800", dotClass: "bg-orange-500" }
+    ? { bgClass: "bg-[var(--color-transition-badge-bg)]", textClass: "text-[var(--color-transition-badge-text)]", dotClass: "bg-[var(--color-transition-badge-text)]" }
     : state
       ? DISPLAY_CLASSES[state.displayState]
       : null

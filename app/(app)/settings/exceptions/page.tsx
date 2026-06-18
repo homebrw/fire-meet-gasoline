@@ -294,7 +294,7 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
         <Textarea id="notes" name="notes" defaultValue={exception?.notes ?? ""} rows={2} />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Enregistrement…" : exception ? "Modifier" : "Créer l'exception"}

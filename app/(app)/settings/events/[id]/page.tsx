@@ -91,8 +91,8 @@ export default function EventDetailPage() {
   if (error || !event) {
     return (
       <div className="p-4 md:p-6">
-        <p className="text-sm text-red-600">{error || "Erreur"}</p>
-        <Button variant="outline" className="mt-4" onClick={() => router.back()}>
+        <p className="text-sm text-[var(--color-destructive)]">{error || "Erreur"}</p>
+        <Button variant="outline" className="mt-4" aria-label="Retour" onClick={() => router.back()}>
           <ChevronLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
@@ -103,7 +103,7 @@ export default function EventDetailPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" aria-label="Retour" onClick={() => router.back()}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold">{event.title}</h1>
@@ -125,7 +125,7 @@ export default function EventDetailPage() {
               Ajouter une pièce jointe
             </p>
             {uploadError && (
-              <p className="text-sm text-red-600">{uploadError}</p>
+              <p className="text-sm text-[var(--color-destructive)]">{uploadError}</p>
             )}
             <FileUploadButton
               eventId={event.id}

@@ -65,7 +65,7 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-md bg-red-50 dark:bg-red-950/30 border border-red-500 p-3 text-sm text-red-700 dark:text-red-400" role="alert" aria-live="polite">
+        <div className="rounded-md bg-[var(--color-destructive)]/10 border border-[var(--color-destructive)] p-3 text-sm text-[var(--color-destructive)]" role="alert" aria-live="polite">
           {error}
         </div>
       )}

@@ -275,7 +275,7 @@ function PresenceForm({ persons, onSuccess }: { persons: Person[]; onSuccess: ()
         <Label htmlFor="notes">Notes</Label>
         <Input id="notes" name="notes" placeholder="Optionnel" />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "…" : "Créer"}
       </Button>
@@ -330,7 +330,7 @@ function TransitionForm({ persons, onSuccess }: { persons: Person[]; onSuccess: 
         <Label htmlFor="location">Lieu</Label>
         <Input id="location" name="location" placeholder="Ex: École, Gare…" />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "…" : "Créer"}
       </Button>

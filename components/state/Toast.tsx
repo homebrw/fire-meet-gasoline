@@ -45,15 +45,15 @@ export function Toast({
       icon: Check,
     },
     error: {
-      bg: "bg-red-50 dark:bg-red-950",
+      bg: "bg-[var(--color-destructive)]/10",
       border: "border-[var(--color-destructive)]",
       text: "text-[var(--color-destructive)]",
       icon: AlertTriangle,
     },
     info: {
-      bg: "bg-blue-50 dark:bg-blue-950",
-      border: "border-blue-300 dark:border-blue-700",
-      text: "text-blue-700 dark:text-blue-300",
+      bg: "bg-[var(--color-event-light)]",
+      border: "border-[var(--color-event)]",
+      text: "text-[var(--color-event-badge-text)]",
       icon: AlertTriangle,
     },
   }

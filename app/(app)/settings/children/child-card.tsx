@@ -61,7 +61,7 @@ export function ChildCard({ child }: { child: Person }) {
           <Button
             variant="outline"
             size="sm"
-            className="text-red-600 hover:text-red-700"
+            className="text-[var(--color-destructive)] hover:opacity-80"
             onClick={handleDelete}
             disabled={deleting}
           >

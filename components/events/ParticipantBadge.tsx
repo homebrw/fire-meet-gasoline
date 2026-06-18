@@ -21,13 +21,13 @@ export function ParticipantBadge({ name, color, size = "md", className }: Partic
   return (
     <div
       className={cn(
-        "flex items-center rounded bg-gray-100 text-xs dark:bg-gray-800",
+        "flex items-center rounded bg-[var(--color-secondary-surface)] text-xs",
         sizeClasses[size],
         className
       )}
     >
-      <div className={cn("rounded-full", dotSizeClasses[size])} style={{ backgroundColor: color || "#6b7280" }} />
-      <span className="text-gray-700 dark:text-gray-300">{name || "?"}</span>
+      <div className={cn("rounded-full", dotSizeClasses[size])} style={{ backgroundColor: color || "var(--color-muted-foreground)" }} />
+      <span className="text-[var(--color-foreground)]">{name || "?"}</span>
     </div>
   )
 }

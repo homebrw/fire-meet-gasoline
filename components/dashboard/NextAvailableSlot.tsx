@@ -15,7 +15,7 @@ export function NextAvailableSlot({ slot }: NextAvailableSlotProps) {
     <Card className="border-l-4 border-[var(--color-available)]">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <CalendarCheck className="h-4 w-4" style={{color: 'var(--color-available)'}} />
+          <CalendarCheck className="h-4 w-4" style={{color: 'var(--color-available-badge-text)'}} />
           Prochain créneau commun
         </CardTitle>
       </CardHeader>
@@ -23,7 +23,7 @@ export function NextAvailableSlot({ slot }: NextAvailableSlotProps) {
         {slot ? (
           <div className="space-y-3">
             <div>
-              <p className="font-semibold" style={{color: 'var(--color-available)'}}>
+              <p className="font-semibold" style={{color: 'var(--color-available-badge-text)'}}>
                 {format(parseISO(slot.date), "EEEE d MMMM yyyy", { locale: fr })}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)] mt-1">

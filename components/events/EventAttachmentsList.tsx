@@ -41,27 +41,27 @@ export function EventAttachmentsList({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <p className="text-sm font-medium text-[var(--color-foreground)]">
         Pièces jointes ({attachments.length})
       </p>
       <div className="space-y-1">
         {attachments.map((attachment) => (
           <div
             key={attachment.id}
-            className="flex items-center justify-between rounded-lg bg-gray-50 p-2 text-xs dark:bg-gray-800"
+            className="flex items-center justify-between rounded-lg bg-[var(--color-secondary-surface)] p-2 text-xs dark:bg-[var(--color-secondary-surface)]"
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              <FileIcon className="h-4 w-4 flex-shrink-0 text-gray-400" />
+              <FileIcon className="h-4 w-4 flex-shrink-0 text-[var(--color-muted-foreground)]" />
               <a
                 href={getDownloadUrl(attachment.storage_path)}
                 download={attachment.file_name}
-                className="truncate text-blue-600 hover:underline dark:text-blue-400"
+                className="truncate text-[var(--color-primary)] hover:underline"
                 title={attachment.file_name}
               >
                 {attachment.file_name}
               </a>
               {attachment.file_size && (
-                <span className="text-gray-500 flex-shrink-0">
+                <span className="text-[var(--color-muted-foreground)] flex-shrink-0">
                   ({(attachment.file_size / 1024 / 1024).toFixed(1)} MB)
                 </span>
               )}
@@ -70,7 +70,7 @@ export function EventAttachmentsList({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-red-600 hover:text-red-700"
+                className="h-11 w-11 -m-2.5 text-[var(--color-destructive)] hover:opacity-80"
                 onClick={() => handleDelete(attachment.id, attachment.storage_path)}
                 aria-label="Supprimer la pièce jointe"
               >

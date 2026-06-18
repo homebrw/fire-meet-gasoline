@@ -15,19 +15,17 @@ const geistMono = Geist_Mono({
 
 export const viewport: Viewport = {
   viewportFit: "cover",
+  themeColor: "#f97316",
 }
 
 export const metadata: Metadata = {
   title: "Famille Sync",
   description: "Synchronisation des gardes et disponibilités",
-  icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
-  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
+    title: "Sync",
   },
   formatDetection: {
     telephone: false,

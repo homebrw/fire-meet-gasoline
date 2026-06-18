@@ -33,7 +33,7 @@ export function DashboardContent({
   const hasData = damien && ma
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
+    <div className="max-w-2xl mx-auto p-4 md:p-6 pt-4 md:pt-6 space-y-4">
       <h1 className="text-2xl font-bold">Aujourd&apos;hui</h1>
 
       {!hasData ? (

@@ -72,7 +72,16 @@
     --color-border: #27272a;
     --color-input: #27272a;
     --color-ring: #d4d4d8;
+
+    /* Dark mode event colors */
+    --color-event-light: #1f2937;
+    --color-event-badge-bg: #1f2937;
+    --color-event-badge-text: #fbbf24;
   }
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 @utility pb-safe {

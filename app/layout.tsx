@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 
 export const viewport: Viewport = {
   viewportFit: "cover",
+  themeColor: "#f97316",
 }
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
+    title: "Sync",
   },
   formatDetection: {
     telephone: false,

@@ -18,7 +18,7 @@ import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/li
 import { DayCell } from "./DayCell"
 import { DayDetailSheet } from "./DayDetailSheet"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Home } from "lucide-react"
+import { ChevronLeft, ChevronRight, Home, ArrowUp, ArrowDown } from "lucide-react"
 
 const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
@@ -132,8 +132,8 @@ export function MonthCalendar({ initialMonth, dayStates, persons, exceptions, ru
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-available-badge-bg)] border border-[var(--color-available-badge-text)]" /> Disponible</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-transition-badge-bg)] border border-[var(--color-transition-badge-text)]" /> Dispo partielle</span>
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-[var(--color-event-badge-bg)] border border-[var(--color-event-badge-text)]" /> Événement</span>
-        <span className="flex items-center gap-1"><span className="flex text-[0.6rem]">📤</span> Dépose</span>
-        <span className="flex items-center gap-1"><span className="flex text-[0.6rem]">📥</span> Récupération</span>
+        <span className="flex items-center gap-1"><ArrowDown className="h-3 w-3 text-foreground" /> Dépose</span>
+        <span className="flex items-center gap-1"><ArrowUp className="h-3 w-3 text-foreground" /> Récupération</span>
       </div>
 
       {/* Day detail sheet */}

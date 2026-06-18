@@ -56,7 +56,7 @@ export function DashboardContent({
               ))}
             </div>
           )}
-          <NextAvailableSlot slot={nextSlot} />
+          <NextAvailableSlot slot={nextSlot} persons={persons} />
           <div className="grid gap-4 sm:grid-cols-2">
             <UpcomingTransitions transitions={upcomingTransitions} persons={persons} />
             <UpcomingEvents events={upcomingEvents} persons={persons} />

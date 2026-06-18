@@ -48,7 +48,7 @@ export function DashboardContent({
         />
       ) : (
         <>
-          <TodayStatus state={todayState} damien={damien} ma={ma} />
+          <TodayStatus state={todayState} damien={damien} ma={ma} persons={persons} />
           {sharedEventsBefore.length > 0 && (
             <div className="space-y-4">
               {sharedEventsBefore.map((event) => (

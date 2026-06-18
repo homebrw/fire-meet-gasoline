@@ -42,13 +42,13 @@ export function EventCard({
   return (
     <div className="space-y-3">
       <div>
-        <p className="font-medium text-gray-900 dark:text-gray-50">{event.title}</p>
+        <p className="font-medium text-[var(--color-foreground)]">{event.title}</p>
         {event.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{event.description}</p>
+          <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{event.description}</p>
         )}
       </div>
 
-      <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+      <div className="space-y-1 text-xs text-[var(--color-muted-foreground)]">
         <p className="font-medium">
           {format(eventDate, "EEEE d MMMM yyyy", { locale: fr })}
           {event.is_all_day ? (
@@ -63,7 +63,7 @@ export function EventCard({
           )}
         </p>
         {daysRemaining >= 0 && (
-          <p className="text-gray-500 dark:text-gray-500">
+          <p className="text-[var(--color-muted-foreground)]">
             {daysRemaining === 0 ? "Aujourd'hui" : `Dans ${daysRemaining} jour${daysRemaining > 1 ? "s" : ""}`}
           </p>
         )}
@@ -83,7 +83,7 @@ export function EventCard({
           <button
             type="button"
             onClick={() => setShowAttachments(true)}
-            className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
           >
             <Paperclip className="h-3.5 w-3.5" />
             {attachments.length}

@@ -55,17 +55,16 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful responses
           if (response.status === 200) {
-            const cache = caches.open(CACHE_NAME);
-            cache.then((c) => c.put(request, response.clone()));
+            // Clone synchronously, before the body can be read by anyone else
+            const responseToCache = response.clone();
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((c) => c.put(request, responseToCache))
+            );
           }
           return response;
         })
-        .catch(() => {
-          // Fall back to cache on network error
-          return caches.match(request);
-        })
+        .catch(() => caches.match(request))
     );
     return;
   }
@@ -78,15 +77,17 @@ self.addEventListener('fetch', (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((response) => {
-        return (
-          response ||
-          fetch(request).then((fetchResponse) => {
-            // Cache the fetched response
-            const cache = caches.open(CACHE_NAME);
-            cache.then((c) => c.put(request, fetchResponse.clone()));
-            return fetchResponse;
-          })
-        );
+        if (response) {
+          return response;
+        }
+        return fetch(request).then((fetchResponse) => {
+          // Clone synchronously, before the body can be read by anyone else
+          const responseToCache = fetchResponse.clone();
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((c) => c.put(request, responseToCache))
+          );
+          return fetchResponse;
+        });
       })
     );
     return;

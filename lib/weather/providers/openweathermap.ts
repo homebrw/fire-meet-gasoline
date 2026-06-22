@@ -1,13 +1,21 @@
-import type { WeatherHourPoint, WeatherNextHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
+import type {
+  WeatherDailyPoint,
+  WeatherHourPoint,
+  WeatherNextHourPoint,
+  WeatherRainNextHour,
+  WeatherSourceData,
+} from "@/lib/types"
 import { owmCodeToIcon } from "../icons"
 
 type OwmRecord = {
   dt: number
-  temp: number
+  temp: number | { min: number; max: number; day?: number }
   feels_like?: number
   humidity?: number
   wind_speed?: number // m/s
   precipitation?: number // mm/h
+  pop?: number // 0-1, probability of precipitation
+  uvi?: number
   weather: { id: number; description?: string }[]
 }
 
@@ -34,10 +42,11 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
     return url.toString()
   }
 
-  const [currentRes, minutelyRes, hourlyRes] = await Promise.all([
+  const [currentRes, minutelyRes, hourlyRes, dailyRes] = await Promise.all([
     fetch(buildUrl("/current"), { cache: "no-store" }),
     fetch(buildUrl("/timeline/1min"), { cache: "no-store" }),
     fetch(buildUrl("/timeline/1h"), { cache: "no-store" }),
+    fetch(buildUrl("/timeline/1d"), { cache: "no-store" }),
   ])
 
   if (!currentRes.ok) throw new Error(`OpenWeatherMap current error: ${currentRes.status}`)
@@ -46,6 +55,7 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
   const current = ((await currentRes.json()) as OwmTimelineResponse).data[0]
   const hourly = ((await hourlyRes.json()) as OwmTimelineResponse).data
   const minutely = minutelyRes.ok ? ((await minutelyRes.json()) as OwmTimelineResponse).data : []
+  const daily = dailyRes.ok ? ((await dailyRes.json()) as OwmTimelineResponse).data : []
 
   const endOfDay = new Date()
   endOfDay.setHours(23, 59, 59, 999)
@@ -54,8 +64,19 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
     .filter((point) => point.dt * 1000 <= endOfDay.getTime())
     .map((point) => ({
       time: new Date(point.dt * 1000).toISOString(),
-      temperature: point.temp,
-      precipitationProbability: point.precipitation !== undefined ? (point.precipitation > 0 ? 100 : 0) : null,
+      temperature: typeof point.temp === "number" ? point.temp : point.temp.day ?? point.temp.max,
+      precipitationProbability: point.pop !== undefined ? Math.round(point.pop * 100) : null,
+      icon: owmCodeToIcon(point.weather[0]?.id ?? 800),
+    }))
+
+  const today = new Date().toISOString().slice(0, 10)
+  const dailyPoints: WeatherDailyPoint[] = daily
+    .filter((point) => new Date(point.dt * 1000).toISOString().slice(0, 10) !== today)
+    .map((point) => ({
+      date: new Date(point.dt * 1000).toISOString().slice(0, 10),
+      temperatureMax: typeof point.temp === "number" ? point.temp : point.temp.max,
+      temperatureMin: typeof point.temp === "number" ? point.temp : point.temp.min,
+      precipitationProbability: point.pop !== undefined ? Math.round(point.pop * 100) : null,
       icon: owmCodeToIcon(point.weather[0]?.id ?? 800),
     }))
 
@@ -65,15 +86,16 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
     source: "openweathermap",
     label: "OpenWeatherMap",
     current: {
-      temperature: current.temp,
+      temperature: typeof current.temp === "number" ? current.temp : current.temp.day ?? current.temp.max,
       feelsLike: current.feels_like ?? null,
       humidity: current.humidity ?? null,
       windSpeed: current.wind_speed !== undefined ? Math.round(current.wind_speed * 3.6) : null, // m/s -> km/h
+      uvIndex: current.uvi ?? null,
       condition: current.weather[0]?.description ?? "Conditions variables",
       icon: owmCodeToIcon(current.weather[0]?.id ?? 800),
     },
     hourly: restOfDay,
-    daily: [],
+    daily: dailyPoints,
     rainNextHour: computeRainNextHour(nextHourTimeline, hourly),
     nextHourTimeline,
   }

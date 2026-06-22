@@ -257,6 +257,7 @@ export type WeatherSourceData = {
     feelsLike: number | null
     humidity: number | null // %
     windSpeed: number | null // km/h
+    uvIndex: number | null
     condition: string
     icon: WeatherIconKey
   }

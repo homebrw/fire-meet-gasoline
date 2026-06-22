@@ -34,6 +34,7 @@ function EventsPageContent() {
   const [isPending, startTransition] = useTransition()
   const [pastOpen, setPastOpen] = useState(false)
   const [now] = useState(() => Date.now())
+  const [reloadToken, setReloadToken] = useState(0)
 
   useEffect(() => {
     async function load() {
@@ -49,11 +50,16 @@ function EventsPageContent() {
       setPersons(personsData)
     }
     load()
-  }, [])
+  }, [reloadToken])
+
+  function load() {
+    setReloadToken((t) => t + 1)
+  }
 
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteEvent(id)
+      await load()
       router.refresh()
     })
   }
@@ -95,6 +101,7 @@ function EventsPageContent() {
                     event={ev}
                     onSuccess={() => {
                       setEditEvent(null)
+                      load()
                       router.refresh()
                     }}
                   />
@@ -121,7 +128,10 @@ function EventsPageContent() {
           <EventCard
             event={ev}
             persons={persons}
-            onRevalidateNeeded={async () => router.refresh()}
+            onRevalidateNeeded={async () => {
+              await load()
+              router.refresh()
+            }}
           />
         </CardContent>
       </Card>
@@ -155,6 +165,7 @@ function EventsPageContent() {
               initialDate={initialDate ?? undefined}
               onSuccess={() => {
                 setCreateOpen(false)
+                load()
                 router.refresh()
               }}
             />

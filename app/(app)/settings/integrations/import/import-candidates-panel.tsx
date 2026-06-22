@@ -73,6 +73,23 @@ export function ImportCandidatesPanel({
   const [isActionPending, startAction] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
+  // router.refresh() re-renders the server parent and gives us new props,
+  // but useState's initial value is only read on mount — without this, the
+  // list would never pick up server-side changes (e.g. after a refresh search).
+  // Adjusting state during render (rather than in an effect) avoids an extra
+  // render pass — see https://react.dev/learn/you-might-not-need-an-effect.
+  const [prevInitialCandidates, setPrevInitialCandidates] = useState(initialCandidates)
+  if (initialCandidates !== prevInitialCandidates) {
+    setPrevInitialCandidates(initialCandidates)
+    setCandidates(initialCandidates)
+  }
+
+  const [prevInitialRejected, setPrevInitialRejected] = useState(initialRejected)
+  if (initialRejected !== prevInitialRejected) {
+    setPrevInitialRejected(initialRejected)
+    setRejected(initialRejected)
+  }
+
   function handleRefresh() {
     setError(null)
     startRefresh(async () => {

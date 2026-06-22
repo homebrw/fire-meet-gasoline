@@ -1,53 +1,59 @@
 import type { WeatherHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
 import { owmCodeToIcon } from "../icons"
 
-type OwmResponse = {
-  current: {
-    temp: number
-    feels_like: number
-    weather: { id: number; description: string }[]
-  }
-  minutely?: { dt: number; precipitation: number }[]
-  hourly: {
-    dt: number
-    temp: number
-    pop: number // probability of precipitation, 0-1
-    weather: { id: number }[]
-  }[]
+type OwmRecord = {
+  dt: number
+  temp: number
+  feels_like?: number
+  precipitation?: number // mm/h
+  weather: { id: number; description?: string }[]
 }
 
-// OpenWeatherMap One Call API 3.0. Requires OPENWEATHER_API_KEY (free tier).
-// https://openweathermap.org/api/one-call-3
+type OwmTimelineResponse = {
+  data: OwmRecord[]
+}
+
+// OpenWeatherMap One Call API 4.0. Requires OPENWEATHER_API_KEY (subscribed
+// to "One Call by Call"). Unlike 3.0, it's split into separate "timeline"
+// endpoints rather than one combined response.
+// https://openweathermap.org/api/one-call-4
 export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<WeatherSourceData> {
   const apiKey = process.env.OPENWEATHER_API_KEY
   if (!apiKey) {
     throw new Error("OPENWEATHER_API_KEY is not configured")
   }
 
-  const url = new URL("https://api.openweathermap.org/data/3.0/onecall")
-  url.searchParams.set("lat", String(lat))
-  url.searchParams.set("lon", String(lon))
-  url.searchParams.set("appid", apiKey)
-  url.searchParams.set("units", "metric")
-  url.searchParams.set("lang", "fr")
-  url.searchParams.set("exclude", "daily,alerts")
+  const base = "https://api.openweathermap.org/data/4.0/onecall"
+  const commonParams = { lat: String(lat), lon: String(lon), units: "metric", lang: "fr", appid: apiKey }
 
-  const res = await fetch(url.toString(), { cache: "no-store" })
-  if (!res.ok) {
-    throw new Error(`OpenWeatherMap error: ${res.status}`)
+  const buildUrl = (path: string) => {
+    const url = new URL(`${base}${path}`)
+    for (const [key, value] of Object.entries(commonParams)) url.searchParams.set(key, value)
+    return url.toString()
   }
-  const data = (await res.json()) as OwmResponse
 
-  const now = Date.now()
+  const [currentRes, minutelyRes, hourlyRes] = await Promise.all([
+    fetch(buildUrl("/current"), { cache: "no-store" }),
+    fetch(buildUrl("/timeline/1min"), { cache: "no-store" }),
+    fetch(buildUrl("/timeline/1h"), { cache: "no-store" }),
+  ])
+
+  if (!currentRes.ok) throw new Error(`OpenWeatherMap current error: ${currentRes.status}`)
+  if (!hourlyRes.ok) throw new Error(`OpenWeatherMap hourly error: ${hourlyRes.status}`)
+
+  const current = ((await currentRes.json()) as OwmTimelineResponse).data[0]
+  const hourly = ((await hourlyRes.json()) as OwmTimelineResponse).data
+  const minutely = minutelyRes.ok ? ((await minutelyRes.json()) as OwmTimelineResponse).data : []
+
   const endOfDay = new Date()
   endOfDay.setHours(23, 59, 59, 999)
 
-  const hourly: WeatherHourPoint[] = data.hourly
-    .filter((point) => point.dt * 1000 >= now && point.dt * 1000 <= endOfDay.getTime())
+  const restOfDay: WeatherHourPoint[] = hourly
+    .filter((point) => point.dt * 1000 <= endOfDay.getTime())
     .map((point) => ({
       time: new Date(point.dt * 1000).toISOString(),
       temperature: point.temp,
-      precipitationProbability: Math.round(point.pop * 100),
+      precipitationProbability: point.precipitation !== undefined ? (point.precipitation > 0 ? 100 : 0) : null,
       icon: owmCodeToIcon(point.weather[0]?.id ?? 800),
     }))
 
@@ -55,32 +61,29 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
     source: "openweathermap",
     label: "OpenWeatherMap",
     current: {
-      temperature: data.current.temp,
-      feelsLike: data.current.feels_like ?? null,
-      condition: data.current.weather[0]?.description ?? "Conditions variables",
-      icon: owmCodeToIcon(data.current.weather[0]?.id ?? 800),
+      temperature: current.temp,
+      feelsLike: current.feels_like ?? null,
+      condition: current.weather[0]?.description ?? "Conditions variables",
+      icon: owmCodeToIcon(current.weather[0]?.id ?? 800),
     },
-    hourly,
-    rainNextHour: computeRainNextHour(data),
+    hourly: restOfDay,
+    rainNextHour: computeRainNextHour(minutely, hourly),
   }
 }
 
-function computeRainNextHour(data: OwmResponse): WeatherRainNextHour {
-  if (!data.minutely || data.minutely.length === 0) {
-    const nextHourPop = data.hourly[0]?.pop ?? 0
+function computeRainNextHour(minutely: OwmRecord[], hourly: OwmRecord[]): WeatherRainNextHour {
+  if (minutely.length === 0) {
+    const nextHourPrecip = hourly[0]?.precipitation ?? 0
     return {
-      willRain: nextHourPop >= 0.5,
-      probability: Math.round(nextHourPop * 100),
-      startsInMinutes: nextHourPop >= 0.5 ? 0 : null,
+      willRain: nextHourPrecip > 0,
+      probability: null,
+      startsInMinutes: nextHourPrecip > 0 ? 0 : null,
     }
   }
 
-  const now = Date.now()
-  const upcoming = data.minutely
-    .filter((point) => point.dt * 1000 >= now)
-    .slice(0, 60)
-
-  const rainingIndex = upcoming.findIndex((point) => point.precipitation > 0.1)
+  const sorted = [...minutely].sort((a, b) => a.dt - b.dt).slice(0, 60)
+  const startDt = sorted[0]?.dt ?? 0
+  const rainingIndex = sorted.findIndex((point) => (point.precipitation ?? 0) > 0.1)
 
   if (rainingIndex === -1) {
     return { willRain: false, probability: null, startsInMinutes: null }
@@ -89,6 +92,6 @@ function computeRainNextHour(data: OwmResponse): WeatherRainNextHour {
   return {
     willRain: true,
     probability: null,
-    startsInMinutes: rainingIndex,
+    startsInMinutes: Math.round((sorted[rainingIndex].dt - startDt) / 60),
   }
 }

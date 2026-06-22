@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CalendarEvent, Person } from "@/lib/types"
-import { format, parseISO, differenceInDays, isSameDay } from "date-fns"
+import { format, parseISO, differenceInDays, isSameDay, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Paperclip, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -36,7 +36,7 @@ export function EventCard({
 
   const eventDate = parseISO(event.start_at)
   const endDate = parseISO(event.end_at)
-  const daysRemaining = differenceInDays(eventDate, new Date())
+  const daysRemaining = differenceInDays(startOfDay(eventDate), startOfDay(new Date()))
   const isMultiDay = !isSameDay(eventDate, endDate)
 
   return (

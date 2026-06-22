@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { EventForm } from "@/components/events/EventForm"
-import { format, parseISO, differenceInDays } from "date-fns"
+import { format, parseISO, differenceInDays, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { CalendarCheck, Plus } from "lucide-react"
 
@@ -37,7 +37,7 @@ export function NextAvailableSlot({ slot, persons }: NextAvailableSlotProps) {
               </p>
               <p className="text-xs text-[var(--color-muted-foreground)]">
                 {(() => {
-                  const daysUntilSlot = differenceInDays(parseISO(slot.date), new Date())
+                  const daysUntilSlot = differenceInDays(startOfDay(parseISO(slot.date)), startOfDay(new Date()))
                   return daysUntilSlot === 0 ? "Aujourd'hui" : `Dans ${daysUntilSlot} jour${daysUntilSlot > 1 ? "s" : ""}`
                 })()}
               </p>

@@ -2,10 +2,11 @@
 
 export const dynamic = "force-dynamic"
 
-import { Suspense, useEffect, useState, useTransition } from "react"
+import { Suspense, useEffect, useMemo, useState, useTransition } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { deleteEvent } from "@/lib/actions/events"
+import { useEventsParticipants } from "@/lib/hooks/useEventParticipants"
 import type { CalendarEvent, Person } from "@/lib/types"
 import {
   Dialog,
@@ -17,10 +18,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Eye, Pencil, ArrowLeft, ChevronDown } from "lucide-react"
+import { Plus, Trash2, Eye, Pencil, ArrowLeft, ChevronDown, X } from "lucide-react"
 import Link from "next/link"
 import { EventForm } from "@/components/events/EventForm"
 import { EventCard } from "@/components/events/EventCard"
+import { cn } from "@/lib/utils"
+
+type SourceFilter = "all" | "internal" | "external"
 
 function EventsPageContent() {
   const searchParams = useSearchParams()
@@ -34,6 +38,14 @@ function EventsPageContent() {
   const [isPending, startTransition] = useTransition()
   const [pastOpen, setPastOpen] = useState(false)
   const [now] = useState(() => Date.now())
+  const [reloadToken, setReloadToken] = useState(0)
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+  const [participantFilter, setParticipantFilter] = useState<string[]>([])
+
+  const eventIds = useMemo(() => events.map((ev) => ev.id), [events])
+  const participantsByEvent = useEventsParticipants(eventIds)
 
   useEffect(() => {
     async function load() {
@@ -49,19 +61,51 @@ function EventsPageContent() {
       setPersons(personsData)
     }
     load()
-  }, [])
+  }, [reloadToken])
+
+  function load() {
+    setReloadToken((t) => t + 1)
+  }
 
   function handleDelete(id: string) {
     startTransition(async () => {
       await deleteEvent(id)
+      await load()
       router.refresh()
     })
   }
 
-  const upcomingEvents = events
+  function togglePersonFilter(personId: string) {
+    setParticipantFilter((prev) =>
+      prev.includes(personId) ? prev.filter((id) => id !== personId) : [...prev, personId]
+    )
+  }
+
+  function resetFilters() {
+    setSourceFilter("all")
+    setDateFrom("")
+    setDateTo("")
+    setParticipantFilter([])
+  }
+
+  const hasActiveFilters = sourceFilter !== "all" || !!dateFrom || !!dateTo || participantFilter.length > 0
+
+  const filteredEvents = events.filter((ev) => {
+    if (sourceFilter === "internal" && ev.imported_from_connection_id) return false
+    if (sourceFilter === "external" && !ev.imported_from_connection_id) return false
+    if (dateFrom && new Date(ev.end_at).getTime() < new Date(dateFrom).getTime()) return false
+    if (dateTo && new Date(ev.start_at).getTime() > new Date(`${dateTo}T23:59:59`).getTime()) return false
+    if (participantFilter.length > 0) {
+      const eventParticipantIds = (participantsByEvent[ev.id] ?? []).map((p) => p.person_id)
+      if (!participantFilter.some((id) => eventParticipantIds.includes(id))) return false
+    }
+    return true
+  })
+
+  const upcomingEvents = filteredEvents
     .filter((ev) => new Date(ev.start_at).getTime() >= now)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
-  const pastEvents = events
+  const pastEvents = filteredEvents
     .filter((ev) => new Date(ev.start_at).getTime() < now)
     .sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime())
 
@@ -95,6 +139,7 @@ function EventsPageContent() {
                     event={ev}
                     onSuccess={() => {
                       setEditEvent(null)
+                      load()
                       router.refresh()
                     }}
                   />
@@ -121,7 +166,10 @@ function EventsPageContent() {
           <EventCard
             event={ev}
             persons={persons}
-            onRevalidateNeeded={async () => router.refresh()}
+            onRevalidateNeeded={async () => {
+              await load()
+              router.refresh()
+            }}
           />
         </CardContent>
       </Card>
@@ -155,6 +203,7 @@ function EventsPageContent() {
               initialDate={initialDate ?? undefined}
               onSuccess={() => {
                 setCreateOpen(false)
+                load()
                 router.refresh()
               }}
             />
@@ -170,13 +219,103 @@ function EventsPageContent() {
         </Card>
       ) : (
         <div className="space-y-6">
+          <Card>
+            <CardContent className="space-y-3 pt-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-[var(--color-muted-foreground)]">Source</label>
+                  <div className="flex gap-1">
+                    {([
+                      ["all", "Toutes"],
+                      ["internal", "Interne"],
+                      ["external", "Google"],
+                    ] as [SourceFilter, string][]).map(([value, label]) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        size="sm"
+                        variant={sourceFilter === value ? "default" : "outline"}
+                        onClick={() => setSourceFilter(value)}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label htmlFor="date-from" className="text-xs font-medium text-[var(--color-muted-foreground)]">
+                    Du
+                  </label>
+                  <input
+                    id="date-from"
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label htmlFor="date-to" className="text-xs font-medium text-[var(--color-muted-foreground)]">
+                    Au
+                  </label>
+                  <input
+                    id="date-to"
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-background)] px-2 text-sm"
+                  />
+                </div>
+
+                {hasActiveFilters && (
+                  <Button type="button" size="sm" variant="ghost" onClick={resetFilters} className="gap-1">
+                    <X className="h-3.5 w-3.5" />
+                    Réinitialiser
+                  </Button>
+                )}
+              </div>
+
+              {persons.length > 0 && (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-[var(--color-muted-foreground)]">Participants</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {persons.map((person) => {
+                      const active = participantFilter.includes(person.id)
+                      return (
+                        <button
+                          key={person.id}
+                          type="button"
+                          onClick={() => togglePersonFilter(person.id)}
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors",
+                            active
+                              ? "bg-[var(--color-secondary-surface)] ring-1 ring-[var(--color-foreground)]"
+                              : "bg-[var(--color-secondary-surface)] opacity-60 hover:opacity-100"
+                          )}
+                        >
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: person.color || "var(--color-muted-foreground)" }}
+                          />
+                          {person.name}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-[var(--color-muted-foreground)]">
               Événements à venir
             </h2>
             {upcomingEvents.length === 0 ? (
               <p className="text-sm text-[var(--color-muted-foreground)]">
-                Aucun événement à venir.
+                {hasActiveFilters ? "Aucun événement ne correspond aux filtres." : "Aucun événement à venir."}
               </p>
             ) : (
               <div className="space-y-3">{upcomingEvents.map(renderEventCard)}</div>

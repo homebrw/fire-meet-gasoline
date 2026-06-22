@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { generateCustodyPeriods } from "./engine"
 import type { RecurrenceRule, ChildPresence, CustodyTransition } from "@/lib/types"
 import { addYears, parseISO } from "date-fns"
+import { syncPersonCalendarSafe } from "@/lib/calendar-sync/sync"
 
 export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
   const supabase = await createClient()
@@ -25,7 +26,10 @@ export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
   await supabase.from("child_presences").delete().eq("recurrence_rule_id", rule.id)
   await supabase.from("custody_transitions").delete().eq("recurrence_rule_id", rule.id)
 
-  if (generatedPeriods.length === 0) return
+  if (generatedPeriods.length === 0) {
+    void syncPersonCalendarSafe(rule.person_id)
+    return
+  }
 
   // Create ChildPresence records
   const childPresences: Omit<ChildPresence, "id" | "created_at" | "updated_at">[] = generatedPeriods.map((period) => ({
@@ -83,6 +87,8 @@ export async function generateAndPersistCustodyData(rule: RecurrenceRule) {
 
     if (transitionError) throw new Error(`Failed to insert custody transitions: ${transitionError.message}`)
   }
+
+  void syncPersonCalendarSafe(rule.person_id)
 }
 
 export async function regenerateForRule(ruleId: string) {

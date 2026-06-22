@@ -1,11 +1,17 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { getPendingGoogleImportCandidates } from "@/lib/actions/calendar-integrations"
+import {
+  getPendingGoogleImportCandidates,
+  getRejectedGoogleImportCandidates,
+} from "@/lib/actions/calendar-integrations"
 import { ImportCandidatesPanel } from "./import-candidates-panel"
 
 export default async function GoogleImportPage() {
-  const candidates = await getPendingGoogleImportCandidates()
+  const [candidates, rejected] = await Promise.all([
+    getPendingGoogleImportCandidates(),
+    getRejectedGoogleImportCandidates(),
+  ])
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
@@ -24,7 +30,7 @@ export default async function GoogleImportPage() {
         </p>
       </div>
 
-      <ImportCandidatesPanel initialCandidates={candidates} />
+      <ImportCandidatesPanel initialCandidates={candidates} initialRejected={rejected} />
     </div>
   )
 }

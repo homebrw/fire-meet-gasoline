@@ -16,12 +16,13 @@ export function GoogleCalendarPanel({
   initialStatus: GoogleCalendarConnectionStatus
 }) {
   const [status, setStatus] = useState(initialStatus)
-  const [isPending, startTransition] = useTransition()
+  const [isSyncing, startSync] = useTransition()
+  const [isDisconnecting, startDisconnect] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   function handleSyncNow() {
     setError(null)
-    startTransition(async () => {
+    startSync(async () => {
       try {
         await syncGoogleCalendarNow()
       } catch {
@@ -32,7 +33,7 @@ export function GoogleCalendarPanel({
 
   function handleDisconnect() {
     setError(null)
-    startTransition(async () => {
+    startDisconnect(async () => {
       try {
         await disconnectGoogleCalendar()
         setStatus({ connected: false, googleAccountEmail: null, lastSyncedAt: null })
@@ -70,14 +71,14 @@ export function GoogleCalendarPanel({
               </p>
             )}
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleSyncNow} disabled={isPending}>
-                Synchroniser maintenant
+              <Button onClick={handleSyncNow} disabled={isSyncing || isDisconnecting}>
+                {isSyncing ? "Synchronisation…" : "Synchroniser maintenant"}
               </Button>
               <Button variant="outline" asChild>
                 <a href="/settings/integrations/import">Importer depuis Google</a>
               </Button>
-              <Button variant="outline" onClick={handleDisconnect} disabled={isPending}>
-                Déconnecter
+              <Button variant="outline" onClick={handleDisconnect} disabled={isSyncing || isDisconnecting}>
+                {isDisconnecting ? "Déconnexion…" : "Déconnecter"}
               </Button>
             </div>
           </>

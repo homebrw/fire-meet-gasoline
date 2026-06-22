@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   acceptGoogleImportCandidate,
   rejectGoogleImportCandidate,
+  restoreGoogleImportCandidate,
   refreshGoogleImportCandidates,
   type GoogleImportCandidate,
 } from "@/lib/actions/calendar-integrations"
@@ -20,107 +22,186 @@ function formatPeriod(candidate: GoogleImportCandidate): string {
   return `${start.toLocaleString("fr-FR")} → ${end.toLocaleString("fr-FR")}`
 }
 
+function CandidateCard({
+  candidate,
+  isPending,
+  children,
+}: {
+  candidate: GoogleImportCandidate
+  isPending: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-2">
+        <div>
+          <CardTitle className="text-base">{candidate.summary}</CardTitle>
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            {formatPeriod(candidate)}
+          </p>
+          {candidate.location && (
+            <p className="text-xs text-[var(--color-muted-foreground)]">{candidate.location}</p>
+          )}
+          {candidate.description && (
+            <p className="text-xs text-[var(--color-muted-foreground)] mt-1">
+              {candidate.description}
+            </p>
+          )}
+        </div>
+        {candidate.is_all_day && <Badge variant="secondary">Journée entière</Badge>}
+      </CardHeader>
+      <CardContent className="flex gap-2" aria-busy={isPending}>
+        {children}
+      </CardContent>
+    </Card>
+  )
+}
+
 export function ImportCandidatesPanel({
   initialCandidates,
+  initialRejected,
 }: {
   initialCandidates: GoogleImportCandidate[]
+  initialRejected: GoogleImportCandidate[]
 }) {
+  const router = useRouter()
   const [candidates, setCandidates] = useState(initialCandidates)
-  const [isPending, startTransition] = useTransition()
-  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [rejected, setRejected] = useState(initialRejected)
+  const [showRejected, setShowRejected] = useState(false)
+  const [isRefreshing, startRefresh] = useTransition()
+  const [pendingAction, setPendingAction] = useState<{ id: string; action: "accept" | "reject" | "restore" } | null>(null)
+  const [isActionPending, startAction] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   function handleRefresh() {
     setError(null)
-    startTransition(async () => {
+    startRefresh(async () => {
       try {
         await refreshGoogleImportCandidates()
-        window.location.reload()
+        router.refresh()
       } catch {
-        setError("La récupération des événements Google a échoué.")
+        setError("La récupération des événements Google a échoué. Réessayez dans quelques instants.")
       }
     })
   }
 
   function handleAccept(id: string) {
     setError(null)
-    setPendingId(id)
-    startTransition(async () => {
+    setPendingAction({ id, action: "accept" })
+    startAction(async () => {
       try {
         await acceptGoogleImportCandidate(id)
         setCandidates((prev) => prev.filter((c) => c.id !== id))
       } catch {
-        setError("L'import de cet événement a échoué.")
+        setError("L'import de cet événement a échoué. Réessayez dans quelques instants.")
       } finally {
-        setPendingId(null)
+        setPendingAction(null)
       }
     })
   }
 
   function handleReject(id: string) {
     setError(null)
-    setPendingId(id)
-    startTransition(async () => {
+    setPendingAction({ id, action: "reject" })
+    startAction(async () => {
       try {
         await rejectGoogleImportCandidate(id)
+        const candidate = candidates.find((c) => c.id === id)
         setCandidates((prev) => prev.filter((c) => c.id !== id))
+        if (candidate) setRejected((prev) => [...prev, candidate])
       } catch {
-        setError("Le refus de cet événement a échoué.")
+        setError("Le refus de cet événement a échoué. Réessayez dans quelques instants.")
       } finally {
-        setPendingId(null)
+        setPendingAction(null)
       }
     })
   }
 
+  function handleRestore(id: string) {
+    setError(null)
+    setPendingAction({ id, action: "restore" })
+    startAction(async () => {
+      try {
+        await restoreGoogleImportCandidate(id)
+        const candidate = rejected.find((c) => c.id === id)
+        setRejected((prev) => prev.filter((c) => c.id !== id))
+        if (candidate) setCandidates((prev) => [...prev, candidate])
+      } catch {
+        setError("La restauration de cet événement a échoué. Réessayez dans quelques instants.")
+      } finally {
+        setPendingAction(null)
+      }
+    })
+  }
+
+  function isBusy(id: string) {
+    return isActionPending && pendingAction?.id === id
+  }
+
+  function label(id: string, action: "accept" | "reject" | "restore", idleLabel: string, busyLabel: string) {
+    return isActionPending && pendingAction?.id === id && pendingAction.action === action ? busyLabel : idleLabel
+  }
+
   return (
     <div className="space-y-4">
-      <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isPending}>
-        Rechercher de nouveaux événements
+      <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+        {isRefreshing ? "Recherche…" : "Rechercher de nouveaux événements"}
       </Button>
 
       {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
 
       {candidates.length === 0 ? (
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          Aucun événement en attente de revue.
+          Aucun événement en attente de revue. Cliquez sur « Rechercher de nouveaux
+          événements » pour vérifier votre Google Agenda.
         </p>
       ) : (
         <div className="space-y-3">
           {candidates.map((candidate) => (
-            <Card key={candidate.id}>
-              <CardHeader className="flex flex-row items-start justify-between gap-2">
-                <div>
-                  <CardTitle className="text-base">{candidate.summary}</CardTitle>
-                  <p className="text-sm text-[var(--color-muted-foreground)]">
-                    {formatPeriod(candidate)}
-                  </p>
-                  {candidate.location && (
-                    <p className="text-xs text-[var(--color-muted-foreground)]">
-                      {candidate.location}
-                    </p>
-                  )}
-                </div>
-                {candidate.is_all_day && <Badge variant="secondary">Journée entière</Badge>}
-              </CardHeader>
-              <CardContent className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleAccept(candidate.id)}
-                  disabled={isPending && pendingId === candidate.id}
-                >
-                  Accepter
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleReject(candidate.id)}
-                  disabled={isPending && pendingId === candidate.id}
-                >
-                  Refuser
-                </Button>
-              </CardContent>
-            </Card>
+            <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
+              <Button size="sm" onClick={() => handleAccept(candidate.id)} disabled={isBusy(candidate.id)}>
+                {label(candidate.id, "accept", "Accepter", "Import…")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleReject(candidate.id)}
+                disabled={isBusy(candidate.id)}
+              >
+                {label(candidate.id, "reject", "Refuser", "…")}
+              </Button>
+            </CandidateCard>
           ))}
+        </div>
+      )}
+
+      {rejected.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowRejected((prev) => !prev)}
+            className="text-[var(--color-muted-foreground)]"
+          >
+            {showRejected ? "Masquer" : "Afficher"} les événements refusés ({rejected.length})
+          </Button>
+
+          {showRejected && (
+            <div className="space-y-3">
+              {rejected.map((candidate) => (
+                <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRestore(candidate.id)}
+                    disabled={isBusy(candidate.id)}
+                  >
+                    {label(candidate.id, "restore", "Annuler le refus", "…")}
+                  </Button>
+                </CandidateCard>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -162,3 +162,40 @@ export async function rejectGoogleImportCandidate(candidateId: string): Promise<
 
   revalidatePath("/settings/integrations/import")
 }
+
+export async function getRejectedGoogleImportCandidates(): Promise<GoogleImportCandidate[]> {
+  const personId = await getCurrentPersonId()
+  const supabase = await createClient()
+
+  const { data: connection } = await supabase
+    .from("calendar_connections")
+    .select("id")
+    .eq("person_id", personId)
+    .eq("provider", "google")
+    .maybeSingle()
+  if (!connection) return []
+
+  const { data, error } = await supabase
+    .from("calendar_import_candidates")
+    .select("id, summary, description, location, start_at, end_at, is_all_day")
+    .eq("connection_id", connection.id)
+    .eq("status", "rejected")
+    .order("start_at")
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+// Brings a rejected candidate back into the pending queue, in case the
+// user changes their mind — rejecting was never meant to be permanent.
+export async function restoreGoogleImportCandidate(candidateId: string): Promise<void> {
+  await getCurrentPersonId()
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("calendar_import_candidates")
+    .update({ status: "pending" })
+    .eq("id", candidateId)
+  if (error) throw new Error(error.message)
+
+  revalidatePath("/settings/integrations/import")
+}

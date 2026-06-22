@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   title: "Famille Sync",
   description: "Synchronisation des gardes et disponibilités",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

@@ -228,3 +228,61 @@ export async function restoreGoogleImportCandidate(candidateId: string): Promise
 
   revalidatePath("/settings/integrations/import")
 }
+
+export async function getAcceptedGoogleImportCandidates(): Promise<GoogleImportCandidate[]> {
+  const personId = await getCurrentPersonId()
+  const supabase = await createClient()
+
+  const { data: connection } = await supabase
+    .from("calendar_connections")
+    .select("id")
+    .eq("person_id", personId)
+    .eq("provider", "google")
+    .maybeSingle()
+  if (!connection) return []
+
+  const { data, error } = await supabase
+    .from("calendar_import_candidates")
+    .select("id, summary, description, location, start_at, end_at, is_all_day")
+    .eq("connection_id", connection.id)
+    .eq("status", "accepted")
+    .order("start_at")
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+// Un-importing deletes the event it created — the schema only tracks
+// pending/accepted/rejected, so there's no "imported but hidden" state to
+// fall back to. The candidate goes back to "rejected" so it can be
+// re-accepted later without re-fetching it from Google.
+export async function revokeGoogleImportCandidate(candidateId: string): Promise<void> {
+  await getCurrentPersonId()
+  const supabase = await createClient()
+
+  const { data: candidate, error } = await supabase
+    .from("calendar_import_candidates")
+    .select("created_event_id")
+    .eq("id", candidateId)
+    .single()
+  if (error || !candidate) throw new Error("Import candidate not found")
+
+  if (candidate.created_event_id) {
+    const { error: deleteError } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", candidate.created_event_id)
+    if (deleteError) throw new Error(deleteError.message)
+  }
+
+  const { error: updateError } = await supabase
+    .from("calendar_import_candidates")
+    .update({ status: "rejected", created_event_id: null })
+    .eq("id", candidateId)
+  if (updateError) throw new Error(updateError.message)
+
+  revalidatePath("/settings/integrations/import")
+  revalidatePath("/settings/events")
+  revalidatePath("/today")
+  revalidatePath("/calendar")
+  revalidatePath("/week")
+}

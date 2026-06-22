@@ -4,7 +4,7 @@ import { useState } from "react"
 import { CalendarEvent, Person } from "@/lib/types"
 import { format, parseISO, differenceInDays, isSameDay, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Paperclip, Pencil } from "lucide-react"
+import { CalendarSync, Paperclip, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { EventAttachmentsList } from "./EventAttachmentsList"
@@ -42,7 +42,18 @@ export function EventCard({
   return (
     <div className="space-y-3">
       <div>
-        <p className="font-medium text-[var(--color-foreground)]">{event.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-[var(--color-foreground)]">{event.title}</p>
+          {event.imported_from_connection_id && (
+            <span
+              title="Importé depuis Google Agenda"
+              className="inline-flex items-center gap-1 rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-muted-foreground)]"
+            >
+              <CalendarSync className="h-3 w-3" />
+              Google Agenda
+            </span>
+          )}
+        </div>
         {event.description && (
           <p className="text-sm text-[var(--color-muted-foreground)] mt-1">{event.description}</p>
         )}

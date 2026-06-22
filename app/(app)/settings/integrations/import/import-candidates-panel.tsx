@@ -9,6 +9,7 @@ import {
   acceptGoogleImportCandidate,
   rejectGoogleImportCandidate,
   restoreGoogleImportCandidate,
+  revokeGoogleImportCandidate,
   refreshGoogleImportCandidates,
   type GoogleImportCandidate,
 } from "@/lib/actions/calendar-integrations"
@@ -60,16 +61,20 @@ function CandidateCard({
 export function ImportCandidatesPanel({
   initialCandidates,
   initialRejected,
+  initialAccepted,
 }: {
   initialCandidates: GoogleImportCandidate[]
   initialRejected: GoogleImportCandidate[]
+  initialAccepted: GoogleImportCandidate[]
 }) {
   const router = useRouter()
   const [candidates, setCandidates] = useState(initialCandidates)
   const [rejected, setRejected] = useState(initialRejected)
+  const [accepted, setAccepted] = useState(initialAccepted)
   const [showRejected, setShowRejected] = useState(false)
+  const [showAccepted, setShowAccepted] = useState(false)
   const [isRefreshing, startRefresh] = useTransition()
-  const [pendingAction, setPendingAction] = useState<{ id: string; action: "accept" | "reject" | "restore" } | null>(null)
+  const [pendingAction, setPendingAction] = useState<{ id: string; action: "accept" | "reject" | "restore" | "revoke" } | null>(null)
   const [isActionPending, startAction] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -90,6 +95,12 @@ export function ImportCandidatesPanel({
     setRejected(initialRejected)
   }
 
+  const [prevInitialAccepted, setPrevInitialAccepted] = useState(initialAccepted)
+  if (initialAccepted !== prevInitialAccepted) {
+    setPrevInitialAccepted(initialAccepted)
+    setAccepted(initialAccepted)
+  }
+
   function handleRefresh() {
     setError(null)
     startRefresh(async () => {
@@ -108,9 +119,29 @@ export function ImportCandidatesPanel({
     startAction(async () => {
       try {
         await acceptGoogleImportCandidate(id)
+        const candidate = candidates.find((c) => c.id === id) ?? rejected.find((c) => c.id === id)
         setCandidates((prev) => prev.filter((c) => c.id !== id))
+        setRejected((prev) => prev.filter((c) => c.id !== id))
+        if (candidate) setAccepted((prev) => [...prev, candidate])
       } catch {
         setError("L'import de cet événement a échoué. Réessayez dans quelques instants.")
+      } finally {
+        setPendingAction(null)
+      }
+    })
+  }
+
+  function handleRevoke(id: string) {
+    setError(null)
+    setPendingAction({ id, action: "revoke" })
+    startAction(async () => {
+      try {
+        await revokeGoogleImportCandidate(id)
+        const candidate = accepted.find((c) => c.id === id)
+        setAccepted((prev) => prev.filter((c) => c.id !== id))
+        if (candidate) setRejected((prev) => [...prev, candidate])
+      } catch {
+        setError("L'annulation de cet import a échoué. Réessayez dans quelques instants.")
       } finally {
         setPendingAction(null)
       }
@@ -155,7 +186,7 @@ export function ImportCandidatesPanel({
     return isActionPending && pendingAction?.id === id
   }
 
-  function label(id: string, action: "accept" | "reject" | "restore", idleLabel: string, busyLabel: string) {
+  function label(id: string, action: "accept" | "reject" | "restore" | "revoke", idleLabel: string, busyLabel: string) {
     return isActionPending && pendingAction?.id === id && pendingAction.action === action ? busyLabel : idleLabel
   }
 
@@ -207,6 +238,9 @@ export function ImportCandidatesPanel({
             <div className="space-y-3">
               {rejected.map((candidate) => (
                 <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
+                  <Button size="sm" onClick={() => handleAccept(candidate.id)} disabled={isBusy(candidate.id)}>
+                    {label(candidate.id, "accept", "Accepter", "Import…")}
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -214,6 +248,42 @@ export function ImportCandidatesPanel({
                     disabled={isBusy(candidate.id)}
                   >
                     {label(candidate.id, "restore", "Annuler le refus", "…")}
+                  </Button>
+                </CandidateCard>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {accepted.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAccepted((prev) => !prev)}
+            className="text-[var(--color-muted-foreground)]"
+          >
+            {showAccepted ? "Masquer" : "Afficher"} les événements importés ({accepted.length})
+          </Button>
+
+          {showAccepted && (
+            <div className="space-y-3">
+              <p className="text-xs text-[var(--color-muted-foreground)]">
+                Annuler un import supprime l&apos;événement correspondant créé dans Famille
+                Sync. Il restera disponible dans les événements refusés si vous souhaitez le
+                réimporter plus tard.
+              </p>
+              {accepted.map((candidate) => (
+                <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-[var(--color-destructive)]"
+                    onClick={() => handleRevoke(candidate.id)}
+                    disabled={isBusy(candidate.id)}
+                  >
+                    {label(candidate.id, "revoke", "Annuler l'import", "…")}
                   </Button>
                 </CandidateCard>
               ))}

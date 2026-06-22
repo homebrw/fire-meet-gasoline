@@ -97,6 +97,8 @@ export type CalendarEvent = {
   allow_participants_to_see_attachments: boolean
   created_at: string
   updated_at: string
+  imported_from_connection_id: string | null
+  external_event_id: string | null
 }
 
 export type EventParticipant = {

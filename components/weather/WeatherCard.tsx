@@ -192,6 +192,22 @@ export function WeatherCard() {
             </div>
           ))}
         </div>
+
+        {weather.errors.length > 0 && (
+          <div className="space-y-1 pt-1 border-t border-[var(--color-border)]">
+            {weather.errors.map((err) => (
+              <p
+                key={err.source}
+                className="text-xs text-[var(--color-muted-foreground)] flex items-start gap-1.5"
+              >
+                <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+                <span>
+                  {err.source} indisponible : {err.message}
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

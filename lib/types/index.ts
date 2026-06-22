@@ -255,10 +255,16 @@ export type WeatherSourceData = {
   nextHourTimeline: WeatherNextHourPoint[]
 }
 
+export type WeatherSourceError = {
+  source: WeatherSourceId
+  message: string
+}
+
 export type WeatherData = {
   lat: number
   lon: number
   sources: WeatherSourceData[]
+  errors: WeatherSourceError[]
 }
 
 export type ActivityFeedItem = {

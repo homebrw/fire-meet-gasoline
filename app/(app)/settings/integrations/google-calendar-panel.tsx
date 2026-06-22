@@ -53,9 +53,9 @@ export function GoogleCalendarPanel({
       <CardContent className="space-y-4">
         <p className="text-sm text-[var(--color-muted-foreground)]">
           Envoie vos périodes de garde, transitions et événements vers votre Google
-          Agenda. La synchronisation se fait uniquement du site vers Google (à sens
-          unique) : les modifications faites directement dans Google Agenda ne sont
-          pas reprises ici.
+          Agenda. Vous pouvez aussi importer des événements depuis Google Agenda,
+          mais rien n&apos;est ajouté automatiquement : chaque événement doit être
+          accepté individuellement.
         </p>
 
         {status.connected ? (
@@ -69,9 +69,12 @@ export function GoogleCalendarPanel({
                 {new Date(status.lastSyncedAt).toLocaleString("fr-FR")}
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button onClick={handleSyncNow} disabled={isPending}>
                 Synchroniser maintenant
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/settings/integrations/import">Importer depuis Google</a>
               </Button>
               <Button variant="outline" onClick={handleDisconnect} disabled={isPending}>
                 Déconnecter

@@ -159,6 +159,46 @@ export async function deleteGoogleEvent(
   }
 }
 
+export type GoogleCalendarListEvent = {
+  id: string
+  summary?: string
+  description?: string
+  location?: string
+  status?: string
+  start: { date?: string; dateTime?: string; timeZone?: string }
+  end: { date?: string; dateTime?: string; timeZone?: string }
+}
+
+export async function listGoogleEvents(
+  accessToken: string,
+  calendarId: string,
+  timeMin: string,
+  timeMax: string
+): Promise<GoogleCalendarListEvent[]> {
+  const events: GoogleCalendarListEvent[] = []
+  let pageToken: string | undefined
+
+  do {
+    const params = new URLSearchParams({
+      timeMin,
+      timeMax,
+      singleEvents: "true",
+      maxResults: "250",
+      ...(pageToken ? { pageToken } : {}),
+    })
+    const res = await fetch(
+      `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    )
+    if (!res.ok) throw new Error(`Failed to list Google events: ${await res.text()}`)
+    const data = await res.json()
+    events.push(...(data.items ?? []))
+    pageToken = data.nextPageToken
+  } while (pageToken)
+
+  return events.filter((e) => e.status !== "cancelled")
+}
+
 export type BusyPeriod = { start: string; end: string }
 
 export async function queryFreeBusy(

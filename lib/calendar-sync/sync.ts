@@ -56,6 +56,7 @@ export async function syncPersonCalendarToGoogle(personId: string): Promise<void
       .from("events")
       .select("id, title, description, start_at, end_at, location, owner_person_id")
       .or(`owner_person_id.eq.${personId},owner_person_id.is.null`)
+      .is("imported_from_connection_id", null)
       .gte("start_at", fromIso)
       .lte("start_at", toIso),
     supabase

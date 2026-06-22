@@ -6,6 +6,14 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
   acceptGoogleImportCandidate,
   rejectGoogleImportCandidate,
   restoreGoogleImportCandidate,
@@ -77,6 +85,13 @@ export function ImportCandidatesPanel({
   const [pendingAction, setPendingAction] = useState<{ id: string; action: "accept" | "reject" | "restore" | "revoke" } | null>(null)
   const [isActionPending, startAction] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [isBulkPending, startBulkAction] = useTransition()
+  const [revokeTarget, setRevokeTarget] = useState<GoogleImportCandidate | null>(null)
+
+  function describeError(fallback: string, err: unknown): string {
+    const detail = err instanceof Error ? err.message : null
+    return detail ? `${fallback} (${detail})` : fallback
+  }
 
   // router.refresh() re-renders the server parent and gives us new props,
   // but useState's initial value is only read on mount — without this, the
@@ -107,8 +122,8 @@ export function ImportCandidatesPanel({
       try {
         await refreshGoogleImportCandidates()
         router.refresh()
-      } catch {
-        setError("La récupération des événements Google a échoué. Réessayez dans quelques instants.")
+      } catch (err) {
+        setError(describeError("La récupération des événements Google a échoué. Réessayez dans quelques instants.", err))
       }
     })
   }
@@ -123,8 +138,8 @@ export function ImportCandidatesPanel({
         setCandidates((prev) => prev.filter((c) => c.id !== id))
         setRejected((prev) => prev.filter((c) => c.id !== id))
         if (candidate) setAccepted((prev) => [...prev, candidate])
-      } catch {
-        setError("L'import de cet événement a échoué. Réessayez dans quelques instants.")
+      } catch (err) {
+        setError(describeError("L'import de cet événement a échoué. Réessayez dans quelques instants.", err))
       } finally {
         setPendingAction(null)
       }
@@ -140,10 +155,11 @@ export function ImportCandidatesPanel({
         const candidate = accepted.find((c) => c.id === id)
         setAccepted((prev) => prev.filter((c) => c.id !== id))
         if (candidate) setRejected((prev) => [...prev, candidate])
-      } catch {
-        setError("L'annulation de cet import a échoué. Réessayez dans quelques instants.")
+      } catch (err) {
+        setError(describeError("L'annulation de cet import a échoué. Réessayez dans quelques instants.", err))
       } finally {
         setPendingAction(null)
+        setRevokeTarget(null)
       }
     })
   }
@@ -157,8 +173,8 @@ export function ImportCandidatesPanel({
         const candidate = candidates.find((c) => c.id === id)
         setCandidates((prev) => prev.filter((c) => c.id !== id))
         if (candidate) setRejected((prev) => [...prev, candidate])
-      } catch {
-        setError("Le refus de cet événement a échoué. Réessayez dans quelques instants.")
+      } catch (err) {
+        setError(describeError("Le refus de cet événement a échoué. Réessayez dans quelques instants.", err))
       } finally {
         setPendingAction(null)
       }
@@ -174,10 +190,41 @@ export function ImportCandidatesPanel({
         const candidate = rejected.find((c) => c.id === id)
         setRejected((prev) => prev.filter((c) => c.id !== id))
         if (candidate) setCandidates((prev) => [...prev, candidate])
-      } catch {
-        setError("La restauration de cet événement a échoué. Réessayez dans quelques instants.")
+      } catch (err) {
+        setError(describeError("La restauration de cet événement a échoué. Réessayez dans quelques instants.", err))
       } finally {
         setPendingAction(null)
+      }
+    })
+  }
+
+  function handleAcceptAll(list: GoogleImportCandidate[]) {
+    setError(null)
+    startBulkAction(async () => {
+      const ids = list.map((c) => c.id)
+      try {
+        await Promise.all(ids.map((id) => acceptGoogleImportCandidate(id)))
+        setCandidates((prev) => prev.filter((c) => !ids.includes(c.id)))
+        setRejected((prev) => prev.filter((c) => !ids.includes(c.id)))
+        setAccepted((prev) => [...prev, ...list])
+      } catch (err) {
+        setError(describeError("L'import groupé a échoué. Réessayez dans quelques instants.", err))
+        router.refresh()
+      }
+    })
+  }
+
+  function handleRejectAll(list: GoogleImportCandidate[]) {
+    setError(null)
+    startBulkAction(async () => {
+      const ids = list.map((c) => c.id)
+      try {
+        await Promise.all(ids.map((id) => rejectGoogleImportCandidate(id)))
+        setCandidates((prev) => prev.filter((c) => !ids.includes(c.id)))
+        setRejected((prev) => [...prev, ...list])
+      } catch (err) {
+        setError(describeError("Le refus groupé a échoué. Réessayez dans quelques instants.", err))
+        router.refresh()
       }
     })
   }
@@ -205,6 +252,16 @@ export function ImportCandidatesPanel({
         </p>
       ) : (
         <div className="space-y-3">
+          {candidates.length > 1 && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleAcceptAll(candidates)} disabled={isBulkPending}>
+                {isBulkPending ? "Import…" : "Tout accepter"}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleRejectAll(candidates)} disabled={isBulkPending}>
+                {isBulkPending ? "…" : "Tout refuser"}
+              </Button>
+            </div>
+          )}
           {candidates.map((candidate) => (
             <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
               <Button size="sm" onClick={() => handleAccept(candidate.id)} disabled={isBusy(candidate.id)}>
@@ -236,6 +293,11 @@ export function ImportCandidatesPanel({
 
           {showRejected && (
             <div className="space-y-3">
+              {rejected.length > 1 && (
+                <Button size="sm" variant="outline" onClick={() => handleAcceptAll(rejected)} disabled={isBulkPending}>
+                  {isBulkPending ? "Import…" : "Tout accepter"}
+                </Button>
+              )}
               {rejected.map((candidate) => (
                 <CandidateCard key={candidate.id} candidate={candidate} isPending={isBusy(candidate.id)}>
                   <Button size="sm" onClick={() => handleAccept(candidate.id)} disabled={isBusy(candidate.id)}>
@@ -280,7 +342,7 @@ export function ImportCandidatesPanel({
                     size="sm"
                     variant="outline"
                     className="text-[var(--color-destructive)]"
-                    onClick={() => handleRevoke(candidate.id)}
+                    onClick={() => setRevokeTarget(candidate)}
                     disabled={isBusy(candidate.id)}
                   >
                     {label(candidate.id, "revoke", "Annuler l'import", "…")}
@@ -291,6 +353,31 @@ export function ImportCandidatesPanel({
           )}
         </div>
       )}
+
+      <Dialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Annuler cet import ?</DialogTitle>
+            <DialogDescription>
+              L&apos;événement « {revokeTarget?.summary} » créé dans Famille Sync sera
+              supprimé. Il restera disponible dans les événements refusés si vous souhaitez
+              le réimporter plus tard.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevokeTarget(null)}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-[var(--color-destructive)] text-white hover:bg-[var(--color-destructive)]/90"
+              onClick={() => revokeTarget && handleRevoke(revokeTarget.id)}
+              disabled={isActionPending && pendingAction?.action === "revoke"}
+            >
+              {isActionPending && pendingAction?.action === "revoke" ? "Suppression…" : "Confirmer la suppression"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

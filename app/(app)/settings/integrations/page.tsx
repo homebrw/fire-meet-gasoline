@@ -1,11 +1,17 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { getGoogleCalendarConnection } from "@/lib/actions/calendar-integrations"
+import {
+  getGoogleCalendarConnection,
+  getPendingGoogleImportCount,
+} from "@/lib/actions/calendar-integrations"
 import { GoogleCalendarPanel } from "./google-calendar-panel"
 
 export default async function IntegrationsPage() {
-  const connection = await getGoogleCalendarConnection()
+  const [connection, pendingImportCount] = await Promise.all([
+    getGoogleCalendarConnection(),
+    getPendingGoogleImportCount(),
+  ])
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-6">
@@ -22,7 +28,7 @@ export default async function IntegrationsPage() {
         </p>
       </div>
 
-      <GoogleCalendarPanel initialStatus={connection} />
+      <GoogleCalendarPanel initialStatus={connection} pendingImportCount={pendingImportCount} />
     </div>
   )
 }

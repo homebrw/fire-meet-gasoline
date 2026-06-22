@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { getValidGoogleAccessToken } from "@/lib/calendar-sync/connection"
 import { listGoogleEvents, type GoogleCalendarListEvent } from "@/lib/google-calendar"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 // Same rolling window as the push sync: a few days back, far enough ahead
 // to cover the planning horizon.
@@ -29,11 +30,15 @@ function eventTimes(e: GoogleCalendarListEvent): { startAt: string; endAt: strin
 // Pulls events from the person's Google calendar and stores them as review
 // candidates. Events we pushed ourselves (tracked in calendar_sync_links)
 // are excluded so a round-trip through Google can't re-import our own data.
-export async function fetchGoogleImportCandidates(personId: string): Promise<void> {
-  const connection = await getValidGoogleAccessToken(personId)
+//
+// `client` is optional and only needed for contexts with no Supabase Auth
+// session (webhook receiver) — pass an admin client there since the
+// owner-only RLS policies would otherwise hide every row.
+export async function fetchGoogleImportCandidates(personId: string, client?: SupabaseClient): Promise<void> {
+  const connection = await getValidGoogleAccessToken(personId, client)
   if (!connection) return
 
-  const supabase = await createClient()
+  const supabase = client ?? (await createClient())
   const { from, to } = windowBounds()
 
   const [googleEvents, linksRes] = await Promise.all([

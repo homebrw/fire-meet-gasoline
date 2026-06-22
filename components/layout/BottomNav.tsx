@@ -12,7 +12,7 @@ const navItems = [
   { href: "/settings", label: "Paramètres", icon: Settings },
 ]
 
-export function BottomNav() {
+export function BottomNav({ pendingImportCount = 0 }: { pendingImportCount?: number }) {
   const pathname = usePathname()
 
   return (
@@ -33,7 +33,15 @@ export function BottomNav() {
               aria-label={label}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className="h-5 w-5" />
+              <span className="relative">
+                <Icon className="h-5 w-5" />
+                {href === "/settings" && pendingImportCount > 0 && (
+                  <span
+                    className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full bg-[var(--color-destructive)]"
+                    aria-label={`${pendingImportCount} événement${pendingImportCount > 1 ? "s" : ""} à valider`}
+                  />
+                )}
+              </span>
               <span className={active ? "font-medium" : ""}>{label}</span>
             </Link>
           )

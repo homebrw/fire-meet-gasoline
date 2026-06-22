@@ -199,6 +199,63 @@ export async function listGoogleEvents(
   return events.filter((e) => e.status !== "cancelled")
 }
 
+export type GoogleWatchChannel = {
+  resourceId: string
+  expiration: string
+}
+
+// Registers a push-notification channel so Google calls our webhook whenever
+// the calendar changes, instead of us having to poll. `address` must be a
+// publicly reachable HTTPS URL (Google verifies domain ownership for it).
+export async function watchGoogleEvents(
+  accessToken: string,
+  calendarId: string,
+  channelId: string,
+  address: string,
+  token: string,
+  ttlSeconds: number
+): Promise<GoogleWatchChannel> {
+  const res = await fetch(
+    `${GOOGLE_CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events/watch`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: channelId,
+        type: "web_hook",
+        address,
+        token,
+        params: { ttl: String(ttlSeconds) },
+      }),
+    }
+  )
+  if (!res.ok) throw new Error(`Failed to register Google watch channel: ${await res.text()}`)
+  const data = await res.json()
+  return { resourceId: data.resourceId, expiration: data.expiration }
+}
+
+export async function stopGoogleChannel(
+  accessToken: string,
+  channelId: string,
+  resourceId: string
+): Promise<void> {
+  const res = await fetch(`https://www.googleapis.com/calendar/v3/channels/stop`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id: channelId, resourceId }),
+  })
+  // 404: channel already expired/gone — treat as success.
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Failed to stop Google watch channel: ${await res.text()}`)
+  }
+}
+
 export type BusyPeriod = { start: string; end: string }
 
 export async function queryFreeBusy(

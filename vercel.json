@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/renew-calendar-watch",
+      "schedule": "0 4 * * *"
+    }
+  ]
+}

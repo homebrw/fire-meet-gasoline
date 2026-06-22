@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { syncPersonCalendarToGoogle } from "@/lib/calendar-sync/sync"
 import { getGoogleBusyPeriods } from "@/lib/calendar-sync/freebusy"
 import { fetchGoogleImportCandidates } from "@/lib/calendar-sync/import"
+import { unregisterCalendarWatch } from "@/lib/calendar-sync/watch"
 import type { BusyPeriod } from "@/lib/google-calendar"
 
 async function getCurrentPersonId(): Promise<string> {
@@ -47,6 +48,7 @@ export async function getGoogleCalendarConnection(): Promise<GoogleCalendarConne
 
 export async function disconnectGoogleCalendar(): Promise<void> {
   const personId = await getCurrentPersonId()
+  await unregisterCalendarWatch(personId).catch(() => {})
   const supabase = await createClient()
   const { error } = await supabase
     .from("calendar_connections")
@@ -84,6 +86,33 @@ export async function refreshGoogleImportCandidates(): Promise<void> {
   const personId = await getCurrentPersonId()
   await fetchGoogleImportCandidates(personId)
   revalidatePath("/settings/integrations/import")
+}
+
+// Defensive: used to render a nav badge, so a transient failure (no person,
+// not connected, etc.) should just hide the badge rather than break the page.
+export async function getPendingGoogleImportCount(): Promise<number> {
+  try {
+    const personId = await getCurrentPersonId()
+    const supabase = await createClient()
+
+    const { data: connection } = await supabase
+      .from("calendar_connections")
+      .select("id")
+      .eq("person_id", personId)
+      .eq("provider", "google")
+      .maybeSingle()
+    if (!connection) return 0
+
+    const { count, error } = await supabase
+      .from("calendar_import_candidates")
+      .select("id", { count: "exact", head: true })
+      .eq("connection_id", connection.id)
+      .eq("status", "pending")
+    if (error) return 0
+    return count ?? 0
+  } catch {
+    return 0
+  }
 }
 
 export async function getPendingGoogleImportCandidates(): Promise<GoogleImportCandidate[]> {

@@ -12,8 +12,10 @@ import {
 
 export function GoogleCalendarPanel({
   initialStatus,
+  pendingImportCount = 0,
 }: {
   initialStatus: GoogleCalendarConnectionStatus
+  pendingImportCount?: number
 }) {
   const [status, setStatus] = useState(initialStatus)
   const [isSyncing, startSync] = useTransition()
@@ -75,7 +77,14 @@ export function GoogleCalendarPanel({
                 {isSyncing ? "Synchronisation…" : "Synchroniser maintenant"}
               </Button>
               <Button variant="outline" asChild>
-                <a href="/settings/integrations/import">Importer depuis Google</a>
+                <a href="/settings/integrations/import" className="gap-2">
+                  Importer depuis Google
+                  {pendingImportCount > 0 && (
+                    <Badge variant="default" className="px-1.5">
+                      {pendingImportCount > 9 ? "9+" : pendingImportCount}
+                    </Badge>
+                  )}
+                </a>
               </Button>
               <Button variant="outline" onClick={handleDisconnect} disabled={isSyncing || isDisconnecting}>
                 {isDisconnecting ? "Déconnexion…" : "Déconnecter"}

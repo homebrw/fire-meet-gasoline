@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { refreshAccessToken } from "@/lib/google-calendar"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export type CalendarConnection = {
   id: string
@@ -14,8 +15,14 @@ export type CalendarConnection = {
 // mid-sync.
 const EXPIRY_SAFETY_MARGIN_MS = 5 * 60 * 1000
 
-export async function getConnectionByPersonId(personId: string): Promise<CalendarConnection | null> {
-  const supabase = await createClient()
+// `client` is optional and only needed for contexts with no Supabase Auth
+// session (webhook receiver, cron) — pass an admin client there since the
+// owner-only RLS policy on calendar_connections would otherwise hide the row.
+export async function getConnectionByPersonId(
+  personId: string,
+  client?: SupabaseClient
+): Promise<CalendarConnection | null> {
+  const supabase = client ?? (await createClient())
   const { data, error } = await supabase
     .from("calendar_connections")
     .select("id, person_id, access_token, refresh_token, token_expires_at, calendar_id")
@@ -26,8 +33,11 @@ export async function getConnectionByPersonId(personId: string): Promise<Calenda
   return data
 }
 
-export async function getValidGoogleAccessToken(personId: string): Promise<CalendarConnection | null> {
-  const connection = await getConnectionByPersonId(personId)
+export async function getValidGoogleAccessToken(
+  personId: string,
+  client?: SupabaseClient
+): Promise<CalendarConnection | null> {
+  const connection = await getConnectionByPersonId(personId, client)
   if (!connection) return null
 
   const expiresAt = new Date(connection.token_expires_at).getTime()
@@ -38,7 +48,7 @@ export async function getValidGoogleAccessToken(personId: string): Promise<Calen
   const tokens = await refreshAccessToken(connection.refresh_token)
   const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString()
 
-  const supabase = await createClient()
+  const supabase = client ?? (await createClient())
   const { error } = await supabase
     .from("calendar_connections")
     .update({

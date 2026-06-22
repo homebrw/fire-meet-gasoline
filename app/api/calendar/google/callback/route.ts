@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { exchangeCodeForTokens, getGoogleAccountEmail } from "@/lib/google-calendar"
+import { registerCalendarWatch } from "@/lib/calendar-sync/watch"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
@@ -57,6 +58,12 @@ export async function GET(request: Request) {
         { onConflict: "person_id,provider" }
       )
     if (upsertError) throw new Error(upsertError.message)
+
+    // Best-effort: a failed watch registration shouldn't block the connection
+    // itself — the manual "Rechercher de nouveaux événements" button still works.
+    await registerCalendarWatch(person.id).catch((err) => {
+      console.error("[google-calendar-callback] watch registration failed", err)
+    })
 
     return redirectTo("connected")
   } catch (err) {

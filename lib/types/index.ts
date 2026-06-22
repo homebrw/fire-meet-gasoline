@@ -205,6 +205,52 @@ export type EventFormData = {
   visibility: EventVisibility
 }
 
+// ─── Weather ──────────────────────────────────────────────────────────────────
+
+export type WeatherIconKey =
+  | "clear"
+  | "partly-cloudy"
+  | "cloudy"
+  | "fog"
+  | "drizzle"
+  | "rain"
+  | "snow"
+  | "thunderstorm"
+
+export type WeatherHourPoint = {
+  time: string // ISO timestamp
+  temperature: number
+  precipitationProbability: number | null
+  icon: WeatherIconKey
+}
+
+export type WeatherRainNextHour = {
+  willRain: boolean
+  probability: number | null // 0-100, when available
+  startsInMinutes: number | null // null = no rain expected within the hour
+}
+
+export type WeatherSourceId = "open-meteo" | "openweathermap"
+
+export type WeatherSourceData = {
+  source: WeatherSourceId
+  label: string
+  current: {
+    temperature: number
+    feelsLike: number | null
+    condition: string
+    icon: WeatherIconKey
+  }
+  hourly: WeatherHourPoint[] // remaining hours of the current day
+  rainNextHour: WeatherRainNextHour | null
+}
+
+export type WeatherData = {
+  lat: number
+  lon: number
+  sources: WeatherSourceData[]
+}
+
 export type ActivityFeedItem = {
   id: string
   type: "rule" | "event" | "exception" | "presence" | "transition"

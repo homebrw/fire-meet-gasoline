@@ -3,6 +3,24 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { syncPersonCalendarSafe } from "@/lib/calendar-sync/sync"
+
+// Shared events (owner_person_id === null) are visible to every adult, so we
+// fan the sync out to all non-child persons rather than guessing which one
+// "owns" it.
+async function syncEventPersons(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  ownerPersonId: string | null
+) {
+  if (ownerPersonId) {
+    void syncPersonCalendarSafe(ownerPersonId)
+    return
+  }
+  const { data: persons } = await supabase.from("persons").select("id").eq("is_child", false)
+  for (const person of persons ?? []) {
+    void syncPersonCalendarSafe(person.id)
+  }
+}
 
 const eventSchema = z.object({
   title: z.string().min(1),
@@ -28,6 +46,7 @@ export async function createEvent(formData: FormData) {
   if (error) throw new Error(error.message)
   if (!insertedData || insertedData.length === 0) throw new Error("Failed to create event")
   const eventId = insertedData[0].id
+  await syncEventPersons(supabase, data.owner_person_id ?? null)
   revalidatePath("/settings/events")
   revalidatePath("/today")
   revalidatePath("/calendar")
@@ -38,8 +57,14 @@ export async function createEvent(formData: FormData) {
 export async function updateEvent(id: string, formData: FormData) {
   const supabase = await createClient()
   const data = eventSchema.partial().parse(Object.fromEntries(formData))
-  const { error } = await supabase.from("events").update(data).eq("id", id)
+  const { data: updated, error } = await supabase
+    .from("events")
+    .update(data)
+    .eq("id", id)
+    .select("owner_person_id")
+    .single()
   if (error) throw new Error(error.message)
+  if (updated) await syncEventPersons(supabase, updated.owner_person_id)
   revalidatePath("/settings/events")
   revalidatePath("/today")
   revalidatePath("/calendar")
@@ -48,8 +73,14 @@ export async function updateEvent(id: string, formData: FormData) {
 
 export async function deleteEvent(id: string) {
   const supabase = await createClient()
+  const { data: existing } = await supabase
+    .from("events")
+    .select("owner_person_id")
+    .eq("id", id)
+    .single()
   const { error } = await supabase.from("events").delete().eq("id", id)
   if (error) throw new Error(error.message)
+  if (existing) await syncEventPersons(supabase, existing.owner_person_id)
   revalidatePath("/settings/events")
   revalidatePath("/today")
   revalidatePath("/calendar")

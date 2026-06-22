@@ -15,7 +15,7 @@ const navItems = [
   { href: "/settings", label: "Paramètres", icon: Settings },
 ]
 
-export function Sidebar() {
+export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: number }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -51,6 +51,14 @@ export function Sidebar() {
             >
               <Icon className="h-4 w-4" />
               {label}
+              {href === "/settings" && pendingImportCount > 0 && (
+                <span
+                  className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-destructive)] px-1 text-[10px] font-medium text-white"
+                  aria-label={`${pendingImportCount} événement${pendingImportCount > 1 ? "s" : ""} à valider`}
+                >
+                  {pendingImportCount > 9 ? "9+" : pendingImportCount}
+                </span>
+              )}
             </Link>
           )
         })}

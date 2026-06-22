@@ -1,7 +1,6 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
 import { format, isSameDay, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { todayInZone } from "@/lib/timezone"
@@ -9,22 +8,20 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { Calendar } from "lucide-react"
 
+function parseDateParam(dateParam: string | null): Date | null {
+  if (!dateParam) return null
+  try {
+    return parseISO(dateParam)
+  } catch {
+    return null
+  }
+}
+
 export function TodayHeader() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const today = todayInZone()
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-
-  useEffect(() => {
-    const dateParam = searchParams.get("date")
-    if (dateParam) {
-      try {
-        setSelectedDate(parseISO(dateParam))
-      } catch {
-        setSelectedDate(null)
-      }
-    }
-  }, [searchParams])
+  const selectedDate = parseDateParam(searchParams.get("date"))
 
   const displayDate = selectedDate || today
   const isToday = isSameDay(displayDate, today)
@@ -33,13 +30,11 @@ export function TodayHeader() {
     if (e.target.value) {
       const [year, month, day] = e.target.value.split("-").map(Number)
       const newDate = new Date(year, month - 1, day)
-      setSelectedDate(newDate)
       router.push(`?date=${format(newDate, "yyyy-MM-dd")}`)
     }
   }
 
   const handleReturnToday = () => {
-    setSelectedDate(null)
     router.push(".")
   }
 
@@ -75,7 +70,7 @@ export function TodayHeader() {
               onClick={handleReturnToday}
               className="w-full"
             >
-              Retour à aujourd'hui
+              Retour à aujourd&apos;hui
             </Button>
           </div>
         </PopoverContent>

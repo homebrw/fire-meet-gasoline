@@ -73,6 +73,8 @@ file (or the relevant deep-dive guide) instead of duplicating in README.md.
 ├── lib/
 │   ├── actions/               # Server actions: children, custody, events, recurrence, revalidate
 │   ├── recurrence/            # Custody scheduling engine — see lib/recurrence/README.md
+│   ├── calendar-sync/         # One-way push to Google Calendar (sync.ts, connection.ts, freebusy.ts)
+│   ├── google-calendar.ts     # Raw-fetch Google OAuth/Calendar API client
 │   ├── hooks/                 # useEventAttachments, useEventParticipants
 │   ├── providers/             # theme-provider, etc.
 │   ├── types/                 # Shared TypeScript types
@@ -105,7 +107,9 @@ npm run lint
 ## Environment Variables
 
 Copy `.env.example` to `.env.local` and fill in values from the Supabase
-dashboard (Project Settings > API).
+dashboard (Project Settings > API). Google Calendar integration needs
+`NEXT_PUBLIC_SITE_URL`, `GOOGLE_CALENDAR_CLIENT_ID`, and
+`GOOGLE_CALENDAR_CLIENT_SECRET` — see `.env.example` for details.
 
 ## Code Conventions
 

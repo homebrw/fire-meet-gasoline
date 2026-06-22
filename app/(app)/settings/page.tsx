@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarClock, AlertCircle, Baby, Calendar, Users, History } from "lucide-react"
+import { CalendarClock, AlertCircle, Baby, Calendar, Users, History, Link2 } from "lucide-react"
 
 const sections = [
   {
@@ -38,6 +38,12 @@ const sections = [
     icon: History,
     title: "Activité récente",
     description: "Historique des modifications et créations",
+  },
+  {
+    href: "/settings/integrations",
+    icon: Link2,
+    title: "Intégrations",
+    description: "Connectez votre Google Agenda",
   },
 ]
 

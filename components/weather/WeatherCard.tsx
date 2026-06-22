@@ -47,15 +47,16 @@ function WeatherIcon({ icon, className }: { icon: WeatherIconKey; className?: st
 }
 
 export function WeatherCard() {
-  const [geoSupported] = useState(() => typeof navigator !== "undefined" && "geolocation" in navigator)
   const [weather, setWeather] = useState<WeatherData | null>(null)
-  const [error, setError] = useState<string | null>(
-    geoSupported ? null : "Géolocalisation non disponible sur cet appareil"
-  )
-  const [loading, setLoading] = useState(geoSupported)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!geoSupported) return
+    if (!("geolocation" in navigator)) {
+      setError("Géolocalisation non disponible sur cet appareil")
+      setLoading(false)
+      return
+    }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -76,7 +77,7 @@ export function WeatherCard() {
         setLoading(false)
       }
     )
-  }, [geoSupported])
+  }, [])
 
   if (loading) {
     return (

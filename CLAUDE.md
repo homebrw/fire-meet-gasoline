@@ -23,34 +23,64 @@ A Next.js 16 + React 19 web app for managing events, custody schedules, and tran
 - **File Upload**: API route for file uploads
 - **Responsive Design**: Mobile-friendly with bottom nav + sidebar layouts
 
+## Documentation Map
+
+- **README.md** — human-facing overview, install/quickstart, deployment (French).
+- **CLAUDE.md** (this file) — canonical architecture/patterns reference for agents.
+- **`.claude/*.md`** — deep-dive guides: `WORKFLOW.md`, `TYPESCRIPT_GUIDE.md`,
+  `SUPABASE_GUIDE.md`, `API_CONVENTIONS.md`.
+- **`lib/recurrence/README.md`** — mental model + file map for the recurrence
+  engine; read before editing anything under `lib/recurrence/`.
+- **PRODUCT.md / DESIGN.md / STATES.md** — product intent and UI/design system.
+- **`docs/ATTACHMENTS_SETUP.md`** — file upload storage & RLS setup.
+
+Avoid re-describing architecture details across multiple files — extend this
+file (or the relevant deep-dive guide) instead of duplicating in README.md.
+
 ## Directory Structure
 
 ```
-├── app/                      # Next.js app directory
-│   ├── (app)/               # Protected routes
+├── app/
+│   ├── (app)/                    # Protected routes
 │   │   ├── today/
 │   │   ├── week/
 │   │   ├── calendar/
-│   │   ├── settings/        # Rules, custody, events, exceptions
-│   │   └── layout.tsx       # App shell
-│   ├── (auth)/              # Auth routes
+│   │   ├── settings/
+│   │   │   ├── rules/            # Recurrence rule management
+│   │   │   ├── custody/          # Custody schedule view
+│   │   │   ├── events/           # Event definitions
+│   │   │   ├── exceptions/       # Exception overrides
+│   │   │   ├── children/         # Child/person management
+│   │   │   └── activity/         # Activity log
+│   │   └── layout.tsx            # App shell
+│   ├── (auth)/
 │   │   └── login/
-│   ├── api/                 # API routes
+│   ├── api/
 │   │   ├── upload/
-│   │   └── auth/callback/
-│   ├── layout.tsx           # Root layout
-│   ├── page.tsx             # Landing page
-│   └── globals.css          # Tailwind styles
+│   │   └── attachments/download/
+│   ├── auth/callback/             # OAuth callback
+│   ├── layout.tsx                 # Root layout
+│   ├── page.tsx                   # Landing page
+│   └── globals.css                # Tailwind styles
 ├── components/
-│   ├── ui/                  # Radix UI + shadcn primitives
-│   ├── layout/              # Sidebar, BottomNav
-│   ├── dashboard/           # Dashboard cards
-│   ├── calendar/            # Calendar views
-│   └── week/                # Week planning
-├── lib/                     # Utilities
-├── supabase/                # Supabase migrations & config
-├── public/                  # Static assets
-└── proxy.ts                 # Supabase middleware + auth logic
+│   ├── ui/                   # Radix UI + shadcn primitives
+│   ├── layout/                # Sidebar, BottomNav
+│   ├── dashboard/              # Dashboard cards
+│   ├── calendar/                # Calendar views
+│   ├── custody/                  # Custody-specific UI
+│   ├── week/                      # Week planning
+│   ├── forms/, events/, settings/, state/, shared/, file-upload/
+├── lib/
+│   ├── actions/               # Server actions: children, custody, events, recurrence, revalidate
+│   ├── recurrence/            # Custody scheduling engine — see lib/recurrence/README.md
+│   ├── hooks/                 # useEventAttachments, useEventParticipants
+│   ├── providers/             # theme-provider, etc.
+│   ├── types/                 # Shared TypeScript types
+│   ├── supabase/              # client.ts (browser) / server.ts (SSR)
+│   └── datetime.ts, timezone.ts, utils.ts
+├── supabase/migrations/       # Schema migrations
+├── public/                    # Static assets
+└── proxy.ts                   # Supabase middleware + auth logic
 ```
 
 ## Development Setup
@@ -74,12 +104,8 @@ npm run lint
 
 ## Environment Variables
 
-Required in `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-```
+Copy `.env.example` to `.env.local` and fill in values from the Supabase
+dashboard (Project Settings > API).
 
 ## Code Conventions
 
@@ -106,7 +132,8 @@ SUPABASE_SERVICE_ROLE_KEY=...
 Use `@/` alias for imports from project root (configured in `tsconfig.json`):
 ```typescript
 import { Button } from "@/components/ui/button"
-import { client } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client" // browser
+import { createClient } from "@/lib/supabase/server" // server / server actions
 ```
 
 ## Architecture & Patterns
@@ -121,12 +148,13 @@ Most data mutations use Next.js server actions (files in `lib/actions/`) with:
 Example: `lib/actions/events.ts`, `lib/actions/custody.ts`, `lib/actions/recurrence.ts`
 
 ### Recurrence Engine
-Complex business logic in `lib/recurrence/engine.ts` handles custody scheduling with three pattern types:
-- **weekly_alternating**: Alternates weekly by even/odd weeks
-- **custom_cycle**: Custom cycles (e.g., every 5 days) with specified custody days
-- **manual**: Manually defined rules
-
-The engine expands `RecurrenceRule` into `GeneratedPeriod[]` over a date range, applies `RecurrenceException` overrides, and handles cancellations/moves/extensions. Used primarily for calculating displayed periods on the calendar.
+Complex business logic in `lib/recurrence/` handles custody scheduling with three
+pattern types (`weekly_alternating`, `custom_cycle`, `manual`). The engine
+(`engine.ts`) expands `RecurrenceRule` into `GeneratedPeriod[]` over a date
+range and applies `RecurrenceException` overrides (cancel/move/extend/shorten/add).
+**See `lib/recurrence/README.md` for the full mental model and a map of
+`availability.ts`/`display.ts`/`labels.ts`/`persist.ts` before editing this
+directory.**
 
 ### Data Model
 Core entities stored in Supabase:

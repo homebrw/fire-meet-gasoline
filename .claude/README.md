@@ -153,12 +153,8 @@ Supabase PostgreSQL with:
 
 ## Environment Setup
 
-Required `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-```
+Copy `../.env.example` to `../.env.local` and fill in values from the
+Supabase dashboard (Project Settings > API).
 
 ## Debugging
 

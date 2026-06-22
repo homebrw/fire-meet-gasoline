@@ -15,11 +15,12 @@ import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent,
 
 
 
-async function loadDashboardData() {
+async function loadDashboardData(selectedDateString?: string) {
   const supabase = await createClient()
   const today = todayInZone()
-  const from = subDays(today, 7)
-  const to = addDays(today, 60)
+  const selectedDate = selectedDateString ? parseISO(selectedDateString) : today
+  const from = subDays(selectedDate, 7)
+  const to = addDays(selectedDate, 60)
 
   const [personsRes, rulesRes, exceptionsRes, presencesRes, eventsRes, transitionsRes] =
     await Promise.all([
@@ -44,14 +45,14 @@ async function loadDashboardData() {
   const periods = generateCustodyPeriods(rules, exceptions, from, to)
   const dayStates = computeDayStates(persons, periods, presences, events, transitions, from, to)
 
-  const todayKey = format(today, "yyyy-MM-dd")
-  const todayState = dayStates.get(todayKey) ?? null
+  const selectedDateKey = format(selectedDate, "yyyy-MM-dd")
+  const todayState = dayStates.get(selectedDateKey) ?? null
 
   const [damien, ma] = persons
 
-  const nextSlot = findNextAvailableSlot(dayStates, addDays(today, 1))
-  const upcomingTransitions = getNextTransitionPerPerson(transitions, today, 14)
-  const upcomingEvents = getUpcomingEvents(events, today, 14)
+  const nextSlot = findNextAvailableSlot(dayStates, addDays(selectedDate, 1))
+  const upcomingTransitions = getNextTransitionPerPerson(transitions, selectedDate, 14)
+  const upcomingEvents = getUpcomingEvents(events, selectedDate, 14)
 
   // Filter shared events that occur before the next available slot
   const sharedEventsBefore: CalendarEvent[] = []
@@ -84,8 +85,13 @@ async function loadDashboardData() {
   }
 }
 
-export default async function TodayPage() {
-  const data = await loadDashboardData()
+interface TodayPageProps {
+  searchParams: Promise<{ date?: string }>
+}
+
+export default async function TodayPage({ searchParams }: TodayPageProps) {
+  const params = await searchParams
+  const data = await loadDashboardData(params.date)
 
   return (
     <DashboardContent

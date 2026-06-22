@@ -1,4 +1,4 @@
-import type { WeatherHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
+import type { WeatherHourPoint, WeatherNextHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
 import { wmoCodeToIcon } from "../icons"
 import { wmoCodeToLabel } from "../conditions"
 
@@ -6,6 +6,8 @@ type OpenMeteoResponse = {
   current: {
     temperature_2m: number
     apparent_temperature: number
+    relative_humidity_2m: number
+    wind_speed_10m: number
     weather_code: number
   }
   hourly: {
@@ -25,7 +27,10 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
   const url = new URL("https://api.open-meteo.com/v1/forecast")
   url.searchParams.set("latitude", String(lat))
   url.searchParams.set("longitude", String(lon))
-  url.searchParams.set("current", "temperature_2m,apparent_temperature,weather_code")
+  url.searchParams.set(
+    "current",
+    "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code"
+  )
   url.searchParams.set("hourly", "temperature_2m,precipitation_probability,weather_code")
   url.searchParams.set("minutely_15", "precipitation")
   url.searchParams.set("forecast_days", "1")
@@ -47,7 +52,8 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
     }))
     .filter((point) => new Date(point.time) >= now)
 
-  const rainNextHour = computeRainNextHour(data.minutely_15, now)
+  const nextHourTimeline = buildNextHourTimeline(data.minutely_15, now)
+  const rainNextHour = computeRainNextHour(nextHourTimeline)
 
   return {
     source: "open-meteo",
@@ -55,24 +61,29 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
     current: {
       temperature: data.current.temperature_2m,
       feelsLike: data.current.apparent_temperature ?? null,
+      humidity: data.current.relative_humidity_2m ?? null,
+      windSpeed: data.current.wind_speed_10m ?? null,
       condition: wmoCodeToLabel(data.current.weather_code),
       icon: wmoCodeToIcon(data.current.weather_code),
     },
     hourly,
     rainNextHour,
+    nextHourTimeline,
   }
 }
 
-function computeRainNextHour(
+function buildNextHourTimeline(
   minutely: OpenMeteoResponse["minutely_15"],
   now: Date
-): WeatherRainNextHour {
-  const upcoming = minutely.time
+): WeatherNextHourPoint[] {
+  return minutely.time
     .map((time, i) => ({ time, precipitation: minutely.precipitation[i] }))
     .filter((point) => new Date(point.time) >= now)
     .slice(0, 4) // next 4 x 15min = next hour
+}
 
-  const rainingIndex = upcoming.findIndex((point) => point.precipitation > 0.1)
+function computeRainNextHour(timeline: WeatherNextHourPoint[]): WeatherRainNextHour {
+  const rainingIndex = timeline.findIndex((point) => point.precipitation > 0.1)
 
   if (rainingIndex === -1) {
     return { willRain: false, probability: null, startsInMinutes: null }

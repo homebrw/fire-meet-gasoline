@@ -230,6 +230,13 @@ export type WeatherRainNextHour = {
   startsInMinutes: number | null // null = no rain expected within the hour
 }
 
+// Fine-grained precipitation timeline covering the next hour, at the
+// source's native resolution (15min for Open-Meteo, 1min for OpenWeatherMap).
+export type WeatherNextHourPoint = {
+  time: string // ISO timestamp
+  precipitation: number // mm
+}
+
 export type WeatherSourceId = "open-meteo" | "openweathermap"
 
 export type WeatherSourceData = {
@@ -238,11 +245,14 @@ export type WeatherSourceData = {
   current: {
     temperature: number
     feelsLike: number | null
+    humidity: number | null // %
+    windSpeed: number | null // km/h
     condition: string
     icon: WeatherIconKey
   }
   hourly: WeatherHourPoint[] // remaining hours of the current day
   rainNextHour: WeatherRainNextHour | null
+  nextHourTimeline: WeatherNextHourPoint[]
 }
 
 export type WeatherData = {

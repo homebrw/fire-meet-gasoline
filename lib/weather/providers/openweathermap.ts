@@ -1,10 +1,12 @@
-import type { WeatherHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
+import type { WeatherHourPoint, WeatherNextHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
 import { owmCodeToIcon } from "../icons"
 
 type OwmRecord = {
   dt: number
   temp: number
   feels_like?: number
+  humidity?: number
+  wind_speed?: number // m/s
   precipitation?: number // mm/h
   weather: { id: number; description?: string }[]
 }
@@ -57,22 +59,37 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
       icon: owmCodeToIcon(point.weather[0]?.id ?? 800),
     }))
 
+  const nextHourTimeline = buildNextHourTimeline(minutely)
+
   return {
     source: "openweathermap",
     label: "OpenWeatherMap",
     current: {
       temperature: current.temp,
       feelsLike: current.feels_like ?? null,
+      humidity: current.humidity ?? null,
+      windSpeed: current.wind_speed !== undefined ? Math.round(current.wind_speed * 3.6) : null, // m/s -> km/h
       condition: current.weather[0]?.description ?? "Conditions variables",
       icon: owmCodeToIcon(current.weather[0]?.id ?? 800),
     },
     hourly: restOfDay,
-    rainNextHour: computeRainNextHour(minutely, hourly),
+    rainNextHour: computeRainNextHour(nextHourTimeline, hourly),
+    nextHourTimeline,
   }
 }
 
-function computeRainNextHour(minutely: OwmRecord[], hourly: OwmRecord[]): WeatherRainNextHour {
-  if (minutely.length === 0) {
+function buildNextHourTimeline(minutely: OwmRecord[]): WeatherNextHourPoint[] {
+  return [...minutely]
+    .sort((a, b) => a.dt - b.dt)
+    .slice(0, 60)
+    .map((point) => ({
+      time: new Date(point.dt * 1000).toISOString(),
+      precipitation: point.precipitation ?? 0, // mm/h at 1-minute resolution
+    }))
+}
+
+function computeRainNextHour(timeline: WeatherNextHourPoint[], hourly: OwmRecord[]): WeatherRainNextHour {
+  if (timeline.length === 0) {
     const nextHourPrecip = hourly[0]?.precipitation ?? 0
     return {
       willRain: nextHourPrecip > 0,
@@ -81,9 +98,7 @@ function computeRainNextHour(minutely: OwmRecord[], hourly: OwmRecord[]): Weathe
     }
   }
 
-  const sorted = [...minutely].sort((a, b) => a.dt - b.dt).slice(0, 60)
-  const startDt = sorted[0]?.dt ?? 0
-  const rainingIndex = sorted.findIndex((point) => (point.precipitation ?? 0) > 0.1)
+  const rainingIndex = timeline.findIndex((point) => point.precipitation > 0.1)
 
   if (rainingIndex === -1) {
     return { willRain: false, probability: null, startsInMinutes: null }
@@ -92,6 +107,6 @@ function computeRainNextHour(minutely: OwmRecord[], hourly: OwmRecord[]): Weathe
   return {
     willRain: true,
     probability: null,
-    startsInMinutes: Math.round((sorted[rainingIndex].dt - startDt) / 60),
+    startsInMinutes: rainingIndex,
   }
 }

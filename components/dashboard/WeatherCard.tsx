@@ -17,6 +17,8 @@ import {
   CloudLightning,
   MapPin,
   AlertCircle,
+  Droplets,
+  Wind,
 } from "lucide-react"
 
 const ICONS: Record<WeatherIconKey, typeof Sun> = {
@@ -127,6 +129,20 @@ export function WeatherCard() {
               {primary.current.feelsLike !== null &&
                 ` · ressenti ${Math.round(primary.current.feelsLike)}°C`}
             </p>
+            <p className="text-xs text-[var(--color-muted-foreground)] flex items-center gap-3 mt-0.5">
+              {primary.current.humidity !== null && (
+                <span className="flex items-center gap-1">
+                  <Droplets className="h-3 w-3" />
+                  {primary.current.humidity}%
+                </span>
+              )}
+              {primary.current.windSpeed !== null && (
+                <span className="flex items-center gap-1">
+                  <Wind className="h-3 w-3" />
+                  {Math.round(primary.current.windSpeed)} km/h
+                </span>
+              )}
+            </p>
           </div>
         </div>
 
@@ -144,18 +160,35 @@ export function WeatherCard() {
           </div>
         )}
 
-        <div className="space-y-1.5 pt-1 border-t border-[var(--color-border)]">
+        <div className="space-y-3 pt-1 border-t border-[var(--color-border)]">
           <p className="text-xs font-medium text-[var(--color-muted-foreground)]">Pluie dans l&apos;heure</p>
           {weather.sources.map((source) => (
-            <div key={source.source} className="flex items-center justify-between text-sm">
-              <span className="text-[var(--color-muted-foreground)]">{source.label}</span>
-              <span className="font-medium">
-                {!source.rainNextHour || !source.rainNextHour.willRain
-                  ? "Pas de pluie prévue"
-                  : source.rainNextHour.startsInMinutes === 0
-                    ? "Pluie en cours ou imminente"
-                    : `Pluie dans ~${source.rainNextHour.startsInMinutes} min`}
-              </span>
+            <div key={source.source} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[var(--color-muted-foreground)]">{source.label}</span>
+                <span className="font-medium">
+                  {!source.rainNextHour || !source.rainNextHour.willRain
+                    ? "Pas de pluie prévue"
+                    : source.rainNextHour.startsInMinutes === 0
+                      ? "Pluie en cours ou imminente"
+                      : `Pluie dans ~${source.rainNextHour.startsInMinutes} min`}
+                </span>
+              </div>
+              {source.nextHourTimeline.length > 1 && (
+                <div className="flex items-end gap-0.5 h-6">
+                  {source.nextHourTimeline.map((point) => (
+                    <div
+                      key={point.time}
+                      className="flex-1 rounded-sm bg-[var(--color-primary)]"
+                      style={{
+                        height: `${Math.max(8, Math.min(100, (point.precipitation / 2) * 100))}%`,
+                        opacity: point.precipitation > 0 ? 1 : 0.15,
+                      }}
+                      title={`${format(parseISO(point.time), "HH:mm")} · ${point.precipitation.toFixed(1)} mm/h`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>

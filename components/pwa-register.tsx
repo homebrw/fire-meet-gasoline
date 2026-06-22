@@ -10,7 +10,7 @@ export function PWARegister() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register('/api/sw')
         .then((registration) => {
           console.log('Service Worker registered:', registration);
 

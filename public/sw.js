@@ -56,8 +56,10 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           if (response.status === 200) {
+            // Clone synchronously, before the body can be read by anyone else
+            const responseToCache = response.clone();
             event.waitUntil(
-              caches.open(CACHE_NAME).then((c) => c.put(request, response.clone()))
+              caches.open(CACHE_NAME).then((c) => c.put(request, responseToCache))
             );
           }
           return response;
@@ -79,8 +81,10 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
         return fetch(request).then((fetchResponse) => {
+          // Clone synchronously, before the body can be read by anyone else
+          const responseToCache = fetchResponse.clone();
           event.waitUntil(
-            caches.open(CACHE_NAME).then((c) => c.put(request, fetchResponse.clone()))
+            caches.open(CACHE_NAME).then((c) => c.put(request, responseToCache))
           );
           return fetchResponse;
         });

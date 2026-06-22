@@ -15,6 +15,7 @@ type OpenMeteoResponse = {
     relative_humidity_2m: number
     wind_speed_10m: number
     weather_code: number
+    uv_index?: number
   }
   hourly: {
     time: string[]
@@ -42,7 +43,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
   url.searchParams.set("longitude", String(lon))
   url.searchParams.set(
     "current",
-    "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code"
+    "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,uv_index"
   )
   url.searchParams.set("hourly", "temperature_2m,precipitation_probability,weather_code")
   url.searchParams.set("minutely_15", "precipitation")
@@ -91,6 +92,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
       feelsLike: data.current.apparent_temperature ?? null,
       humidity: data.current.relative_humidity_2m ?? null,
       windSpeed: data.current.wind_speed_10m ?? null,
+      uvIndex: data.current.uv_index ?? null,
       condition: wmoCodeToLabel(data.current.weather_code),
       icon: wmoCodeToIcon(data.current.weather_code),
     },

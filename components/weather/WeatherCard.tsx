@@ -19,7 +19,16 @@ import {
   AlertCircle,
   Droplets,
   Wind,
+  Sunset,
 } from "lucide-react"
+
+function uvLabel(uv: number): string {
+  if (uv < 3) return "Faible"
+  if (uv < 6) return "Modéré"
+  if (uv < 8) return "Élevé"
+  if (uv < 11) return "Très élevé"
+  return "Extrême"
+}
 
 const ICONS: Record<WeatherIconKey, typeof Sun> = {
   clear: Sun,
@@ -142,6 +151,12 @@ export function WeatherCard() {
                   {Math.round(primary.current.windSpeed)} km/h
                 </span>
               )}
+              {primary.current.uvIndex !== null && (
+                <span className="flex items-center gap-1">
+                  <Sunset className="h-3 w-3" />
+                  UV {Math.round(primary.current.uvIndex)} · {uvLabel(primary.current.uvIndex)}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -155,6 +170,9 @@ export function WeatherCard() {
                 </span>
                 <WeatherIcon icon={point.icon} className="h-5 w-5 text-[var(--color-muted-foreground)]" />
                 <span className="text-xs font-medium">{Math.round(point.temperature)}°</span>
+                <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                  {point.precipitationProbability !== null ? `${point.precipitationProbability}%` : " "}
+                </span>
               </div>
             ))}
           </div>
@@ -174,6 +192,9 @@ export function WeatherCard() {
                   <span className="font-medium">{Math.round(day.temperatureMax)}°</span>
                   {" / "}
                   <span className="text-[var(--color-muted-foreground)]">{Math.round(day.temperatureMin)}°</span>
+                </span>
+                <span className="text-[10px] text-[var(--color-muted-foreground)]">
+                  {day.precipitationProbability !== null ? `${day.precipitationProbability}%` : " "}
                 </span>
               </div>
             ))}

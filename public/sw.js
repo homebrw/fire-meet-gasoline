@@ -5,6 +5,13 @@ const STATIC_ASSETS = [
   '/favicon.svg',
 ];
 
+// Listen for messages from clients (update request)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -14,7 +21,7 @@ self.addEventListener('install', (event) => {
       });
     })
   );
-  self.skipWaiting();
+  // Don't skip waiting automatically - let the user decide via the UI
 });
 
 // Activate event - clean up old caches

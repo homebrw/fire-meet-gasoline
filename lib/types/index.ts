@@ -263,6 +263,7 @@ export type WeatherSourceError = {
 export type WeatherData = {
   lat: number
   lon: number
+  placeName: string | null
   sources: WeatherSourceData[]
   errors: WeatherSourceError[]
 }

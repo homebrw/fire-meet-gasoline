@@ -115,7 +115,7 @@ export function WeatherCard() {
           Météo
           <span className="ml-auto text-xs font-normal text-[var(--color-muted-foreground)] flex items-center gap-1">
             <MapPin className="h-3 w-3" />
-            Position actuelle
+            {weather.placeName ?? "Position actuelle"}
           </span>
         </CardTitle>
       </CardHeader>

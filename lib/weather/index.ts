@@ -1,6 +1,7 @@
 import type { WeatherData, WeatherSourceId } from "@/lib/types"
 import { fetchOpenMeteo } from "./providers/open-meteo"
 import { fetchOpenWeatherMap } from "./providers/openweathermap"
+import { reverseGeocode } from "./geocode"
 
 const PROVIDERS: { source: WeatherSourceId; fetch: typeof fetchOpenMeteo }[] = [
   { source: "open-meteo", fetch: fetchOpenMeteo },
@@ -12,7 +13,10 @@ const PROVIDERS: { source: WeatherSourceId; fetch: typeof fetchOpenMeteo }[] = [
 // so the UI can still render the others, but the failure reason is kept in
 // `errors` so it can be surfaced for debugging instead of failing silently.
 export async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
-  const results = await Promise.allSettled(PROVIDERS.map((provider) => provider.fetch(lat, lon)))
+  const [results, placeName] = await Promise.all([
+    Promise.allSettled(PROVIDERS.map((provider) => provider.fetch(lat, lon))),
+    reverseGeocode(lat, lon),
+  ])
 
   const sources: WeatherData["sources"] = []
   const errors: WeatherData["errors"] = []
@@ -28,5 +32,5 @@ export async function fetchWeather(lat: number, lon: number): Promise<WeatherDat
     }
   })
 
-  return { lat, lon, sources, errors }
+  return { lat, lon, placeName, sources, errors }
 }

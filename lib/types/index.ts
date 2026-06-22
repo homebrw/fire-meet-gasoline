@@ -207,6 +207,78 @@ export type EventFormData = {
   visibility: EventVisibility
 }
 
+// ─── Weather ──────────────────────────────────────────────────────────────────
+
+export type WeatherIconKey =
+  | "clear"
+  | "partly-cloudy"
+  | "cloudy"
+  | "fog"
+  | "drizzle"
+  | "rain"
+  | "snow"
+  | "thunderstorm"
+
+export type WeatherHourPoint = {
+  time: string // ISO timestamp
+  temperature: number
+  precipitationProbability: number | null
+  icon: WeatherIconKey
+}
+
+export type WeatherRainNextHour = {
+  willRain: boolean
+  probability: number | null // 0-100, when available
+  startsInMinutes: number | null // null = no rain expected within the hour
+}
+
+// Fine-grained precipitation timeline covering the next hour, at the
+// source's native resolution (15min for Open-Meteo, 1min for OpenWeatherMap).
+export type WeatherNextHourPoint = {
+  time: string // ISO timestamp
+  precipitation: number // mm
+}
+
+export type WeatherDailyPoint = {
+  date: string // 'YYYY-MM-DD'
+  temperatureMax: number
+  temperatureMin: number
+  precipitationProbability: number | null
+  icon: WeatherIconKey
+}
+
+export type WeatherSourceId = "open-meteo" | "openweathermap"
+
+export type WeatherSourceData = {
+  source: WeatherSourceId
+  label: string
+  current: {
+    temperature: number
+    feelsLike: number | null
+    humidity: number | null // %
+    windSpeed: number | null // km/h
+    condition: string
+    icon: WeatherIconKey
+  }
+  hourly: WeatherHourPoint[] // remaining hours of the current day
+  daily: WeatherDailyPoint[] // following days
+  rainNextHour: WeatherRainNextHour | null
+  nextHourTimeline: WeatherNextHourPoint[]
+}
+
+export type WeatherSourceError = {
+  source: WeatherSourceId
+  message: string
+}
+
+export type WeatherData = {
+  lat: number
+  lon: number
+  placeName: string | null
+  sources: WeatherSourceData[]
+  errors: WeatherSourceError[]
+}
+
 export type ActivityFeedItem = {
   id: string
   type: "rule" | "event" | "exception" | "presence" | "transition"

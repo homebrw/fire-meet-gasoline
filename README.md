@@ -44,14 +44,12 @@ npm install
 
 3. **Configurez les variables d'environnement**
 
-Créez un fichier `.env.local` à la racine du projet:
-```env
-NEXT_PUBLIC_SUPABASE_URL=votre_url_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_clé_anon
-SUPABASE_SERVICE_ROLE_KEY=votre_clé_service_role
+Copiez `.env.example` vers `.env.local` et renseignez les valeurs:
+```bash
+cp .env.example .env.local
 ```
 
-Obtenez ces valeurs depuis votre [Tableau de Bord Supabase](https://supabase.com/dashboard)
+Obtenez ces valeurs depuis votre [Tableau de Bord Supabase](https://supabase.com/dashboard) (Project Settings > API).
 
 4. **Lancez le serveur de développement**
 ```bash
@@ -64,34 +62,45 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
 ```
 fire-meet-gasoline/
-├── app/                          # App Router Next.js
+├── app/
 │   ├── (app)/                    # Routes protégées par authentification
 │   │   ├── today/                # Vue des événements du jour
 │   │   ├── week/                 # Planificateur hebdomadaire
 │   │   ├── calendar/             # Vues calendaires
 │   │   ├── settings/             # Pages de configuration
-│   │   │   ├── rules/            # Gestion des règles d'événements
+│   │   │   ├── rules/            # Gestion des règles de récurrence
 │   │   │   ├── custody/          # Configuration des plannings de garde
 │   │   │   ├── events/           # Définitions d'événements
-│   │   │   └── exceptions/       # Gestion des exceptions
+│   │   │   ├── exceptions/       # Gestion des exceptions
+│   │   │   ├── children/         # Gestion des enfants/personnes
+│   │   │   └── activity/         # Journal d'activité
 │   │   └── layout.tsx            # Shell application (sidebar + nav)
-│   ├── (auth)/                   # Routes d'authentification
+│   ├── (auth)/
 │   │   └── login/                # Page de connexion
-│   ├── api/                      # Routes API
-│   │   ├── upload/               # Point de terminaison d'upload
-│   │   └── auth/callback/        # Callback OAuth
-│   ├── layout.tsx                # Layout racine
-│   ├── page.tsx                  # Page d'accueil
-│   └── globals.css               # Styles Tailwind
+│   ├── api/
+│   │   ├── upload/                # Point de terminaison d'upload
+│   │   └── attachments/download/  # Téléchargement de pièces jointes
+│   ├── auth/callback/             # Callback OAuth
+│   ├── layout.tsx                 # Layout racine
+│   ├── page.tsx                   # Page d'accueil
+│   └── globals.css                # Styles Tailwind
 ├── components/
-│   ├── ui/                       # Primitives Radix UI
-│   ├── layout/                   # Composants Sidebar, BottomNav
+│   ├── ui/                       # Primitives Radix UI / shadcn
+│   ├── layout/                   # Sidebar, BottomNav
 │   ├── dashboard/                # Cartes du tableau de bord
 │   ├── calendar/                 # Composants calendaires
-│   └── week/                     # Composants de planification
-├── lib/                          # Utilitaires et helpers
-│   └── supabase.ts               # Configuration client Supabase
-├── supabase/                     # Migrations de base de données
+│   ├── custody/                  # UI spécifique à la garde
+│   ├── week/                     # Composants de planification
+│   └── forms/, events/, settings/, state/, shared/, file-upload/
+├── lib/
+│   ├── actions/                  # Server actions (children, custody, events, recurrence, revalidate)
+│   ├── recurrence/                # Moteur de récurrence — voir lib/recurrence/README.md
+│   ├── hooks/                     # Hooks React (useEventAttachments, ...)
+│   ├── providers/                 # Context providers (thème, ...)
+│   ├── types/                     # Types TypeScript partagés
+│   ├── supabase/                  # client.ts (navigateur) / server.ts (SSR)
+│   └── datetime.ts, timezone.ts, utils.ts
+├── supabase/migrations/          # Migrations de base de données
 ├── public/                       # Ressources statiques
 └── proxy.ts                      # Middleware et logique d'authentification
 ```
@@ -119,12 +128,7 @@ La majorité des mutations de données utilisent les **Server Actions** de Next.
 Exemples: `lib/actions/events.ts`, `lib/actions/custody.ts`, `lib/actions/recurrence.ts`
 
 #### Moteur de Récurrence
-Logique métier complexe dans `lib/recurrence/engine.ts` pour la planification des gardes avec trois types:
-- **weekly_alternating**: Alternance hebdomadaire (semaines paires/impaires)
-- **custom_cycle**: Cycles personnalisés (ex: tous les 5 jours)
-- **manual**: Règles définies manuellement
-
-Le moteur expands les `RecurrenceRule` en `GeneratedPeriod[]` sur une plage de dates, applique les `RecurrenceException` et gère les annulations/déplacements/extensions.
+Logique métier complexe dans `lib/recurrence/` pour la planification des gardes avec trois types (`weekly_alternating`, `custom_cycle`, `manual`). Le moteur (`engine.ts`) expand les `RecurrenceRule` en `GeneratedPeriod[]` sur une plage de dates et applique les `RecurrenceException`. Voir [`lib/recurrence/README.md`](./lib/recurrence/README.md) pour le détail de l'algorithme avant d'y toucher.
 
 ### Style de Code
 - **TypeScript**: Mode strict activé, alias `@/*` pour imports
@@ -136,7 +140,7 @@ Le moteur expands les `RecurrenceRule` en `GeneratedPeriod[]` sur une plage de d
 ### Exemples d'Import
 ```typescript
 import { Button } from "@/components/ui/button"
-import { client } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client" // navigateur
 import { calculateDates } from "@/lib/utils"
 ```
 
@@ -224,7 +228,7 @@ Ce projet est sous licence MIT - voir le fichier LICENSE pour les détails.
 Pour les problèmes et questions:
 - 📧 Créez une issue sur GitHub
 - 💬 Vérifiez les issues existantes pour des solutions
-- 📚 Consultez [CLAUDE.md](./CLAUDE.md) pour les détails techniques approfondis
+- 📚 Consultez [CLAUDE.md](./CLAUDE.md) pour les détails techniques approfondis, ou les guides dans [`.claude/`](./.claude/README.md) (workflow, TypeScript, Supabase, conventions API)
 
 ---
 

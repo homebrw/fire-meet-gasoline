@@ -26,14 +26,8 @@ cp .env.example .env.local
 
 ## Environment Variables
 
-Create `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-```
-
-Get these from your Supabase project settings.
+See `.env.example` for the required variables. Get the values from your
+Supabase project settings (Project Settings > API).
 
 ## Development
 

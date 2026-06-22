@@ -8,41 +8,49 @@ export function PWARegister() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    let registration: ServiceWorkerRegistration | null = null;
+
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered:', registration);
+        .then((reg) => {
+          registration = reg;
+          console.log('Service Worker registered:', reg);
 
           // Check for updates every 5 minutes
-          const interval = setInterval(() => {
-            registration.update();
+          interval = setInterval(() => {
+            reg.update();
           }, 5 * 60 * 1000);
 
-          // Listen for waiting service worker (new version available)
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
+          // Listen for new SW versions
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New SW is ready, but waiting for activation
                   setUpdateAvailable(true);
                   console.log('Update available - refresh to get new version');
                 }
               });
             }
           });
-
-          return () => clearInterval(interval);
         })
         .catch((error) => {
           console.log('Service Worker registration failed:', error);
         });
 
-      // Force reload when new SW takes control
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // Listen for controller change
+      const handleControllerChange = () => {
         window.location.reload();
-      });
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+      // Cleanup function
+      return () => {
+        if (interval) clearInterval(interval);
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      };
     }
   }, []);
 

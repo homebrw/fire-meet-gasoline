@@ -1,6 +1,6 @@
 import type { CustodyTransition, Person } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { format, parseISO, differenceInDays } from "date-fns"
+import { format, parseISO, differenceInDays, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { indexById } from "@/lib/utils"
@@ -47,7 +47,7 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
                     </p>
                     <p className="text-xs text-[var(--color-muted-foreground)]">
                       {(() => {
-                        const daysUntilTransition = differenceInDays(parseISO(t.transition_at), new Date())
+                        const daysUntilTransition = differenceInDays(startOfDay(parseISO(t.transition_at)), startOfDay(new Date()))
                         return daysUntilTransition === 0 ? "Aujourd'hui" : `Dans ${daysUntilTransition} jour${daysUntilTransition > 1 ? "s" : ""}`
                       })()}
                     </p>

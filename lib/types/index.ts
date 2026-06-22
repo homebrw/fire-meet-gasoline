@@ -237,6 +237,14 @@ export type WeatherNextHourPoint = {
   precipitation: number // mm
 }
 
+export type WeatherDailyPoint = {
+  date: string // 'YYYY-MM-DD'
+  temperatureMax: number
+  temperatureMin: number
+  precipitationProbability: number | null
+  icon: WeatherIconKey
+}
+
 export type WeatherSourceId = "open-meteo" | "openweathermap"
 
 export type WeatherSourceData = {
@@ -251,6 +259,7 @@ export type WeatherSourceData = {
     icon: WeatherIconKey
   }
   hourly: WeatherHourPoint[] // remaining hours of the current day
+  daily: WeatherDailyPoint[] // following days
   rainNextHour: WeatherRainNextHour | null
   nextHourTimeline: WeatherNextHourPoint[]
 }

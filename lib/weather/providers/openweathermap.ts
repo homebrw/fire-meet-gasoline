@@ -73,6 +73,7 @@ export async function fetchOpenWeatherMap(lat: number, lon: number): Promise<Wea
       icon: owmCodeToIcon(current.weather[0]?.id ?? 800),
     },
     hourly: restOfDay,
+    daily: [],
     rainNextHour: computeRainNextHour(nextHourTimeline, hourly),
     nextHourTimeline,
   }

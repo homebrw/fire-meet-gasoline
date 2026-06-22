@@ -1,4 +1,10 @@
-import type { WeatherHourPoint, WeatherNextHourPoint, WeatherRainNextHour, WeatherSourceData } from "@/lib/types"
+import type {
+  WeatherDailyPoint,
+  WeatherHourPoint,
+  WeatherNextHourPoint,
+  WeatherRainNextHour,
+  WeatherSourceData,
+} from "@/lib/types"
 import { wmoCodeToIcon } from "../icons"
 import { wmoCodeToLabel } from "../conditions"
 
@@ -20,6 +26,13 @@ type OpenMeteoResponse = {
     time: string[]
     precipitation: number[]
   }
+  daily: {
+    time: string[]
+    temperature_2m_max: number[]
+    temperature_2m_min: number[]
+    precipitation_probability_max: number[]
+    weather_code: number[]
+  }
 }
 
 // Open-Meteo: free, no API key required. https://open-meteo.com/en/docs
@@ -33,7 +46,8 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
   )
   url.searchParams.set("hourly", "temperature_2m,precipitation_probability,weather_code")
   url.searchParams.set("minutely_15", "precipitation")
-  url.searchParams.set("forecast_days", "1")
+  url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code")
+  url.searchParams.set("forecast_days", "6")
   url.searchParams.set("timezone", "auto")
 
   const res = await fetch(url.toString(), { cache: "no-store" })
@@ -43,6 +57,9 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
   const data = (await res.json()) as OpenMeteoResponse
 
   const now = new Date()
+  const endOfDay = new Date(now)
+  endOfDay.setHours(23, 59, 59, 999)
+
   const hourly: WeatherHourPoint[] = data.hourly.time
     .map((time, i) => ({
       time,
@@ -50,7 +67,18 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
       precipitationProbability: data.hourly.precipitation_probability[i] ?? null,
       icon: wmoCodeToIcon(data.hourly.weather_code[i]),
     }))
-    .filter((point) => new Date(point.time) >= now)
+    .filter((point) => new Date(point.time) >= now && new Date(point.time) <= endOfDay)
+
+  const today = now.toISOString().slice(0, 10)
+  const daily: WeatherDailyPoint[] = data.daily.time
+    .map((date, i) => ({
+      date,
+      temperatureMax: data.daily.temperature_2m_max[i],
+      temperatureMin: data.daily.temperature_2m_min[i],
+      precipitationProbability: data.daily.precipitation_probability_max[i] ?? null,
+      icon: wmoCodeToIcon(data.daily.weather_code[i]),
+    }))
+    .filter((point) => point.date !== today)
 
   const nextHourTimeline = buildNextHourTimeline(data.minutely_15, now)
   const rainNextHour = computeRainNextHour(nextHourTimeline)
@@ -67,6 +95,7 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherS
       icon: wmoCodeToIcon(data.current.weather_code),
     },
     hourly,
+    daily,
     rainNextHour,
     nextHourTimeline,
   }

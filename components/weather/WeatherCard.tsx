@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import type { WeatherData, WeatherIconKey } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, isTomorrow } from "date-fns"
 import { fr } from "date-fns/locale"
 import {
   CloudSun,
@@ -155,6 +155,26 @@ export function WeatherCard() {
                 </span>
                 <WeatherIcon icon={point.icon} className="h-5 w-5 text-[var(--color-muted-foreground)]" />
                 <span className="text-xs font-medium">{Math.round(point.temperature)}°</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {primary.daily.length > 0 && (
+          <div className="flex gap-3 overflow-x-auto pb-1 pt-1 border-t border-[var(--color-border)]">
+            {primary.daily.map((day) => (
+              <div key={day.date} className="flex flex-col items-center gap-1 shrink-0 min-w-14">
+                <span className="text-xs text-[var(--color-muted-foreground)] capitalize">
+                  {isTomorrow(parseISO(day.date))
+                    ? "Demain"
+                    : format(parseISO(day.date), "EEE", { locale: fr })}
+                </span>
+                <WeatherIcon icon={day.icon} className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+                <span className="text-xs">
+                  <span className="font-medium">{Math.round(day.temperatureMax)}°</span>
+                  {" / "}
+                  <span className="text-[var(--color-muted-foreground)]">{Math.round(day.temperatureMin)}°</span>
+                </span>
               </div>
             ))}
           </div>

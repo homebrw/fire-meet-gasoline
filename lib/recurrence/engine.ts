@@ -248,16 +248,12 @@ function applyExceptions(
         nextResult.push({
           ...period,
           end_at: overlapStart,
-          source: "exception",
-          exception_id: exc.id,
         })
       }
       if (period.end_at > overlapEnd) {
         nextResult.push({
           ...period,
           start_at: overlapEnd,
-          source: "exception",
-          exception_id: exc.id,
         })
       }
     }

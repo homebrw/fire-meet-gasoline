@@ -53,8 +53,10 @@ split/trimmed multiple times), then all `present` exceptions are appended as
 new periods. Overlapping `present` exceptions are **not** merged — each
 becomes its own period.
 
-Periods created/modified by an exception get `source: "exception"` and carry
-the `exception_id`; rule-derived periods have `source: "rule"`.
+Only periods *inserted* by a `present` exception get `source: "exception"`
+and carry the `exception_id`. Periods trimmed/split by an `absent` exception
+keep the `source`/`exception_id` of the original rule-derived period — they're
+still rule periods, just shortened.
 
 Exceptions only take effect within the `[from, to]` window passed to
 `generateCustodyPeriods` (the same window used for rule expansion) — a

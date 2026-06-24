@@ -14,8 +14,12 @@ without understanding the model first.
    applies that rule's exceptions on top, and returns everything sorted by
    start time.
 3. `RecurrenceException` never edits a rule — it patches the *generated*
-   periods after expansion (cancel one occurrence, move it, extend/shorten
-   it, or add an ad-hoc period not derived from any rule).
+   periods after expansion by marking a date range as `present` (force
+   custody for the rule's person, even outside generated periods) or
+   `absent` (force the rule's person to NOT have custody, splitting/trimming/
+   removing generated periods that overlap). There is no `person_id` on an
+   exception — the person is always implicit via
+   `recurrence_rule_id -> recurrence_rules.person_id`.
 
 ## The three pattern types (`engine.ts`)
 
@@ -31,23 +35,30 @@ without understanding the model first.
 - **`manual`** — `expandManual`. A single explicit period bounded by
   `starts_at`/`ends_at` (defaults to a 1-day period if `ends_at` is unset).
 
-All three end by calling `applyExceptions(periods, exceptions, rule.id)`.
+All three end by calling `applyExceptions(periods, exceptions, rule)`.
 
 ## Exceptions (`applyExceptions` in `engine.ts`)
 
-Matched to a generated period by checking whether `exception.original_start_at`
-falls within that period's `[start_at, end_at)`. Behavior by `type`:
+Matched to a rule's generated periods by overlap with `[start_at, end_at)`,
+not by a single point in time. Behavior by `type`:
 
-| type      | effect                                                              |
-|-----------|----------------------------------------------------------------------|
-| `cancel`  | removes the matching period                                          |
-| `move`    | removes the matching period, inserts a new one at the override times |
-| `extend`  | keeps the period, replaces `end_at` with the override (later)        |
-| `shorten` | keeps the period, replaces `end_at` with the override (earlier)      |
-| `add`     | inserts a new period not tied to any matched original                |
+| type      | effect                                                                 |
+|-----------|-------------------------------------------------------------------------|
+| `absent`  | removes any overlap with `[start_at, end_at)` from generated periods — full removal, trimming from either end, or splitting into two periods if the absence falls in the middle of one |
+| `present` | inserts a new standalone period `[start_at, end_at)` for the rule's person, regardless of what the rule would otherwise generate |
+
+Processing order: all `absent` exceptions for a rule are applied first (in
+array order, sequentially folded over the period list so a period can be
+split/trimmed multiple times), then all `present` exceptions are appended as
+new periods. Overlapping `present` exceptions are **not** merged — each
+becomes its own period.
 
 Periods created/modified by an exception get `source: "exception"` and carry
 the `exception_id`; rule-derived periods have `source: "rule"`.
+
+Exceptions only take effect within the `[from, to]` window passed to
+`generateCustodyPeriods` (the same window used for rule expansion) — a
+`present` exception dated outside that window is never considered.
 
 ## Other files in this directory
 
@@ -67,7 +78,7 @@ the `exception_id`; rule-derived periods have `source: "rule"`.
 
 - New scheduling pattern → add a case in `generateCustodyPeriods` + a new
   `expand*` function in `engine.ts`.
-- New exception behavior → add a case in `applyExceptions`, plus a label in
+- New exception behavior → edit `applyExceptions`, plus a label in
   `labels.ts`.
 - Calendar coloring/labels only → `display.ts`, not `engine.ts`.
 - Persisting generated periods to the DB → `persist.ts`.

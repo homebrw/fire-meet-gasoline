@@ -155,7 +155,7 @@ Example: `lib/actions/events.ts`, `lib/actions/custody.ts`, `lib/actions/recurre
 Complex business logic in `lib/recurrence/` handles custody scheduling with three
 pattern types (`weekly_alternating`, `custom_cycle`, `manual`). The engine
 (`engine.ts`) expands `RecurrenceRule` into `GeneratedPeriod[]` over a date
-range and applies `RecurrenceException` overrides (cancel/move/extend/shorten/add).
+range and applies `RecurrenceException` overrides (present/absent date ranges).
 **See `lib/recurrence/README.md` for the full mental model and a map of
 `availability.ts`/`display.ts`/`labels.ts`/`persist.ts` before editing this
 directory.**
@@ -164,7 +164,7 @@ directory.**
 Core entities stored in Supabase:
 - **Person**: Individuals (e.g., parent/guardian) with color + avatar
 - **RecurrenceRule**: Custody schedule template with pattern + timing
-- **RecurrenceException**: Overrides to a single occurrence (cancel/move/extend/shorten/add)
+- **RecurrenceException**: Marks a date range as `present` (extra custody) or `absent` (removes/splits custody) for the rule's person
 - **ChildPresence**: Generated custody period for a person (time-bounded)
 - **CustodyTransition**: Pickup/dropoff event with location
 - **CalendarEvent**: Shared or individual events with optional attachments

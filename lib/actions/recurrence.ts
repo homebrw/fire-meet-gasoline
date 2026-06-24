@@ -90,35 +90,40 @@ export async function deleteRecurrenceRule(id: string) {
   revalidatePath("/week")
 }
 
-const exceptionSchema = z.object({
+const exceptionBaseSchema = z.object({
   recurrence_rule_id: z.string().uuid(),
-  person_id: z.string().uuid(),
-  original_start_at: z.string().nullable().optional(),
-  original_end_at: z.string().nullable().optional(),
-  override_start_at: z.string().nullable().optional(),
-  override_end_at: z.string().nullable().optional(),
-  type: z.enum(["cancel", "move", "extend", "shorten", "add"]),
+  start_at: z.string(),
+  end_at: z.string(),
+  type: z.enum(["present", "absent"]),
   reason: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
 })
 
+const exceptionEndAfterStart = (data: { start_at?: string; end_at?: string }) =>
+  !data.start_at || !data.end_at || new Date(data.end_at) > new Date(data.start_at)
+
+const exceptionSchema = exceptionBaseSchema.refine(exceptionEndAfterStart, {
+  message: "end_at must be after start_at",
+  path: ["end_at"],
+})
+
+const partialExceptionSchema = exceptionBaseSchema.partial().refine(exceptionEndAfterStart, {
+  message: "end_at must be after start_at",
+  path: ["end_at"],
+})
+
 export async function createRecurrenceException(formData: FormData) {
   const supabase = await createClient()
-  const data = exceptionSchema.parse(Object.fromEntries(formData))
+  const raw = Object.fromEntries(formData)
 
-  // Convert datetime-local to UTC
-  if (data.original_start_at && !data.original_start_at.includes("Z")) {
-    data.original_start_at = datetimeLocalToUTC(data.original_start_at)
+  if (raw.start_at && typeof raw.start_at === "string" && !raw.start_at.includes("Z")) {
+    raw.start_at = datetimeLocalToUTC(raw.start_at)
   }
-  if (data.original_end_at && !data.original_end_at.includes("Z")) {
-    data.original_end_at = datetimeLocalToUTC(data.original_end_at)
+  if (raw.end_at && typeof raw.end_at === "string" && !raw.end_at.includes("Z")) {
+    raw.end_at = datetimeLocalToUTC(raw.end_at)
   }
-  if (data.override_start_at && !data.override_start_at.includes("Z")) {
-    data.override_start_at = datetimeLocalToUTC(data.override_start_at)
-  }
-  if (data.override_end_at && !data.override_end_at.includes("Z")) {
-    data.override_end_at = datetimeLocalToUTC(data.override_end_at)
-  }
+
+  const data = exceptionSchema.parse(raw)
 
   const { error } = await supabase.from("recurrence_exceptions").insert(data)
   if (error) throw new Error(error.message)
@@ -135,21 +140,16 @@ export async function createRecurrenceException(formData: FormData) {
 
 export async function updateRecurrenceException(id: string, formData: FormData) {
   const supabase = await createClient()
-  const data = exceptionSchema.partial().parse(Object.fromEntries(formData))
+  const raw = Object.fromEntries(formData)
 
-  // Convert datetime-local to UTC
-  if (data.original_start_at && !data.original_start_at.includes("Z")) {
-    data.original_start_at = datetimeLocalToUTC(data.original_start_at)
+  if (raw.start_at && typeof raw.start_at === "string" && !raw.start_at.includes("Z")) {
+    raw.start_at = datetimeLocalToUTC(raw.start_at)
   }
-  if (data.original_end_at && !data.original_end_at.includes("Z")) {
-    data.original_end_at = datetimeLocalToUTC(data.original_end_at)
+  if (raw.end_at && typeof raw.end_at === "string" && !raw.end_at.includes("Z")) {
+    raw.end_at = datetimeLocalToUTC(raw.end_at)
   }
-  if (data.override_start_at && !data.override_start_at.includes("Z")) {
-    data.override_start_at = datetimeLocalToUTC(data.override_start_at)
-  }
-  if (data.override_end_at && !data.override_end_at.includes("Z")) {
-    data.override_end_at = datetimeLocalToUTC(data.override_end_at)
-  }
+
+  const data = partialExceptionSchema.parse(raw)
 
   // Fetch the exception to get the rule_id
   const { data: exception, error: fetchError } = await supabase

@@ -86,7 +86,6 @@ export default function ExceptionsPage() {
             </DialogHeader>
             <ExceptionForm
               rules={rules}
-              persons={persons}
               onSuccess={() => {
                 setCreateOpen(false)
                 location.reload()
@@ -106,7 +105,7 @@ export default function ExceptionsPage() {
         <div className="space-y-3">
           {exceptions.map((exc) => {
             const rule = ruleById[exc.recurrence_rule_id]
-            const person = personById[exc.person_id]
+            const person = rule ? personById[rule.person_id] : undefined
             return (
               <Card key={exc.id}>
                 <CardContent className="pt-4">
@@ -131,7 +130,6 @@ export default function ExceptionsPage() {
                             </DialogHeader>
                             <ExceptionForm
                               rules={rules}
-                              persons={persons}
                               exception={exc}
                               onSuccess={() => {
                                 setEditExc(null)
@@ -165,13 +163,12 @@ export default function ExceptionsPage() {
 
 interface ExceptionFormProps {
   rules: RecurrenceRule[]
-  persons: Person[]
   exception?: RecurrenceException
   onSuccess?: () => void
 }
 
-function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormProps) {
-  const [excType, setExcType] = useState<string>(exception?.type ?? "cancel")
+function ExceptionForm({ rules, exception, onSuccess }: ExceptionFormProps) {
+  const [excType, setExcType] = useState<string>(exception?.type ?? "present")
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -181,17 +178,13 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
     const formData = new FormData(e.currentTarget)
 
     // Convert datetime-local values to UTC
-    const originalStartAt = formData.get("original_start_at")
-    if (originalStartAt && typeof originalStartAt === "string" && originalStartAt && !originalStartAt.includes("Z")) {
-      formData.set("original_start_at", datetimeLocalToUTC(originalStartAt))
+    const startAt = formData.get("start_at")
+    if (startAt && typeof startAt === "string" && !startAt.includes("Z")) {
+      formData.set("start_at", datetimeLocalToUTC(startAt))
     }
-    const overrideStartAt = formData.get("override_start_at")
-    if (overrideStartAt && typeof overrideStartAt === "string" && overrideStartAt && !overrideStartAt.includes("Z")) {
-      formData.set("override_start_at", datetimeLocalToUTC(overrideStartAt))
-    }
-    const overrideEndAt = formData.get("override_end_at")
-    if (overrideEndAt && typeof overrideEndAt === "string" && overrideEndAt && !overrideEndAt.includes("Z")) {
-      formData.set("override_end_at", datetimeLocalToUTC(overrideEndAt))
+    const endAt = formData.get("end_at")
+    if (endAt && typeof endAt === "string" && !endAt.includes("Z")) {
+      formData.set("end_at", datetimeLocalToUTC(endAt))
     }
 
     startTransition(async () => {
@@ -223,18 +216,6 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label>Personne</Label>
-        <Select name="person_id" defaultValue={exception?.person_id ?? ""} required>
-          <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-          <SelectContent>
-            {persons.map((p) => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
         <Label>Type d&apos;exception</Label>
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -246,38 +227,28 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="original_start_at">Date originale à modifier</Label>
-        <Input
-          id="original_start_at"
-          name="original_start_at"
-          type="datetime-local"
-          defaultValue={exception?.original_start_at ? formatDatetimeLocal(exception.original_start_at) : ""}
-        />
-      </div>
-
-      {(excType === "move" || excType === "extend" || excType === "shorten" || excType === "add") && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="override_start_at">Début</Label>
-            <Input
-              id="override_start_at"
-              name="override_start_at"
-              type="datetime-local"
-              defaultValue={exception?.override_start_at ? formatDatetimeLocal(exception.override_start_at) : ""}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="override_end_at">Fin</Label>
-            <Input
-              id="override_end_at"
-              name="override_end_at"
-              type="datetime-local"
-              defaultValue={exception?.override_end_at ? formatDatetimeLocal(exception.override_end_at) : ""}
-            />
-          </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="start_at">Début</Label>
+          <Input
+            id="start_at"
+            name="start_at"
+            type="datetime-local"
+            defaultValue={exception?.start_at ? formatDatetimeLocal(exception.start_at) : ""}
+            required
+          />
         </div>
-      )}
+        <div className="space-y-2">
+          <Label htmlFor="end_at">Fin</Label>
+          <Input
+            id="end_at"
+            name="end_at"
+            type="datetime-local"
+            defaultValue={exception?.end_at ? formatDatetimeLocal(exception.end_at) : ""}
+            required
+          />
+        </div>
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="reason">Raison</Label>

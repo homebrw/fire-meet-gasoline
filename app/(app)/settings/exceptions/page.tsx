@@ -24,10 +24,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
+import { Plus, Pencil, Trash2, ArrowLeft, AlertTriangle } from "lucide-react"
 import { datetimeLocalToUTC, formatDatetimeLocal, indexById } from "@/lib/utils"
 import { RECURRENCE_EXCEPTION_TYPE_LABELS } from "@/lib/recurrence/labels"
 import { ExceptionDetail } from "@/components/custody/ExceptionDetail"
+import { addYears } from "date-fns"
 
 export default function ExceptionsPage() {
   const [exceptions, setExceptions] = useState<RecurrenceException[]>([])
@@ -86,6 +87,7 @@ export default function ExceptionsPage() {
             </DialogHeader>
             <ExceptionForm
               rules={rules}
+              exceptions={exceptions}
               onSuccess={() => {
                 setCreateOpen(false)
                 location.reload()
@@ -130,6 +132,7 @@ export default function ExceptionsPage() {
                             </DialogHeader>
                             <ExceptionForm
                               rules={rules}
+                              exceptions={exceptions}
                               exception={exc}
                               onSuccess={() => {
                                 setEditExc(null)
@@ -163,27 +166,74 @@ export default function ExceptionsPage() {
 
 interface ExceptionFormProps {
   rules: RecurrenceRule[]
+  exceptions: RecurrenceException[]
   exception?: RecurrenceException
   onSuccess?: () => void
 }
 
-function ExceptionForm({ rules, exception, onSuccess }: ExceptionFormProps) {
+function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFormProps) {
   const [excType, setExcType] = useState<string>(exception?.type ?? "present")
+  const [ruleId, setRuleId] = useState<string>(exception?.recurrence_rule_id ?? "")
+  const [startAt, setStartAt] = useState<string>(
+    exception?.start_at ? formatDatetimeLocal(exception.start_at) : ""
+  )
+  const [endAt, setEndAt] = useState<string>(
+    exception?.end_at ? formatDatetimeLocal(exception.end_at) : ""
+  )
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  const rule = rules.find((r) => r.id === ruleId)
+
+  // The engine only ever considers exceptions inside the rule's own
+  // generation window (starts_at..ends_at, or +2 years if open-ended —
+  // see lib/recurrence/persist.ts). Outside of it, an exception is
+  // silently ignored, so warn the user instead of letting it disappear
+  // without explanation.
+  let windowWarning: string | null = null
+  if (rule && startAt && endAt) {
+    const ruleStart = new Date(rule.starts_at)
+    const ruleEnd = rule.ends_at ? new Date(rule.ends_at) : addYears(ruleStart, 2)
+    const excStart = new Date(startAt)
+    const excEnd = new Date(endAt)
+    if (excEnd <= ruleStart || excStart >= ruleEnd) {
+      windowWarning = "Cette plage est entièrement hors de la période couverte par la règle : l'exception n'aura aucun effet."
+    }
+  }
+
+  // Overlap with another exception on the same rule is valid (the engine
+  // handles it deterministically) but is easy to create by mistake, so
+  // surface it instead of letting it pass silently.
+  let overlapWarning: string | null = null
+  if (ruleId && startAt && endAt) {
+    const excStart = new Date(startAt)
+    const excEnd = new Date(endAt)
+    const overlapping = exceptions.some((other) => {
+      if (other.id === exception?.id) return false
+      if (other.recurrence_rule_id !== ruleId) return false
+      return new Date(other.start_at) < excEnd && new Date(other.end_at) > excStart
+    })
+    if (overlapping) {
+      overlapWarning = "Cette plage chevauche une autre exception existante pour cette règle."
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+
+    if (startAt && endAt && new Date(endAt) <= new Date(startAt)) {
+      setError("La date de fin doit être après la date de début.")
+      return
+    }
+
     const formData = new FormData(e.currentTarget)
 
     // Convert datetime-local values to UTC
-    const startAt = formData.get("start_at")
-    if (startAt && typeof startAt === "string" && !startAt.includes("Z")) {
+    if (startAt && !startAt.includes("Z")) {
       formData.set("start_at", datetimeLocalToUTC(startAt))
     }
-    const endAt = formData.get("end_at")
-    if (endAt && typeof endAt === "string" && !endAt.includes("Z")) {
+    if (endAt && !endAt.includes("Z")) {
       formData.set("end_at", datetimeLocalToUTC(endAt))
     }
 
@@ -205,7 +255,7 @@ function ExceptionForm({ rules, exception, onSuccess }: ExceptionFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label>Règle concernée</Label>
-        <Select name="recurrence_rule_id" defaultValue={exception?.recurrence_rule_id ?? ""} required>
+        <Select name="recurrence_rule_id" value={ruleId} onValueChange={setRuleId} required>
           <SelectTrigger><SelectValue placeholder="Choisir une règle" /></SelectTrigger>
           <SelectContent>
             {rules.map((r) => (
@@ -234,7 +284,8 @@ function ExceptionForm({ rules, exception, onSuccess }: ExceptionFormProps) {
             id="start_at"
             name="start_at"
             type="datetime-local"
-            defaultValue={exception?.start_at ? formatDatetimeLocal(exception.start_at) : ""}
+            value={startAt}
+            onChange={(e) => setStartAt(e.target.value)}
             required
           />
         </div>
@@ -244,11 +295,29 @@ function ExceptionForm({ rules, exception, onSuccess }: ExceptionFormProps) {
             id="end_at"
             name="end_at"
             type="datetime-local"
-            defaultValue={exception?.end_at ? formatDatetimeLocal(exception.end_at) : ""}
+            value={endAt}
+            onChange={(e) => setEndAt(e.target.value)}
             required
           />
         </div>
       </div>
+
+      {(windowWarning || overlapWarning) && (
+        <div className="space-y-1.5 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          {windowWarning && (
+            <p className="flex items-start gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              {windowWarning}
+            </p>
+          )}
+          {overlapWarning && (
+            <p className="flex items-start gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+              {overlapWarning}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="reason">Raison</Label>

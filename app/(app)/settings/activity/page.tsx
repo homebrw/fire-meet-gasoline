@@ -25,7 +25,7 @@ interface EventActivityData extends ActivityData {
 }
 
 interface ExceptionActivityData extends ActivityData {
-  person_id: string
+  recurrence_rule_id: string
 }
 
 interface PresenceActivityData extends ActivityData {
@@ -57,7 +57,7 @@ async function loadActivityFeed(
       .limit(30),
     supabase
       .from("recurrence_exceptions")
-      .select("id, recurrence_rule_id, person_id, created_at, updated_at")
+      .select("id, recurrence_rule_id, created_at, updated_at")
       .gte("updated_at", sevenDaysAgo.toISOString())
       .order("updated_at", { ascending: false })
       .limit(30),
@@ -76,6 +76,10 @@ async function loadActivityFeed(
   ])
 
   const items: ActivityFeedItem[] = []
+  const rulePersonById: Record<string, string> = {}
+  rulesRes.data?.forEach((rule: RuleActivityData) => {
+    rulePersonById[rule.id] = rule.person_id
+  })
 
   rulesRes.data?.forEach((rule: RuleActivityData) => {
     const isNew = rule.created_at === rule.updated_at
@@ -108,7 +112,7 @@ async function loadActivityFeed(
       type: "exception",
       action: isNew ? "created" : "updated",
       resourceName: `Exception`,
-      personName: personById[exc.person_id]?.name ?? "?",
+      personName: personById[rulePersonById[exc.recurrence_rule_id]]?.name ?? "?",
       timestamp: isNew ? exc.created_at : exc.updated_at,
     })
   })

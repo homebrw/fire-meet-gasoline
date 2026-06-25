@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { Plus, Trash2, ArrowLeft, Lock } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -253,7 +255,10 @@ function PresenceForm({ persons, onSuccess }: { persons: Person[]; onSuccess: ()
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Personne</Label>
+        <div className="flex items-center gap-1">
+          <Label>Personne</Label>
+          <HelpIcon content={FORM_HELP_TEXT.custody.personId} />
+        </div>
         <Select name="person_id" required>
           <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
           <SelectContent>
@@ -263,16 +268,25 @@ function PresenceForm({ persons, onSuccess }: { persons: Person[]; onSuccess: ()
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="start_at">Début</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="start_at">Début</Label>
+            <HelpIcon content={FORM_HELP_TEXT.custody.startAt} />
+          </div>
           <Input id="start_at" name="start_at" type="datetime-local" required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_at">Fin</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="end_at">Fin</Label>
+            <HelpIcon content={FORM_HELP_TEXT.custody.endAt} />
+          </div>
           <Input id="end_at" name="end_at" type="datetime-local" required />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="notes">Notes</Label>
+          <HelpIcon content={FORM_HELP_TEXT.custody.notes} />
+        </div>
         <Input id="notes" name="notes" placeholder="Optionnel" />
       </div>
       {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}
@@ -304,7 +318,10 @@ function TransitionForm({ persons, onSuccess }: { persons: Person[]; onSuccess: 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Personne</Label>
+        <div className="flex items-center gap-1">
+          <Label>Personne</Label>
+          <HelpIcon content={FORM_HELP_TEXT.transitions.personId} />
+        </div>
         <Select name="person_id" required>
           <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
           <SelectContent>
@@ -313,11 +330,17 @@ function TransitionForm({ persons, onSuccess }: { persons: Person[]; onSuccess: 
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="transition_at">Date et heure</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="transition_at">Date et heure</Label>
+          <HelpIcon content={FORM_HELP_TEXT.transitions.transitionAt} />
+        </div>
         <Input id="transition_at" name="transition_at" type="datetime-local" required />
       </div>
       <div className="space-y-2">
-        <Label>Direction</Label>
+        <div className="flex items-center gap-1">
+          <Label>Direction</Label>
+          <HelpIcon content={FORM_HELP_TEXT.transitions.direction} />
+        </div>
         <Select name="direction" required>
           <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
           <SelectContent>
@@ -327,7 +350,10 @@ function TransitionForm({ persons, onSuccess }: { persons: Person[]; onSuccess: 
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="location">Lieu</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="location">Lieu</Label>
+          <HelpIcon content={FORM_HELP_TEXT.transitions.location} />
+        </div>
         <Input id="location" name="location" placeholder="Ex: École, Gare…" />
       </div>
       {error && <p className="text-sm text-[var(--color-destructive)]">{error}</p>}

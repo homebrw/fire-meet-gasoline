@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
 import { datetimeLocalToUTC, formatDatetimeLocal, indexById } from "@/lib/utils"
 import { RECURRENCE_EXCEPTION_TYPE_LABELS } from "@/lib/recurrence/labels"
@@ -211,7 +213,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Règle concernée</Label>
+        <div className="flex items-center gap-1">
+          <Label>Règle concernée</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.ruleId} />
+        </div>
         <Select name="recurrence_rule_id" defaultValue={exception?.recurrence_rule_id ?? ""} required>
           <SelectTrigger><SelectValue placeholder="Choisir une règle" /></SelectTrigger>
           <SelectContent>
@@ -223,7 +228,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label>Personne</Label>
+        <div className="flex items-center gap-1">
+          <Label>Personne</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.personId} />
+        </div>
         <Select name="person_id" defaultValue={exception?.person_id ?? ""} required>
           <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
           <SelectContent>
@@ -235,7 +243,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label>Type d&apos;exception</Label>
+        <div className="flex items-center gap-1">
+          <Label>Type d&apos;exception</Label>
+          <HelpIcon content="Choisissez le type de modification: annuler, reporter, prolonger, raccourcir, ou ajouter." />
+        </div>
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -247,7 +258,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="original_start_at">Date originale à modifier</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="original_start_at">Date originale à modifier</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.originalStartAt} />
+        </div>
         <Input
           id="original_start_at"
           name="original_start_at"
@@ -259,7 +273,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       {(excType === "move" || excType === "extend" || excType === "shorten" || excType === "add") && (
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="override_start_at">Début</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="override_start_at">Début</Label>
+              <HelpIcon content={FORM_HELP_TEXT.exceptions.overrideStartAt} />
+            </div>
             <Input
               id="override_start_at"
               name="override_start_at"
@@ -268,7 +285,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="override_end_at">Fin</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="override_end_at">Fin</Label>
+              <HelpIcon content={FORM_HELP_TEXT.exceptions.overrideEndAt} />
+            </div>
             <Input
               id="override_end_at"
               name="override_end_at"
@@ -280,7 +300,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="reason">Raison</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="reason">Raison</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.reason} />
+        </div>
         <Input
           id="reason"
           name="reason"
@@ -290,7 +313,10 @@ function ExceptionForm({ rules, persons, exception, onSuccess }: ExceptionFormPr
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="notes">Notes</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.notes} />
+        </div>
         <Textarea id="notes" name="notes" defaultValue={exception?.notes ?? ""} rows={2} />
       </div>
 

@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { format } from "date-fns"
 import { Upload, X, Trash2 } from "lucide-react"
 import { datetimeLocalToUTC, formatDatetimeLocal } from "@/lib/utils"
@@ -172,9 +174,12 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
     <>
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">
-          Titre <span className="text-[var(--color-destructive)]">*</span>
-        </Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="title">
+            Titre <span className="text-[var(--color-destructive)]">*</span>
+          </Label>
+          <HelpIcon content={FORM_HELP_TEXT.events.title} />
+        </div>
         <Input id="title" name="title" defaultValue={event?.title} required />
       </div>
 
@@ -198,9 +203,12 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
 
         {isAllDay ? (
           <div className="space-y-2">
-            <Label htmlFor="start_date">
-              Date <span className="text-[var(--color-destructive)]">*</span>
-            </Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="start_date">
+                Date <span className="text-[var(--color-destructive)]">*</span>
+              </Label>
+              <HelpIcon content={FORM_HELP_TEXT.events.startDate} />
+            </div>
             <Input
               id="start_date"
               type="date"
@@ -214,9 +222,12 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="start_at">
-                Début <span className="text-[var(--color-destructive)]">*</span>
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="start_at">
+                  Début <span className="text-[var(--color-destructive)]">*</span>
+                </Label>
+                <HelpIcon content={FORM_HELP_TEXT.events.startAt} />
+              </div>
               <Input
                 id="start_at"
                 name="start_at"
@@ -226,9 +237,12 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end_at">
-                Fin <span className="text-[var(--color-destructive)]">*</span>
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="end_at">
+                  Fin <span className="text-[var(--color-destructive)]">*</span>
+                </Label>
+                <HelpIcon content={FORM_HELP_TEXT.events.endAt} />
+              </div>
               <Input
                 id="end_at"
                 name="end_at"
@@ -242,12 +256,18 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="location">Lieu (optionnel)</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="location">Lieu (optionnel)</Label>
+          <HelpIcon content={FORM_HELP_TEXT.events.location} />
+        </div>
         <Input id="location" name="location" defaultValue={event?.location ?? ""} />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="description">Description</Label>
+          <HelpIcon content={FORM_HELP_TEXT.events.description} />
+        </div>
         <Textarea id="description" name="description" defaultValue={event?.description ?? ""} rows={3} />
       </div>
 
@@ -269,7 +289,10 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       <input type="hidden" name="visibility" value="both" />
 
       <div className="space-y-2 border-t pt-4">
-        <Label htmlFor="participants">Participants</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="participants">Participants</Label>
+          <HelpIcon content={FORM_HELP_TEXT.events.participants} />
+        </div>
         <div id="participants">
           {defaultParticipants !== null && (
             <ParticipantsSelector
@@ -283,7 +306,10 @@ export function EventForm({ persons, event, initialDate, onSuccess, onRevalidate
       </div>
 
       <div className="space-y-2 border-t pt-4">
-        <Label htmlFor="attachments">Pièces jointes</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="attachments">Pièces jointes</Label>
+          <HelpIcon content={FORM_HELP_TEXT.events.attachments} />
+        </div>
         <div className="space-y-3">
           <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-[var(--color-secondary-surface)] transition">
             <input

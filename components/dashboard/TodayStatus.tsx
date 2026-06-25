@@ -32,11 +32,11 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
               Créez d'abord vos enfants, puis vos règles de garde pour voir votre calendrier.
             </p>
           </div>
-          <Link href="/settings/children" asChild>
-            <Button size="sm" variant="default">
+          <Button size="sm" variant="default" asChild>
+            <Link href="/settings/children">
               Commencer par les enfants
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     )

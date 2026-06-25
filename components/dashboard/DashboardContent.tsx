@@ -8,6 +8,7 @@ import { UpcomingEvents } from "./UpcomingEvents"
 import { SharedEventCard } from "./SharedEventCard"
 import { TodayHeader } from "./TodayHeader"
 import { EmptyState } from "@/components/state/EmptyState"
+import { GettingStartedHelp } from "@/components/onboarding/getting-started-help"
 import { CalendarDays } from "lucide-react"
 
 interface DashboardContentProps {
@@ -38,15 +39,9 @@ export function DashboardContent({
       <TodayHeader />
 
       {!hasData ? (
-        <EmptyState
-          icon={CalendarDays}
-          title="Aucune donnée disponible"
-          description="Créez une première règle de garde pour voir votre planning d'aujourd'hui"
-          action={{
-            label: "Créer une règle",
-            href: "/settings/rules",
-          }}
-        />
+        <div className="space-y-4">
+          <GettingStartedHelp />
+        </div>
       ) : (
         <>
           <TodayStatus state={todayState} damien={damien} ma={ma} persons={persons} />

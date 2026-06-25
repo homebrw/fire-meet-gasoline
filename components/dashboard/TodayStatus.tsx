@@ -2,12 +2,14 @@ import type { DayState, Person } from "@/lib/types"
 import { getStateConfig } from "@/lib/recurrence/display"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { TRANSITION_DIRECTION_LABEL } from "@/lib/recurrence/labels"
 import { ArrowUp, ArrowDown } from "lucide-react"
 import { indexById } from "@/lib/utils"
+import Link from "next/link"
 
 interface TodayStatusProps {
   state: DayState | null
@@ -21,13 +23,20 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
   if (!state) {
     return (
       <Card>
-        <CardContent className="pt-6 pb-6 text-center">
-          <p className="text-[var(--color-muted-foreground)] text-sm mb-3">
-            Aujourd&apos;hui — Aucune donnée disponible
-          </p>
-          <p className="text-xs text-[var(--color-muted-foreground)]">
-            Créez une première règle de garde pour voir votre planning
-          </p>
+        <CardContent className="pt-6 pb-6 text-center space-y-4">
+          <div>
+            <p className="text-[var(--color-foreground)] text-sm font-medium mb-2">
+              Configurer votre planning
+            </p>
+            <p className="text-xs text-[var(--color-muted-foreground)] mb-4">
+              Créez d'abord vos enfants, puis vos règles de garde pour voir votre calendrier.
+            </p>
+          </div>
+          <Link href="/settings/children" asChild>
+            <Button size="sm" variant="default">
+              Commencer par les enfants
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     )

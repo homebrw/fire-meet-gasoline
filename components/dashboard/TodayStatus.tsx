@@ -38,7 +38,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
 
   return (
     <Card className={cn("border-l-4", getBorderColor(state.displayState))}>
-      <CardContent className="pt-4 space-y-3">
+      <CardContent className="space-y-3">
         <div className={cn("inline-flex items-center gap-2 rounded-full px-3 py-1", config.bgClass)}>
           <span className={cn("h-2 w-2 rounded-full", config.dotClass)} />
           <span className={cn("text-sm font-medium", config.textClass)}>{config.label}</span>
@@ -47,7 +47,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: damien?.color ?? "var(--color-damien)" }} />
+              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: damien?.color ?? "var(--color-damien)" }} aria-hidden="true" />
               <p className="text-xs font-semibold text-[var(--color-foreground)]">{damien?.name ?? "Personne 1"}</p>
             </div>
             <Badge variant={state.damienHasChildren ? "damien" : "outline"} className="text-xs">
@@ -59,7 +59,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: ma?.color ?? "var(--color-ma)" }} />
+              <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: ma?.color ?? "var(--color-ma)" }} aria-hidden="true" />
               <p className="text-xs font-semibold text-[var(--color-foreground)]">{ma?.name ?? "Personne 2"}</p>
             </div>
             <Badge variant={state.maHasChild ? "ma" : "outline"} className="text-xs">
@@ -72,8 +72,8 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
         </div>
 
         {state.partiallyAvailable && (
-          <div className="rounded-md px-3 py-2" style={{ backgroundColor: 'var(--color-available-light)' }}>
-            <p className="text-xs font-medium" style={{ color: 'var(--color-available-badge-text)' }}>
+          <div className="rounded-md px-3 py-2 bg-available-light">
+            <p className="text-xs font-medium text-available-badge">
               Disponibles ensemble{" "}
               {state.commonAvailableWindows
                 .map((w) => `${w.startsAtDayBoundary ? "00:00" : w.start} – ${w.endsAtDayBoundary ? "23:59" : w.end}`)
@@ -84,7 +84,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
 
         {state.custodyTransitions.length > 0 && (
           <div className="space-y-1">
-            <p className="text-xs font-medium" style={{color: 'var(--color-transition-badge-text)'}}>Changements aujourd&apos;hui</p>
+            <p className="text-xs font-medium text-transition-badge">Changements aujourd&apos;hui</p>
             {state.custodyTransitions.map((t) => {
               const person = personById[t.person_id]
               const Icon = t.direction === "pickup" ? ArrowUp : ArrowDown
@@ -93,6 +93,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
                   <Icon
                     className="h-3.5 w-3.5 flex-shrink-0"
                     style={{ color: person?.color ?? 'var(--color-transition-badge-text)' }}
+                    aria-hidden="true"
                   />
                   <span className="font-semibold text-[var(--color-foreground)]">{person?.name ?? "?"}</span>
                   <span className="text-[var(--color-muted-foreground)]">—</span>

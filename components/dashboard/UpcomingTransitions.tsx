@@ -18,7 +18,7 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <ArrowUpDown className="h-4 w-4" style={{color: 'var(--color-transition-badge-text)'}} />
+          <ArrowUpDown className="h-4 w-4 text-transition-badge" aria-hidden="true" />
           Prochains changements de garde
         </CardTitle>
       </CardHeader>
@@ -37,6 +37,7 @@ export function UpcomingTransitions({ transitions, persons }: UpcomingTransition
                   <Icon
                     className="mt-0.5 h-4 w-4 flex-shrink-0"
                     style={{ color: person?.color ?? 'var(--color-transition-badge-text)' }}
+                    aria-hidden="true"
                   />
                   <div className="min-w-0">
                     <p className="text-sm font-medium">

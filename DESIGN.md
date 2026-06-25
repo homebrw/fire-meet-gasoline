@@ -222,7 +222,37 @@ Padding: 10px 16px (small horizontal, standard vertical). Size is x-small font (
 
 The status card (TodayStatus, NextAvailableSlot) combines a person/status color on the left border (4px stripe, rounded top-left corner to match card radius) with tonal badge and content inside. The border carries visual meaning: green for available, orange for transition, gray for unavailable, person color for custody info. The stripe height matches the card's full height or content height (not just card header). This is a deliberate design pattern, not an anti-pattern in this context, because: (1) the color always has a text label and icon reinforcing it, (2) it's only used on status cards, not generically, (3) it signals high-importance information that co-parents need to scan quickly.
 
-## 6. Do's and Don'ts
+## 6. Motion
+
+Motion is purposeful and restrained. Transitions support state change and feedback without creating ceremony or distraction.
+
+### Timing Scale
+
+- **Fast**: 150ms — microinteractions (sheet open, icon feedback)
+- **Normal**: 200ms — standard state transitions (dialog, dropdown, hover)
+- **Slow**: 300ms — reserved for elaborate reveals (use sparingly)
+
+All transitions use `ease-out` timing to feel responsive. No bounce or elastic easing; no orchestrated page-load sequences.
+
+### Respecting Motion Preference
+
+The app globally respects `prefers-reduced-motion: reduce` via `@media` rules in `app/globals.css`. When a user opts out, all animations are disabled (duration: 0.01ms). This is non-negotiable accessibility; motion must never be a barrier to use.
+
+### What Moves
+
+- Dialog open/close (fade + zoom, 200ms)
+- Dropdown menu reveal (slide + fade, 150ms)
+- Navigation active state (background color, 75ms)
+- Hover feedback (opacity shift, 150–200ms)
+- Loading states (not animated spinners; skeleton screens instead)
+
+### What Doesn't Move
+
+- Page load (no hero animations, no staggered reveals)
+- Layout properties (no animated width/height; use scale or opacity instead)
+- Decorative effects (no gratuitous motion for appeal)
+
+## 7. Do's and Don'ts
 
 ### Do:
 

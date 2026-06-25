@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut, CloudSun } from "lucide-react"
+import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut, CloudSun, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -65,12 +65,27 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
         })}
       </nav>
 
-      <div className="flex gap-2 border-t border-[var(--color-border)] pt-4 mt-4">
-        <ThemeToggle />
+      <div className="flex gap-2 border-t border-[var(--color-border)] pt-4 mt-4 flex-col">
+        <div className="flex gap-2">
+          <ThemeToggle />
+          <Link href="/help" className="flex-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-3 text-[var(--color-muted-foreground)]"
+              asChild
+            >
+              <span>
+                <HelpCircle className="h-4 w-4" />
+                Aide
+              </span>
+            </Button>
+          </Link>
+        </div>
         <Button
           variant="ghost"
           size="sm"
-          className="flex-1 justify-start gap-3 text-[var(--color-muted-foreground)]"
+          className="w-full justify-start gap-3 text-[var(--color-muted-foreground)]"
           onClick={handleSignOut}
         >
           <LogOut className="h-4 w-4" />

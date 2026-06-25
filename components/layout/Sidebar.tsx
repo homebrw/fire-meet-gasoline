@@ -72,12 +72,10 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
             variant="ghost"
             size="sm"
             className="flex-1 justify-start gap-3 text-[var(--color-muted-foreground)]"
-            asChild
+            onClick={() => router.push("/help")}
           >
-            <Link href="/help">
-              <HelpCircle className="h-4 w-4" />
-              Aide
-            </Link>
+            <HelpCircle className="h-4 w-4" />
+            Aide
           </Button>
         </div>
         <Button

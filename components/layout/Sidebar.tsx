@@ -68,19 +68,17 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
       <div className="flex gap-2 border-t border-[var(--color-border)] pt-4 mt-4 flex-col">
         <div className="flex gap-2">
           <ThemeToggle />
-          <Link href="/help" className="flex-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start gap-3 text-[var(--color-muted-foreground)]"
-              asChild
-            >
-              <span>
-                <HelpCircle className="h-4 w-4" />
-                Aide
-              </span>
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 justify-start gap-3 text-[var(--color-muted-foreground)]"
+            asChild
+          >
+            <Link href="/help">
+              <HelpCircle className="h-4 w-4" />
+              Aide
+            </Link>
+          </Button>
         </div>
         <Button
           variant="ghost"

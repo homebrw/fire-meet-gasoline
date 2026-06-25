@@ -29,7 +29,7 @@ export function TodayStatus({ state, damien, ma, persons }: TodayStatusProps) {
               Configurer votre planning
             </p>
             <p className="text-xs text-[var(--color-muted-foreground)] mb-4">
-              Créez d'abord vos enfants, puis vos règles de garde pour voir votre calendrier.
+              Créez d&apos;abord vos enfants, puis vos règles de garde pour voir votre calendrier.
             </p>
           </div>
           <Button size="sm" variant="default" asChild>

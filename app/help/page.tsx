@@ -18,7 +18,7 @@ export default function HelpPage() {
         </Link>
 
         <article className="prose prose-sm dark:prose-invert max-w-none">
-          <h1>Guide d'Aide - Famille Sync</h1>
+          <h1>Guide d&apos;Aide - Famille Sync</h1>
 
           <section>
             <h2>Bienvenue dans Famille Sync</h2>
@@ -55,7 +55,7 @@ export default function HelpPage() {
 
             <h3>Étape 3: Consultez votre calendrier</h3>
             <ol>
-              <li>Allez dans <strong>Aujourd'hui</strong> ou <strong>Semaine</strong></li>
+              <li>Allez dans <strong>Aujourd&apos;hui</strong> ou <strong>Semaine</strong></li>
               <li>Vous verrez qui a les enfants à chaque moment</li>
               <li>Les couleurs correspondent aux parents (bleu = Damien, rose = Ma, cyan = ensemble)</li>
             </ol>
@@ -86,7 +86,7 @@ export default function HelpPage() {
                 </ul>
               </li>
             </ul>
-            <p><strong>Exemple</strong>: "Damien a les enfants lundi, mardi, mercredi. Ma a jeudi, vendredi, samedi, dimanche."</p>
+            <p><strong>Exemple</strong>: &quot;Damien a les enfants lundi, mardi, mercredi. Ma a jeudi, vendredi, samedi, dimanche.&quot;</p>
 
             <h3>3. Exceptions</h3>
             <p>Changements ponctuels à vos règles normales.</p>
@@ -96,7 +96,7 @@ export default function HelpPage() {
                 <ul>
                   <li><strong>Annuler</strong>: supprimer un jour de garde (les enfants restent avec le parent actuel)</li>
                   <li><strong>Reporter</strong>: déplacer une période à une autre date</li>
-                  <li><strong>Prolonger</strong>: ajouter des jours (ex: "Garde supplémentaire jeudi-vendredi")</li>
+                  <li><strong>Prolonger</strong>: ajouter des jours (ex: &quot;Garde supplémentaire jeudi-vendredi&quot;)</li>
                   <li><strong>Raccourcir</strong>: retirer des jours</li>
                   <li><strong>Ajouter</strong>: créer une période en dehors des règles normales</li>
                 </ul>
@@ -135,7 +135,7 @@ export default function HelpPage() {
 
             <h3>✓ À Faire</h3>
             <ul>
-              <li><strong>Soyez précis sur les heures</strong>: "Lundi 8h-mercredi 18h" est clair. Pas de confusion.</li>
+              <li><strong>Soyez précis sur les heures</strong>: &quot;Lundi 8h-mercredi 18h&quot; est clair. Pas de confusion.</li>
               <li><strong>Définissez les lieux de changement</strong>: Cela évite les questions de dernière minute.</li>
               <li><strong>Ajoutez des événements partagés</strong>: Anniversaires, sorties scolaires, jours fériés.</li>
               <li><strong>Mettez à jour les exceptions rapidement</strong>: Un échange dès que décidé, pas au dernier moment.</li>
@@ -145,8 +145,8 @@ export default function HelpPage() {
             <h3>✗ À Éviter</h3>
             <ul>
               <li><strong>Ne changez pas votre schéma sans exception</strong>: Utilisez Exceptions pour les changements ponctuels, pas Règles.</li>
-              <li><strong>Ne créez pas deux périodes chevauchantes</strong>: Famille Sync n'aime pas l'ambiguïté ("Qui a l'enfant à 15h?")</li>
-              <li><strong>Ne laissez pas les détails flous</strong>: "Lundi avec Damien" est vague. "Lundi 8h école à mercredi 18h maison" est clair.</li>
+              <li><strong>Ne créez pas deux périodes chevauchantes</strong>: Famille Sync n&apos;aime pas l&apos;ambiguïté (&quot;Qui a l&apos;enfant à 15h?&quot;)</li>
+              <li><strong>Ne laissez pas les détails flous</strong>: &quot;Lundi avec Damien&quot; est vague. &quot;Lundi 8h école à mercredi 18h maison&quot; est clair.</li>
             </ul>
           </section>
 
@@ -157,25 +157,25 @@ export default function HelpPage() {
             <p>Oui! Allez dans <strong>Calendrier</strong> ou <strong>Semaine</strong> et naviguez avec les flèches.</p>
 
             <h3>Que se passe-t-il si je supprime une règle?</h3>
-            <p>Elle disparaît. Tous les jours basés sur cette règle disparaissent. Si c'était important, créez une Exception à la place.</p>
+            <p>Elle disparaît. Tous les jours basés sur cette règle disparaissent. Si c&apos;était important, créez une Exception à la place.</p>
 
             <h3>Comment ajouter un troisième parent?</h3>
             <p>Allez dans <strong>Paramètres</strong> → <strong>Enfants</strong> et cliquez <strong>+ Ajouter personne</strong>.</p>
 
             <h3>Puis-je avoir des enfants avec des schémas différents?</h3>
-            <p>Non pour l'instant. Tout le monde partage le même schéma. Une feature à venir!</p>
+            <p>Non pour l&apos;instant. Tout le monde partage le même schéma. Une feature à venir!</p>
 
-            <h3>Qu'est-ce qu'un "Événement bloquant"?</h3>
-            <p>C'est un événement qui empêche quelqu'un d'avoir les enfants ce jour-là. Par exemple, un médecin importante ou une absence. Famille Sync le note avec une pastille.</p>
+            <h3>Qu&apos;est-ce qu&apos;un &quot;Événement bloquant&quot;?</h3>
+            <p>C&apos;est un événement qui empêche quelqu&apos;un d&apos;avoir les enfants ce jour-là. Par exemple, un médecin importante ou une absence. Famille Sync le note avec une pastille.</p>
 
             <h3>Comment supprimer mon compte?</h3>
-            <p>Allez dans <strong>Paramètres</strong> → <strong>Sécurité</strong> (feature à venir). Pour l'instant, contactez le support.</p>
+            <p>Allez dans <strong>Paramètres</strong> → <strong>Sécurité</strong> (feature à venir). Pour l&apos;instant, contactez le support.</p>
           </section>
 
           <section>
-            <h2>Besoin d'Aide?</h2>
+            <h2>Besoin d&apos;Aide?</h2>
 
-            <p><strong>Cherchez le <code>?</code> sur chaque page.</strong> Cliquez pour voir l'aide contextuelle spécifique à cette page.</p>
+            <p><strong>Cherchez le <code>?</code> sur chaque page.</strong> Cliquez pour voir l&apos;aide contextuelle spécifique à cette page.</p>
 
             <p>Ou relisez ce guide!</p>
           </section>

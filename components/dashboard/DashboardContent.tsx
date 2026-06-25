@@ -7,9 +7,7 @@ import { UpcomingTransitions } from "./UpcomingTransitions"
 import { UpcomingEvents } from "./UpcomingEvents"
 import { SharedEventCard } from "./SharedEventCard"
 import { TodayHeader } from "./TodayHeader"
-import { EmptyState } from "@/components/state/EmptyState"
 import { GettingStartedHelp } from "@/components/onboarding/getting-started-help"
-import { CalendarDays } from "lucide-react"
 
 interface DashboardContentProps {
   todayState: DayState | null

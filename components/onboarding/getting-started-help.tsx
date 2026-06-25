@@ -50,7 +50,7 @@ export function GettingStartedHelp() {
               <div className="min-w-0">
                 <p className="font-medium text-sm">Consultez votre calendrier</p>
                 <p className="text-xs text-[var(--color-muted-foreground)]">
-                  Retournez à Aujourd'hui ou Semaine pour voir votre planning.
+                  Retournez à Aujourd&apos;hui ou Semaine pour voir votre planning.
                 </p>
               </div>
             </div>
@@ -78,7 +78,7 @@ export function GettingStartedHelp() {
           <div>
             <p className="font-medium mb-1">Où voir les heures de changement?</p>
             <p className="text-xs text-[var(--color-muted-foreground)]">
-              Ajoutez-les dans Paramètres → Gardes manuelles avec l'heure et le lieu.
+              Ajoutez-les dans Paramètres → Gardes manuelles avec l&apos;heure et le lieu.
             </p>
           </div>
         </CardContent>

@@ -53,7 +53,7 @@
     --color-secondary-foreground: #18181b;
     --color-secondary-surface: #f4f4f5;
     --color-muted: #f4f4f5;
-    --color-muted-foreground: #52525b;
+    --color-muted-foreground: #3f3f46;
     --color-accent: #f4f4f5;
     --color-accent-foreground: #18181b;
     --color-destructive: #ef4444;
@@ -75,14 +75,14 @@
     --color-secondary-foreground: #fafafa;
     --color-secondary-surface: #27272a;
     --color-muted: #27272a;
-    --color-muted-foreground: #d4d4d8;
+    --color-muted-foreground: #e4e4e7;
     --color-accent: #27272a;
     --color-accent-foreground: #fafafa;
     --color-destructive: #7f1d1d;
     --color-destructive-foreground: #fafafa;
     --color-border: #27272a;
     --color-input: #27272a;
-    --color-ring: #d4d4d8;
+    --color-ring: #e4e4e7;
 
     /* Dark mode event colors */
     --color-event: #fbbf24;
@@ -127,6 +127,26 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Color utility classes for semantic colors */
+@layer components {
+  .bg-damien-light { @apply bg-[var(--color-damien-light)]; }
+  .text-damien { @apply text-[var(--color-damien)]; }
+  .bg-ma-light { @apply bg-[var(--color-ma-light)]; }
+  .text-ma { @apply text-[var(--color-ma)]; }
+  .bg-both-kids-light { @apply bg-[var(--color-both-kids-light)]; }
+  .text-both-kids { @apply text-[var(--color-both-kids)]; }
+  .bg-available-light { @apply bg-[var(--color-available-light)]; }
+  .text-available { @apply text-[var(--color-available)]; }
+  .text-available-badge { @apply text-[var(--color-available-badge-text)]; }
+  .bg-transition-light { @apply bg-[var(--color-transition-light)]; }
+  .text-transition { @apply text-[var(--color-transition)]; }
+  .text-transition-badge { @apply text-[var(--color-transition-badge-text)]; }
+  .bg-unavailable-light { @apply bg-[var(--color-unavailable-light)]; }
+  .text-unavailable { @apply text-[var(--color-unavailable)]; }
+  .bg-event-light { @apply bg-[var(--color-event-light)]; }
+  .text-event { @apply text-[var(--color-event)]; }
 }
 
 @media (prefers-reduced-motion: reduce) {

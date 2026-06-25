@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { Plus, Pencil, Trash2, ArrowLeft, AlertTriangle } from "lucide-react"
 import { datetimeLocalToUTC, formatDatetimeLocal, indexById } from "@/lib/utils"
 import { RECURRENCE_EXCEPTION_TYPE_LABELS } from "@/lib/recurrence/labels"
@@ -254,7 +256,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Règle concernée</Label>
+        <div className="flex items-center gap-1">
+          <Label>Règle concernée</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.ruleId} />
+        </div>
         <Select name="recurrence_rule_id" value={ruleId} onValueChange={setRuleId} required>
           <SelectTrigger><SelectValue placeholder="Choisir une règle" /></SelectTrigger>
           <SelectContent>
@@ -266,7 +271,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
       </div>
 
       <div className="space-y-2">
-        <Label>Type d&apos;exception</Label>
+        <div className="flex items-center gap-1">
+          <Label>Type d&apos;exception</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.type} />
+        </div>
         <Select name="type" value={excType} onValueChange={setExcType} required>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -279,7 +287,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="start_at">Début</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="start_at">Début</Label>
+            <HelpIcon content={FORM_HELP_TEXT.exceptions.startAt} />
+          </div>
           <Input
             id="start_at"
             name="start_at"
@@ -290,7 +301,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_at">Fin</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="end_at">Fin</Label>
+            <HelpIcon content={FORM_HELP_TEXT.exceptions.endAt} />
+          </div>
           <Input
             id="end_at"
             name="end_at"
@@ -320,7 +334,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="reason">Raison</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="reason">Raison</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.reason} />
+        </div>
         <Input
           id="reason"
           name="reason"
@@ -330,7 +347,10 @@ function ExceptionForm({ rules, exceptions, exception, onSuccess }: ExceptionFor
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="notes">Notes</Label>
+          <HelpIcon content={FORM_HELP_TEXT.exceptions.notes} />
+        </div>
         <Textarea id="notes" name="notes" defaultValue={exception?.notes ?? ""} rows={2} />
       </div>
 

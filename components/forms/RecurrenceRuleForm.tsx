@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { cn, datetimeLocalToUTC } from "@/lib/utils"
 
 const FULL_DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
@@ -89,7 +91,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Person */}
       <div className="space-y-2">
-        <Label htmlFor="person_id">Personne</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="person_id">Personne</Label>
+          <HelpIcon content={FORM_HELP_TEXT.rules.personId ?? "Qui a les enfants pendant cette période?"} />
+        </div>
         <Select name="person_id" value={personId} onValueChange={setPersonId} required>
           <SelectTrigger id="person_id">
             <SelectValue placeholder="Choisir une personne" />
@@ -104,7 +109,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
       {/* Name */}
       <div className="space-y-2">
-        <Label htmlFor="name">Nom de la règle</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="name">Nom de la règle</Label>
+          <HelpIcon content={FORM_HELP_TEXT.rules.label} />
+        </div>
         <Input
           id="name"
           name="name"
@@ -116,7 +124,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
       {/* Pattern type */}
       <div className="space-y-2">
-        <Label htmlFor="pattern_type">Type de récurrence</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="pattern_type">Type de récurrence</Label>
+          <HelpIcon content="Choisissez le type de rotation: alternée chaque semaine, cycle personnalisé, ou manuel." />
+        </div>
         <Select name="pattern_type" value={patternType} onValueChange={setPatternType} required>
           <SelectTrigger id="pattern_type"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -130,7 +141,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {/* Validity window */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="starts_at">Début de validité</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="starts_at">Début de validité</Label>
+            <HelpIcon content={FORM_HELP_TEXT.rules.startDate} />
+          </div>
           <Input
             id="starts_at"
             name="starts_at"
@@ -141,7 +155,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="ends_at">Fin de validité <span className="text-[var(--color-muted-foreground)] font-normal">(optionnel)</span></Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="ends_at">Fin de validité <span className="text-[var(--color-muted-foreground)] font-normal">(optionnel)</span></Label>
+            <HelpIcon content={FORM_HELP_TEXT.rules.endDate} />
+          </div>
           <Input
             id="ends_at"
             name="ends_at"
@@ -154,7 +171,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {/* Custody times */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="custody_start_time">Heure début de garde</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="custody_start_time">Heure début de garde</Label>
+            <HelpIcon content={FORM_HELP_TEXT.rules.custodyStartTime} />
+          </div>
           <Input
             id="custody_start_time"
             name="custody_start_time"
@@ -164,7 +184,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="custody_end_time">Heure fin de garde</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="custody_end_time">Heure fin de garde</Label>
+            <HelpIcon content={FORM_HELP_TEXT.rules.custodyEndTime} />
+          </div>
           <Input
             id="custody_end_time"
             name="custody_end_time"
@@ -179,7 +202,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {patternType === "weekly_alternating" && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="handoff_day">Jour de passation</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="handoff_day">Jour de passation</Label>
+              <HelpIcon content={FORM_HELP_TEXT.rules.handoffDay} />
+            </div>
             <Select name="handoff_day" value={handoffDay} onValueChange={setHandoffDay} required>
               <SelectTrigger id="handoff_day"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -193,7 +219,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="week_parity">Parité de la semaine ISO</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="week_parity">Parité de la semaine ISO</Label>
+              <HelpIcon content={FORM_HELP_TEXT.rules.weekParity} />
+            </div>
             <Select name="week_parity" defaultValue={rule?.week_parity ?? "odd"} required>
               <SelectTrigger id="week_parity"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -212,7 +241,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
       {patternType === "custom_cycle" && (
         <>
           <div className="space-y-2">
-            <Label htmlFor="cycle_length_days">Durée du cycle (jours)</Label>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="cycle_length_days">Durée du cycle (jours)</Label>
+              <HelpIcon content={FORM_HELP_TEXT.rules.cycleLengthDays} />
+            </div>
             <Input
               id="cycle_length_days"
               name="cycle_length_days"
@@ -290,7 +322,10 @@ export function RecurrenceRuleForm({ persons, rule, onSuccess }: RecurrenceRuleF
 
       {/* Handoff location */}
       <div className="space-y-2">
-        <Label htmlFor="handoff_location">Lieu de passation</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="handoff_location">Lieu de passation</Label>
+          <HelpIcon content={FORM_HELP_TEXT.rules.handoffLocation} />
+        </div>
         <Input
           id="handoff_location"
           name="handoff_location"

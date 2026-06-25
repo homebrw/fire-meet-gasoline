@@ -6,6 +6,8 @@ import { Person } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { HelpIcon } from "@/components/ui/help-icon"
+import { FORM_HELP_TEXT } from "@/lib/form-help-text"
 import { createChild, updateChild } from "@/lib/actions/children"
 
 interface ChildFormProps {
@@ -71,7 +73,10 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
       )}
 
       <div>
-        <Label htmlFor="firstName">Prénom</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="firstName">Prénom</Label>
+          <HelpIcon content={FORM_HELP_TEXT.children.name} />
+        </div>
         <Input
           id="firstName"
           name="firstName"
@@ -82,7 +87,10 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="lastName">Nom de famille</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="lastName">Nom de famille</Label>
+          <HelpIcon content={FORM_HELP_TEXT.children.name} />
+        </div>
         <Input
           id="lastName"
           name="lastName"
@@ -93,7 +101,10 @@ export function ChildForm({ child, onSuccess }: ChildFormProps) {
       </div>
 
       <div>
-        <Label htmlFor="dateOfBirth">Date de naissance</Label>
+        <div className="flex items-center gap-1">
+          <Label htmlFor="dateOfBirth">Date de naissance</Label>
+          <HelpIcon content={FORM_HELP_TEXT.children.dateOfBirth} />
+        </div>
         <Input
           id="dateOfBirth"
           name="dateOfBirth"

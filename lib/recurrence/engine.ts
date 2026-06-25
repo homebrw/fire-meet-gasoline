@@ -2,7 +2,6 @@ import {
   addDays,
   differenceInDays,
   getISOWeek,
-  isWithinInterval,
   parseISO,
   startOfDay,
   startOfWeek,
@@ -101,7 +100,7 @@ function expandWeeklyAlternating(
     handoff = addDays(handoff, 7)
   }
 
-  return applyExceptions(periods, exceptions, rule.id)
+  return applyExceptions(periods, exceptions, rule)
 }
 
 function weekParityMatches(date: Date, parity: "even" | "odd"): boolean {
@@ -137,7 +136,7 @@ function expandCustomCycle(
   }
 
   const rawPeriods = groupConsecutiveDays(custodyDays, rule)
-  return applyExceptions(rawPeriods, exceptions, rule.id)
+  return applyExceptions(rawPeriods, exceptions, rule)
 }
 
 // ─── manual ──────────────────────────────────────────────────────────────────
@@ -163,7 +162,7 @@ function expandManual(
     exception_id: null,
   }
 
-  return applyExceptions([period], exceptions, rule.id)
+  return applyExceptions([period], exceptions, rule)
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -217,100 +216,60 @@ function applyTime(date: Date, time: string, endOfDay = false): Date {
   return zonedTimeToUtc(year, month, day, hours, minutes)
 }
 
+// Applique d'abord toutes les exceptions "absent" (retire/tronque/scinde les
+// périodes générées qui chevauchent), puis ajoute les périodes "present".
+// Les "present" qui se chevauchent ne sont pas fusionnées entre elles.
 function applyExceptions(
   periods: GeneratedPeriod[],
   exceptions: RecurrenceException[],
-  ruleId: string
+  rule: RecurrenceRule
 ): GeneratedPeriod[] {
+  const relevant = exceptions.filter((exc) => exc.recurrence_rule_id === rule.id)
+  const absences = relevant.filter((exc) => exc.type === "absent")
+  const presences = relevant.filter((exc) => exc.type === "present")
+
   let result = [...periods]
 
-  for (const exc of exceptions) {
-    if (exc.recurrence_rule_id !== ruleId) continue
+  for (const exc of absences) {
+    const excStart = parseISO(exc.start_at)
+    const excEnd = parseISO(exc.end_at)
+    const nextResult: GeneratedPeriod[] = []
 
-    const originalStart = exc.original_start_at ? parseISO(exc.original_start_at) : null
+    for (const period of result) {
+      const overlapStart = period.start_at > excStart ? period.start_at : excStart
+      const overlapEnd = period.end_at < excEnd ? period.end_at : excEnd
 
-    switch (exc.type) {
-      case "cancel":
-        if (originalStart) {
-          result = result.filter(
-            (p) =>
-              !isWithinInterval(originalStart, {
-                start: p.start_at,
-                end: p.end_at,
-              })
-          )
-        }
-        break
+      if (overlapStart >= overlapEnd) {
+        nextResult.push(period)
+        continue
+      }
 
-      case "move":
-        if (originalStart && exc.override_start_at && exc.override_end_at) {
-          result = result.filter(
-            (p) =>
-              !isWithinInterval(originalStart, {
-                start: p.start_at,
-                end: p.end_at,
-              })
-          )
-          result.push({
-            person_id: exc.person_id,
-            start_at: parseISO(exc.override_start_at),
-            end_at: parseISO(exc.override_end_at),
-            rule_id: ruleId,
-            source: "exception",
-            exception_id: exc.id,
-          })
-        }
-        break
-
-      case "extend":
-        if (originalStart && exc.override_end_at) {
-          result = result.map((p) => {
-            if (
-              isWithinInterval(originalStart, { start: p.start_at, end: p.end_at })
-            ) {
-              return {
-                ...p,
-                end_at: parseISO(exc.override_end_at!),
-                source: "exception" as const,
-                exception_id: exc.id,
-              }
-            }
-            return p
-          })
-        }
-        break
-
-      case "shorten":
-        if (originalStart && exc.override_end_at) {
-          result = result.map((p) => {
-            if (
-              isWithinInterval(originalStart, { start: p.start_at, end: p.end_at })
-            ) {
-              return {
-                ...p,
-                end_at: parseISO(exc.override_end_at!),
-                source: "exception" as const,
-                exception_id: exc.id,
-              }
-            }
-            return p
-          })
-        }
-        break
-
-      case "add":
-        if (exc.override_start_at && exc.override_end_at) {
-          result.push({
-            person_id: exc.person_id,
-            start_at: parseISO(exc.override_start_at),
-            end_at: parseISO(exc.override_end_at),
-            rule_id: ruleId,
-            source: "exception",
-            exception_id: exc.id,
-          })
-        }
-        break
+      if (period.start_at < overlapStart) {
+        nextResult.push({
+          ...period,
+          end_at: overlapStart,
+        })
+      }
+      if (period.end_at > overlapEnd) {
+        nextResult.push({
+          ...period,
+          start_at: overlapEnd,
+        })
+      }
     }
+
+    result = nextResult
+  }
+
+  for (const exc of presences) {
+    result.push({
+      person_id: rule.person_id,
+      start_at: parseISO(exc.start_at),
+      end_at: parseISO(exc.end_at),
+      rule_id: rule.id,
+      source: "exception",
+      exception_id: exc.id,
+    })
   }
 
   return result

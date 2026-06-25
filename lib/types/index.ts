@@ -34,16 +34,13 @@ export type RecurrenceRule = {
   updated_at: string
 }
 
-export type RecurrenceExceptionType = "cancel" | "move" | "extend" | "shorten" | "add"
+export type RecurrenceExceptionType = "present" | "absent"
 
 export type RecurrenceException = {
   id: string
   recurrence_rule_id: string
-  person_id: string
-  original_start_at: string | null
-  original_end_at: string | null
-  override_start_at: string | null
-  override_end_at: string | null
+  start_at: string
+  end_at: string
   type: RecurrenceExceptionType
   reason: string | null
   notes: string | null

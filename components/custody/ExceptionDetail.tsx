@@ -31,12 +31,10 @@ export function ExceptionDetail({ exception, rule, person, actions }: ExceptionD
         {actions && <div className="flex gap-1 flex-shrink-0">{actions}</div>}
       </div>
       <div className="text-xs text-[var(--color-muted-foreground)] space-y-0.5">
-        {exception.original_start_at && (
-          <p>Période originale : {format(parseISO(exception.original_start_at), "d MMM yyyy HH:mm", { locale: fr })}</p>
-        )}
-        {exception.override_start_at && (
-          <p>Période : {format(parseISO(exception.override_start_at), "d MMM yyyy HH:mm", { locale: fr })}</p>
-        )}
+        <p>
+          Période : du {format(parseISO(exception.start_at), "d MMM yyyy HH:mm", { locale: fr })} au{" "}
+          {format(parseISO(exception.end_at), "d MMM yyyy HH:mm", { locale: fr })}
+        </p>
         {exception.reason && <p>Raison : {exception.reason}</p>}
         {exception.notes && <p>Notes : {exception.notes}</p>}
       </div>

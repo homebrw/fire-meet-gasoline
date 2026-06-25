@@ -6,9 +6,6 @@ export const TRANSITION_DIRECTION_LABEL: Record<CustodyTransitionDirection, stri
 }
 
 export const RECURRENCE_EXCEPTION_TYPE_LABELS: Record<RecurrenceExceptionType, string> = {
-  cancel: "Annulation",
-  move: "Déplacement",
-  extend: "Prolongation",
-  shorten: "Réduction",
-  add: "Ajout",
+  present: "Présence exceptionnelle",
+  absent: "Absence exceptionnelle",
 }

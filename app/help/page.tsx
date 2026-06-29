@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { GettingStartedHelp } from "@/components/onboarding/getting-started-help"
 
 export const metadata = {
   title: "Aide - Famille Sync",
@@ -30,37 +31,7 @@ export default function HelpPage() {
 
           <section>
             <h2>Première Utilisation (3 Minutes)</h2>
-
-            <h3>Étape 1: Créez votre famille</h3>
-            <ol>
-              <li>Allez dans <strong>Paramètres</strong> → <strong>Enfants</strong></li>
-              <li>Cliquez <strong>+ Ajouter</strong></li>
-              <li>Entrez le nom de chaque enfant et chaque parent/tuteur</li>
-              <li>Chacun reçoit une <strong>couleur unique</strong> (important pour le calendrier)</li>
-            </ol>
-
-            <h3>Étape 2: Configurez votre schéma de garde</h3>
-            <ol>
-              <li>Allez dans <strong>Paramètres</strong> → <strong>Règles de garde</strong></li>
-              <li>Cliquez <strong>+ Nouvelle règle</strong></li>
-              <li>Choisissez votre type:
-                <ul>
-                  <li><strong>Alternance hebdomadaire</strong>: par ex., lun-mer avec Damien, jeu-dim avec Ma</li>
-                  <li><strong>Cycle personnalisé</strong>: par ex., 2 semaines avec Damien, 2 semaines avec Ma</li>
-                  <li><strong>Manuel</strong>: périodes ponctuelles sans récurrence</li>
-                </ul>
-              </li>
-              <li>Sauvegardez</li>
-            </ol>
-
-            <h3>Étape 3: Consultez votre calendrier</h3>
-            <ol>
-              <li>Allez dans <strong>Aujourd&apos;hui</strong> ou <strong>Semaine</strong></li>
-              <li>Vous verrez qui a les enfants à chaque moment</li>
-              <li>Les couleurs correspondent aux parents (bleu = Damien, rose = Ma, cyan = ensemble)</li>
-            </ol>
-
-            <p>✓ Terminé! Vous pouvez maintenant commencer à utiliser Famille Sync.</p>
+            <GettingStartedHelp />
           </section>
 
           <section>

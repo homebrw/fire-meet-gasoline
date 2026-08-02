@@ -17,7 +17,8 @@ import type { DayState, Person, RecurrenceException, RecurrenceRule } from "@/li
 
 import { Button } from "@/components/ui/button"
 import { badgeVariants } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight, Plus, Home, CircleDashed } from "lucide-react"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { ChevronLeft, ChevronRight, Plus, Home, CircleDashed, Info, ArrowUp, ArrowDown } from "lucide-react"
 import { cn, getWeekString, parseWeekString, indexById } from "@/lib/utils"
 import { revalidateWeekData } from "@/lib/actions/revalidate"
 import {
@@ -134,6 +135,51 @@ export function WeekPlanning({ dayStates, damien, ma, persons, exceptions, rules
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex justify-end">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-1.5 text-[var(--color-muted-foreground)]">
+              <Info className="h-3.5 w-3.5" />
+              Légende
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 space-y-3 text-sm">
+            <div className="space-y-2">
+              {rows.map((row) => (
+                <div key={row.label} className="flex items-start gap-2">
+                  <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: row.color }} />
+                  <p><span className="font-medium">{row.label}</span> — a les enfants ce jour-là.</p>
+                </div>
+              ))}
+              <div className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--color-available)" }} />
+                <p>
+                  <span className="font-medium">Disponible</span> — rond plein : les deux sont libres toute la journée.
+                  Rond pointillé (<CircleDashed className="inline h-3 w-3 align-text-top" />) : libres une partie de la journée seulement.
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--color-transition)" }} />
+                <p>
+                  <span className="font-medium">Changements</span> — passations de garde ce jour-là :
+                  <ArrowUp className="inline h-3 w-3 mx-0.5" strokeWidth={3} /> récupération,
+                  <ArrowDown className="inline h-3 w-3 mx-0.5" strokeWidth={3} /> dépose.
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--color-event)" }} />
+                <p><span className="font-medium">Événements</span> — nombre d&apos;événements partagés ce jour-là ; touchez « + » pour en ajouter un.</p>
+              </div>
+            </div>
+            <p className="text-xs text-[var(--color-muted-foreground)] border-t border-[var(--color-border)] pt-2">
+              Une case vide signifie qu&apos;il ne se passe rien à afficher pour cette ligne ce jour-là
+              (par ex. les enfants sont avec un autre parent non suivi dans l&apos;app).
+            </p>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Table */}

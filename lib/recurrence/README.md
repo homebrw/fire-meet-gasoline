@@ -21,6 +21,16 @@ without understanding the model first.
    exception — the person is always implicit via
    `recurrence_rule_id -> recurrence_rules.person_id`.
 
+## Fuseau horaire des bornes de règle
+
+`starts_at` / `ends_at` sont des **dates calendaires** stockées en
+`TIMESTAMPTZ`. Minuit à Paris vaut `22:00Z` la veille : les relire avec
+`startOfDay()` sur un runtime en UTC (Vercel) renvoie le jour précédent et
+décale d'un jour entier le jour 0 d'un `custom_cycle`. Elles passent donc
+toutes par `ruleDay()` (→ `zonedDayMarker`, `lib/timezone.ts`), qui résout la
+date dans `APP_TIMEZONE`. Toute nouvelle lecture d'une borne de règle doit
+faire de même.
+
 ## The three pattern types (`engine.ts`)
 
 - **`weekly_alternating`** — `expandWeeklyAlternating`. Custody alternates by

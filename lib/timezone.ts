@@ -80,19 +80,31 @@ export function zonedDayBounds(
 
 /**
  * Renvoie un Date marqueur (heure locale système à minuit) représentant le
- * jour calendaire "aujourd'hui" dans le fuseau donné. Utilisé comme point de
- * départ des plages `from`/`to` pour que "aujourd'hui" corresponde au jour
- * vécu par les utilisateurs (Europe/Paris), pas au jour du runtime serveur.
+ * jour calendaire d'un instant donné dans le fuseau demandé.
+ *
+ * Indispensable pour lire les bornes d'une règle (`starts_at` / `ends_at`) :
+ * stockées en TIMESTAMPTZ, minuit à Paris vaut 22:00Z la veille, et un
+ * `startOfDay()` exécuté sur un runtime UTC (Vercel) renverrait le jour
+ * précédent — décalant d'un jour entier le jour 0 d'un cycle.
  */
-export function todayInZone(timeZone: string = APP_TIMEZONE): Date {
-  const now = new Date()
+export function zonedDayMarker(date: Date, timeZone: string = APP_TIMEZONE): Date {
   const dtf = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   })
-  const parts = dtf.formatToParts(now)
+  const parts = dtf.formatToParts(date)
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
   return new Date(get("year"), get("month") - 1, get("day"))
+}
+
+/**
+ * Renvoie un Date marqueur (heure locale système à minuit) représentant le
+ * jour calendaire "aujourd'hui" dans le fuseau donné. Utilisé comme point de
+ * départ des plages `from`/`to` pour que "aujourd'hui" corresponde au jour
+ * vécu par les utilisateurs (Europe/Paris), pas au jour du runtime serveur.
+ */
+export function todayInZone(timeZone: string = APP_TIMEZONE): Date {
+  return zonedDayMarker(new Date(), timeZone)
 }

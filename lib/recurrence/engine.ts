@@ -12,7 +12,15 @@ import type {
   RecurrenceException,
   GeneratedPeriod,
 } from "@/lib/types"
-import { zonedTimeToUtc } from "@/lib/timezone"
+import { zonedTimeToUtc, zonedDayMarker } from "@/lib/timezone"
+
+// Les bornes d'une règle sont des *dates calendaires* stockées en TIMESTAMPTZ.
+// Elles doivent être relues dans le fuseau de l'app, jamais dans celui du
+// runtime : minuit à Paris vaut 22:00Z la veille, et un serveur en UTC lirait
+// le jour précédent (cf. zonedDayMarker).
+function ruleDay(isoString: string): Date {
+  return zonedDayMarker(parseISO(isoString))
+}
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
@@ -55,8 +63,8 @@ function expandWeeklyAlternating(
 ): GeneratedPeriod[] {
   if (!rule.week_parity) return []
 
-  const ruleStart = parseISO(rule.starts_at)
-  const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
+  const ruleStart = ruleDay(rule.starts_at)
+  const ruleEnd = rule.ends_at ? ruleDay(rule.ends_at) : null
   const windowStart = from < ruleStart ? ruleStart : from
   const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
@@ -118,8 +126,8 @@ function expandCustomCycle(
 ): GeneratedPeriod[] {
   if (!rule.cycle_length_days || !rule.custody_days?.length) return []
 
-  const ruleStart = startOfDay(parseISO(rule.starts_at))
-  const ruleEnd = rule.ends_at ? parseISO(rule.ends_at) : null
+  const ruleStart = ruleDay(rule.starts_at)
+  const ruleEnd = rule.ends_at ? ruleDay(rule.ends_at) : null
   const windowStart = from < ruleStart ? ruleStart : from
   const windowEnd = ruleEnd && to > ruleEnd ? ruleEnd : to
 
@@ -147,10 +155,10 @@ function expandManual(
   from: Date,
   to: Date
 ): GeneratedPeriod[] {
-  const start = parseISO(rule.starts_at)
+  const start = ruleDay(rule.starts_at)
   if (start > to) return []
 
-  const end = rule.ends_at ? parseISO(rule.ends_at) : addDays(start, 1)
+  const end = rule.ends_at ? ruleDay(rule.ends_at) : addDays(start, 1)
   if (end < from) return []
 
   const period: GeneratedPeriod = {

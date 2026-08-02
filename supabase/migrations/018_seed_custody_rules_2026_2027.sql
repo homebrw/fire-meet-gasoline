@@ -23,6 +23,9 @@
 -- l'utilisateur pour Damien. Pour Clotilde, les heures restent inconnues —
 -- 08:30 y est un placeholder, et ses passations de vacances sont à 00:00.
 --
+-- Prérequis : la migration 017 crée recurrence_rules.ends_at, utilisée ici
+-- pour borner la 1re règle de Clotilde.
+--
 -- Vérification : scripts/preview-custody.ts rejoue ces règles dans le moteur
 -- et les compare aux 365 jours de scripts/oracle/oracle_365j.csv (oracle
 -- indépendant) ainsi qu'aux invariants d'acceptation. Toute modification de

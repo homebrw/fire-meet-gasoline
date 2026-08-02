@@ -5,6 +5,7 @@
  *
  * Usage: npx tsx scripts/preview-custody.ts
  */
+import { readFileSync } from "node:fs"
 import { addDays, format, parseISO } from "date-fns"
 import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { zonedDayBounds, zonedTimeToUtc } from "@/lib/timezone"
@@ -45,13 +46,14 @@ const rules: RecurrenceRule[] = [
     person_id: MA,
     name: "Clotilde — cycle 14 j (avant 2027)",
     pattern_type: "custom_cycle",
-    starts_at: "2026-09-07T00:00:00+02:00",
+    // Démarre au 1er jour de la fenêtre documentée : jour 0 = mardi.
+    starts_at: "2026-09-01T00:00:00+02:00",
     custody_start_time: "08:30",
     custody_end_time: "08:30",
     week_parity: null,
     handoff_day: null,
     cycle_length_days: 14,
-    custody_days: CUSTODY_DAYS,
+    custody_days: [0, 6, 7, 10, 11, 12, 13],
     ends_at: "2027-01-03T00:00:00+01:00",
   },
   {
@@ -107,6 +109,11 @@ const exceptions: RecurrenceException[] = [
   exc("rule-damien", "present", "2027-07-18T00:00:00+02:00", "2027-08-08T00:00:00+02:00", "Été S3-S4-S5"),
   exc("rule-damien", "present", "2027-08-29T00:00:00+02:00", "2027-08-30T08:30:00+02:00", "Reprise scolaire"),
 
+  // ── Clotilde : échanges ponctuels (vendredi chez le père) ──────────────
+  exc("rule-ma-1", "absent", "2026-11-06T00:00:00+01:00", "2026-11-07T00:00:00+01:00", "Échange"),
+  exc("rule-ma-1", "absent", "2026-11-20T00:00:00+01:00", "2026-11-21T00:00:00+01:00", "Échange"),
+  exc("rule-ma-1", "absent", "2026-12-04T00:00:00+01:00", "2026-12-05T00:00:00+01:00", "Échange"),
+  exc("rule-ma-1", "absent", "2026-12-18T00:00:00+01:00", "2026-12-19T00:00:00+01:00", "Échange"),
   // ── Clotilde : vacances (segments explicites) ──────────────────────────
   exc("rule-ma-1", "absent", "2026-10-17T00:00:00+02:00", "2026-11-02T08:30:00+01:00", "Toussaint"),
   exc("rule-ma-1", "present", "2026-10-24T00:00:00+02:00", "2026-10-31T00:00:00+01:00", "Toussaint 2e partie"),
@@ -256,10 +263,89 @@ function dump(fromISO: string, days: number, title: string) {
 
 dump("2026-12-21", 28, "Passage 2026→2027 (S52 · S53 · S1 · S2) — le point à valider")
 
+
+// ─── Diff contre l'oracle indépendant (365 jours) ─────────────────────────
+// scripts/oracle/oracle_365j.csv est produit par scripts/oracle/oracle_garde.py,
+// réimplémentation du rythme sans aucune dépendance au moteur de l'app.
+
+/** Qui a les enfants à une heure donnée (heure de Paris). */
+function ownersAt(day: Date, hour: number): { damien: boolean; ma: boolean } {
+  const t = zonedTimeToUtc(day.getFullYear(), day.getMonth() + 1, day.getDate(), hour, 0)
+  let damien = false
+  let ma = false
+  for (const p of periods) {
+    if (p.start_at <= t && p.end_at > t) {
+      if (p.person_id === DAMIEN) damien = true
+      if (p.person_id === MA) ma = true
+    }
+  }
+  return { damien, ma }
+}
+
+console.log("\n── Diff contre l'oracle indépendant (365 jours) ───────────────")
+
+const csv = readFileSync(new URL("./oracle/oracle_365j.csv", import.meta.url), "utf8")
+const rows = csv.trim().split("\n").slice(1).map((line) => line.split(","))
+
+const counts = { GREEN: 0, PURPLE: 0, BLUE: 0, ORANGE: 0 }
+let damienDays = 0
+let maDays = 0
+const oracleFailuresBefore = failures
+
+for (const row of rows) {
+  const [dateISO, , , , damienExpected, maExpected] = row
+  const day = parseISO(dateISO)
+  const expectedMa = maExpected === "True"
+  const split = damienExpected.includes("|")
+  const [expectedAm, expectedPm] = split
+    ? damienExpected.split("|").map((v) => v === "True")
+    : [damienExpected === "True", damienExpected === "True"]
+
+  const am = ownersAt(day, 10)
+  const pm = ownersAt(day, 16)
+
+  if (am.damien !== expectedAm) fail(`${dateISO} 10:00 Damien: attendu ${expectedAm}, obtenu ${am.damien}`)
+  if (pm.damien !== expectedPm) fail(`${dateISO} 16:00 Damien: attendu ${expectedPm}, obtenu ${pm.damien}`)
+  if (am.ma !== expectedMa) fail(`${dateISO} 10:00 Marie-Alix: attendu ${expectedMa}, obtenu ${am.ma}`)
+  if (pm.ma !== expectedMa) fail(`${dateISO} 16:00 Marie-Alix: attendu ${expectedMa}, obtenu ${pm.ma}`)
+
+  // Décompte des états, les journées coupées comptant pour 0,5 de chaque côté.
+  const state = (d: boolean, m: boolean) =>
+    d && m ? "PURPLE" : d && !m ? "BLUE" : !d && m ? "ORANGE" : "GREEN"
+  if (split) {
+    counts[state(am.damien, am.ma)] += 0.5
+    counts[state(pm.damien, pm.ma)] += 0.5
+    damienDays += (am.damien ? 0.5 : 0) + (pm.damien ? 0.5 : 0)
+  } else {
+    counts[state(pm.damien, pm.ma)] += 1
+    damienDays += pm.damien ? 1 : 0
+  }
+  maDays += pm.ma ? 1 : 0
+}
+
+if (failures === oracleFailuresBefore) console.log(`  ✓ ${rows.length} jours conformes à l'oracle`)
+
+console.log("\n── Invariants d'acceptation ───────────────────────────────────")
+const invariants: [string, number, number][] = [
+  ["Tous les deux sans enfant", counts.GREEN, 115.5],
+  ["Tous les deux avec enfants", counts.PURPLE, 117.5],
+  ["Damien seul avec ses filles", counts.BLUE, 70.5],
+  ["Marie-Alix seule avec Clotilde", counts.ORANGE, 61.5],
+  ["Damien avec enfants (bleu + violet)", counts.BLUE + counts.PURPLE, 188],
+  ["Clotilde chez Marie-Alix (orange + violet)", counts.ORANGE + counts.PURPLE, 179],
+  ["— recomptés depuis les périodes : Damien", damienDays, 188],
+  ["— recomptés depuis les périodes : Clotilde", maDays, 179],
+]
+for (const [label, got, expected] of invariants) {
+  const ok = got === expected
+  if (!ok) failures++
+  console.log(`  ${ok ? "✓" : "✗"} ${label.padEnd(42)} ${got}${ok ? "" : ` (attendu ${expected})`}`)
+}
+
 console.log(
   failures === 0
-    ? "\n✅ Aucun écart avec la vérité terrain."
-    : `\n❌ ${failures} écart(s) avec la vérité terrain.`
+    ? "\n✅ Aucun écart : ancrage, segments, oracle 365 jours et invariants."
+    : `\n❌ ${failures} écart(s).`
 )
 
 console.log("\n── Périodes générées (Damien) ─────────────────────────────────")

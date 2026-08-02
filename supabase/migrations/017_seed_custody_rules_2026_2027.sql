@@ -14,6 +14,11 @@
 -- (source : « à l'heure théorique de début des cours », heure non chiffrée).
 -- Pour la corriger, remplacer les '08:30' de ce fichier et rejouer.
 --
+-- Vérification : scripts/preview-custody.ts rejoue ces règles dans le moteur
+-- et les compare aux 365 jours de scripts/oracle/oracle_365j.csv (oracle
+-- indépendant) ainsi qu'aux invariants d'acceptation. Toute modification de
+-- ce fichier doit être répercutée dans le banc et revalidée.
+--
 -- Les périodes affichées dans l'app sont recalculées à la volée depuis ces
 -- règles. Les tables child_presences / custody_transitions (cartes
 -- « prochaine passation ») sont matérialisées par l'app : après ce script,
@@ -94,16 +99,22 @@ BEGIN
 
   -- ════════════════════════════════════════════════════════════════════════
   -- 2. MARIE-ALIX / CLOTILDE — cycle de 14 jours
-  --    Jour 0 = lundi de semaine ISO impaire. Jours de garde dans le cycle :
-  --      0,1     lundi + mardi de la semaine impaire
-  --      4,5,6   vendredi + week-end de la semaine impaire
-  --      7,8     lundi + mardi de la semaine paire
-  --    Le père a systématiquement mercredi + jeudi, et le week-end pair.
+  --    Marie-Alix a Clotilde les lundis et mardis de chaque semaine, plus le
+  --    week-end (vendredi → dimanche) des semaines ISO impaires. Le père a
+  --    systématiquement mercredi + jeudi, et le week-end des semaines paires.
   --
   --    Deux règles : 2026 compte 53 semaines ISO, donc S53 et S1 sont toutes
   --    deux impaires. Un cycle de 14 jours ininterrompu se décalerait d'une
   --    semaine par rapport à la parité ISO à partir de janvier 2027 — la
   --    seconde règle recale le cycle sur le lundi de S1 (2027-01-04).
+  --
+  --    La 1re règle démarre au 2026-09-01, 1er jour de la fenêtre documentée,
+  --    pour ne rien extrapoler sur l'été 2026 (régime inconnu). Son jour 0
+  --    tombe donc un MARDI, d'où l'indexation décalée :
+  --      0            mardi (semaine paire)
+  --      6,7          lundi + mardi (semaine impaire)
+  --      10,11,12     vendredi + week-end (semaine impaire)
+  --      13           lundi (semaine paire suivante)
   -- ════════════════════════════════════════════════════════════════════════
   INSERT INTO recurrence_rules (
     person_id, name, pattern_type, starts_at, ends_at,
@@ -113,10 +124,10 @@ BEGIN
     v_marie_alix,
     'Clotilde — cycle 14 j (jusqu''au 03/01/2027)',
     'custom_cycle',
-    TIMESTAMPTZ '2026-09-07 00:00:00+02',
+    TIMESTAMPTZ '2026-09-01 00:00:00+02',
     TIMESTAMPTZ '2027-01-03 00:00:00+01',
     '08:30', '08:30',
-    14, '{0,1,4,5,6,7,8}', true
+    14, '{0,6,7,10,11,12,13}', true
   ) RETURNING id INTO v_rule_ma_1;
 
   INSERT INTO recurrence_rules (
@@ -131,6 +142,15 @@ BEGIN
     '08:30', '08:30',
     14, '{0,1,4,5,6,7,8}', true
   ) RETURNING id INTO v_rule_ma_2;
+
+  -- Échanges ponctuels en période scolaire (compensations Barcelone /
+  -- voyage scolaire) : ces vendredis de semaine impaire vont au père, le
+  -- week-end de Marie-Alix commence donc au samedi.
+  INSERT INTO recurrence_exceptions (recurrence_rule_id, start_at, end_at, type, reason) VALUES
+    (v_rule_ma_1, TIMESTAMPTZ '2026-11-06 00:00:00+01', TIMESTAMPTZ '2026-11-07 00:00:00+01', 'absent', 'Échange — vendredi chez le père'),
+    (v_rule_ma_1, TIMESTAMPTZ '2026-11-20 00:00:00+01', TIMESTAMPTZ '2026-11-21 00:00:00+01', 'absent', 'Échange — vendredi chez le père'),
+    (v_rule_ma_1, TIMESTAMPTZ '2026-12-04 00:00:00+01', TIMESTAMPTZ '2026-12-05 00:00:00+01', 'absent', 'Échange — vendredi chez le père'),
+    (v_rule_ma_1, TIMESTAMPTZ '2026-12-18 00:00:00+01', TIMESTAMPTZ '2026-12-19 00:00:00+01', 'absent', 'Échange — vendredi chez le père');
 
   -- Vacances : le cycle est neutralisé sur toute la période, puis les
   -- segments réels de Marie-Alix sont posés (source de vérité §5).

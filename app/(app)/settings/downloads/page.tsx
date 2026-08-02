@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, FileSpreadsheet, FileText, FileImage } from "lucide-react"

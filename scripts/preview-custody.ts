@@ -30,7 +30,7 @@ const rules: RecurrenceRule[] = [
     person_id: DAMIEN,
     name: "Garde alternée — semaines ISO impaires",
     pattern_type: "weekly_alternating",
-    starts_at: "2026-09-07T00:00:00+02:00",
+    starts_at: "2026-08-31T00:00:00+02:00",
     custody_start_time: "08:30",
     custody_end_time: "08:30",
     week_parity: "odd",
@@ -46,14 +46,14 @@ const rules: RecurrenceRule[] = [
     person_id: MA,
     name: "Clotilde — cycle 14 j (avant 2027)",
     pattern_type: "custom_cycle",
-    // Démarre au 1er jour de la fenêtre documentée : jour 0 = mardi.
-    starts_at: "2026-09-01T00:00:00+02:00",
+    // Origine déclarée du rythme : lundi de semaine ISO paire.
+    starts_at: "2026-08-31T00:00:00+02:00",
     custody_start_time: "08:30",
     custody_end_time: "08:30",
     week_parity: null,
     handoff_day: null,
     cycle_length_days: 14,
-    custody_days: [0, 6, 7, 10, 11, 12, 13],
+    custody_days: [0, 1, 7, 8, 11, 12, 13],
     ends_at: "2027-01-03T00:00:00+01:00",
   },
   {
@@ -133,7 +133,7 @@ const exceptions: RecurrenceException[] = [
 
 // ─── Restitution jour par jour ────────────────────────────────────────────
 
-const FROM = new Date(2026, 8, 1)
+const FROM = new Date(2026, 7, 31)
 const TO = new Date(2027, 8, 6)
 
 const periods = generateCustodyPeriods(rules, exceptions, FROM, TO)

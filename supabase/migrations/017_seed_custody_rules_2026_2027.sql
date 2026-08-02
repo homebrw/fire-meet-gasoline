@@ -10,9 +10,9 @@
 -- explicite — +02:00 = heure d'été (CEST), +01:00 = heure d'hiver (CET) —
 -- pour ne dépendre ni du fuseau du serveur ni de la configuration de la base.
 --
--- Hypothèse à valider : l'heure de passation du matin est fixée à 08:30
--- (source : « à l'heure théorique de début des cours », heure non chiffrée).
--- Pour la corriger, remplacer les '08:30' de ce fichier et rejouer.
+-- Heures de passation : 08:30 le matin en période scolaire, confirmé par
+-- l'utilisateur pour Damien. Pour Clotilde, les heures restent inconnues —
+-- 08:30 y est un placeholder, et ses passations de vacances sont à 00:00.
 --
 -- Vérification : scripts/preview-custody.ts rejoue ces règles dans le moteur
 -- et les compare aux 365 jours de scripts/oracle/oracle_365j.csv (oracle
@@ -65,8 +65,10 @@ BEGIN
 
   -- ════════════════════════════════════════════════════════════════════════
   -- 1. DAMIEN — une semaine sur deux, semaines ISO impaires
-  --    Passation le lundi matin. Ancrage vérifié : lundi 2026-09-07 = S37
-  --    (impaire) = Damien, conforme aux 28 jours de référence.
+  --    Passation le lundi matin à 08:30. La règle démarre au lundi
+  --    2026-08-31, origine déclarée des deux rythmes ; la 1re période
+  --    générée reste celle du lundi 2026-09-07, S36 étant paire.
+  --    Ancrage vérifié : 2026-09-07 = S37 (impaire) = Damien.
   -- ════════════════════════════════════════════════════════════════════════
   INSERT INTO recurrence_rules (
     person_id, name, pattern_type, starts_at,
@@ -76,7 +78,7 @@ BEGIN
     v_damien,
     'Garde alternée — semaines ISO impaires',
     'weekly_alternating',
-    TIMESTAMPTZ '2026-09-07 00:00:00+02',
+    TIMESTAMPTZ '2026-08-31 00:00:00+02',
     '08:30', '08:30',
     'odd', 0, 'École', true
   ) RETURNING id INTO v_rule_damien;
@@ -108,39 +110,38 @@ BEGIN
   --    semaine par rapport à la parité ISO à partir de janvier 2027 — la
   --    seconde règle recale le cycle sur le lundi de S1 (2027-01-04).
   --
-  --    La 1re règle démarre au 2026-09-01, 1er jour de la fenêtre documentée,
-  --    pour ne rien extrapoler sur l'été 2026 (régime inconnu). Son jour 0
-  --    tombe donc un MARDI, d'où l'indexation décalée :
-  --      0            mardi (semaine paire)
-  --      6,7          lundi + mardi (semaine impaire)
-  --      10,11,12     vendredi + week-end (semaine impaire)
-  --      13           lundi (semaine paire suivante)
+  --    La 1re règle démarre au lundi 2026-08-31, origine déclarée du rythme.
+  --    Ce lundi ouvre une semaine ISO PAIRE, d'où l'indexation :
+  --      0,1          lundi + mardi (semaine paire)
+  --      7,8          lundi + mardi (semaine impaire)
+  --      11,12,13     vendredi + week-end (semaine impaire)
+  --    Le père a mercredi + jeudi chaque semaine, et le week-end pair.
   -- ════════════════════════════════════════════════════════════════════════
   INSERT INTO recurrence_rules (
     person_id, name, pattern_type, starts_at, ends_at,
     custody_start_time, custody_end_time,
-    cycle_length_days, custody_days, is_active
+    cycle_length_days, custody_days, handoff_location, is_active
   ) VALUES (
     v_marie_alix,
     'Clotilde — cycle 14 j (jusqu''au 03/01/2027)',
     'custom_cycle',
-    TIMESTAMPTZ '2026-09-01 00:00:00+02',
+    TIMESTAMPTZ '2026-08-31 00:00:00+02',
     TIMESTAMPTZ '2027-01-03 00:00:00+01',
     '08:30', '08:30',
-    14, '{0,6,7,10,11,12,13}', true
+    14, '{0,1,7,8,11,12,13}', 'Variable', true
   ) RETURNING id INTO v_rule_ma_1;
 
   INSERT INTO recurrence_rules (
     person_id, name, pattern_type, starts_at,
     custody_start_time, custody_end_time,
-    cycle_length_days, custody_days, is_active
+    cycle_length_days, custody_days, handoff_location, is_active
   ) VALUES (
     v_marie_alix,
     'Clotilde — cycle 14 j (à partir du 04/01/2027)',
     'custom_cycle',
     TIMESTAMPTZ '2027-01-04 00:00:00+01',
     '08:30', '08:30',
-    14, '{0,1,4,5,6,7,8}', true
+    14, '{0,1,4,5,6,7,8}', 'Variable', true
   ) RETURNING id INTO v_rule_ma_2;
 
   -- Échanges ponctuels en période scolaire (compensations Barcelone /

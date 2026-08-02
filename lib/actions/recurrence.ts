@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { generateAndPersistCustodyData, regenerateForRule } from "@/lib/recurrence/persist"
+import { generateAndPersistCustodyData, regenerateForRule, regenerateAllRules } from "@/lib/recurrence/persist"
 import { datetimeLocalToUTC } from "@/lib/utils"
 
 const ruleSchema = z.object({
@@ -72,6 +72,23 @@ export async function updateRecurrenceRule(id: string, formData: FormData) {
   revalidatePath("/today")
   revalidatePath("/calendar")
   revalidatePath("/week")
+}
+
+// Régénère les gardes/passations pour toutes les règles, sans avoir à
+// rouvrir puis enregistrer chacune depuis l'UI. Utile après une modification
+// des règles ou des exceptions faite directement en base (migration SQL,
+// correction manuelle), pour matérialiser les child_presences /
+// custody_transitions dont dépendent les cartes "prochaine passation".
+export async function regenerateAllCustodyData() {
+  const count = await regenerateAllRules()
+
+  revalidatePath("/settings/rules")
+  revalidatePath("/settings/custody")
+  revalidatePath("/today")
+  revalidatePath("/calendar")
+  revalidatePath("/week")
+
+  return count
 }
 
 export async function deleteRecurrenceRule(id: string) {

@@ -1,5 +1,18 @@
 # Supabase Integration Guide
 
+## Migrations
+
+Les migrations vivent dans `supabase/migrations/`, numérotées `001`, `002`… et
+appliquées dans cet ordre. Elles sont appliquées **automatiquement** par
+l'intégration Supabase/GitHub : une migration déjà appliquée n'est jamais
+rejouée, donc corriger des données livrées par une migration demande une
+NOUVELLE migration, pas une modification de l'ancienne.
+
+Historiquement, `001` à `016` ont été passées à la main dans le SQL Editor,
+sans que la table `supabase_migrations.schema_migrations` en garde trace. Voir
+`scripts/sql/README.md` pour la procédure de réconciliation, à faire une fois
+avant de laisser l'intégration reprendre la main.
+
 ## Project Setup
 
 The project uses Supabase for:

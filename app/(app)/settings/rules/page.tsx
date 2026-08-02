@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { RecurrenceRuleForm } from "@/components/forms/RecurrenceRuleForm"
-import { deleteRecurrenceRule } from "@/lib/actions/recurrence"
+import { deleteRecurrenceRule, regenerateAllCustodyData } from "@/lib/actions/recurrence"
 import type { Person, RecurrenceRule } from "@/lib/types"
 import {
   Dialog,
@@ -18,8 +18,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2, ArrowLeft } from "lucide-react"
+import { Plus, Pencil, Trash2, ArrowLeft, RefreshCw } from "lucide-react"
 import { useTransition } from "react"
+import { cn } from "@/lib/utils"
 
 export default function RulesPage() {
   const [rules, setRules] = useState<RecurrenceRule[]>([])
@@ -27,6 +28,8 @@ export default function RulesPage() {
   const [editRule, setEditRule] = useState<RecurrenceRule | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [isRegenerating, startRegenerate] = useTransition()
+  const [regenerateError, setRegenerateError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -53,6 +56,18 @@ export default function RulesPage() {
     startTransition(async () => {
       await deleteRecurrenceRule(id)
       location.reload()
+    })
+  }
+
+  function handleRegenerateAll() {
+    setRegenerateError(null)
+    startRegenerate(async () => {
+      try {
+        await regenerateAllCustodyData()
+        location.reload()
+      } catch (err) {
+        setRegenerateError(err instanceof Error ? err.message : "Une erreur est survenue")
+      }
     })
   }
 
@@ -88,6 +103,34 @@ export default function RulesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {rules.length > 0 && (
+        <div className="space-y-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={isRegenerating}
+            onClick={handleRegenerateAll}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", isRegenerating && "animate-spin")} />
+            {isRegenerating ? "Régénération…" : "Régénérer toutes les gardes"}
+          </Button>
+          <p className="text-xs text-[var(--color-muted-foreground)]">
+            Recalcule les gardes et passations à partir des règles et exceptions actuelles.
+            À utiliser après une modification faite directement en base (migration, correction manuelle).
+          </p>
+          {regenerateError && (
+            <div
+              className="p-3 rounded-md bg-red-50 dark:bg-red-950/30 border border-[var(--color-destructive)]"
+              role="alert"
+              aria-live="polite"
+            >
+              <p className="text-sm text-[var(--color-destructive)] font-medium">{regenerateError}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {rules.length === 0 ? (
         <Card>

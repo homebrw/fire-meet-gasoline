@@ -105,3 +105,19 @@ export async function regenerateForRule(ruleId: string) {
 
   await generateAndPersistCustodyData(rule)
 }
+
+// Équivalent de rouvrir puis enregistrer chaque règle une par une (ce que
+// demande normalement une migration de données SQL pour matérialiser les
+// child_presences / custody_transitions), en un seul appel.
+export async function regenerateAllRules() {
+  const supabase = await createClient()
+
+  const { data: rules, error } = await supabase.from("recurrence_rules").select("*")
+  if (error) throw new Error(`Failed to fetch rules: ${error.message}`)
+
+  for (const rule of (rules ?? []) as RecurrenceRule[]) {
+    await generateAndPersistCustodyData(rule)
+  }
+
+  return rules?.length ?? 0
+}

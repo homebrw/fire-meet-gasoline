@@ -6,6 +6,15 @@
 -- règles qu'il crée (par nom), ainsi que les gardes/passations générées
 -- qui les référencent, avant de les réinsérer.
 --
+-- ⚠️ Appliqué automatiquement par l'intégration Supabase/GitHub. Une
+-- migration déjà appliquée n'est jamais rejouée : pour corriger ces données
+-- plus tard (les heures de passation de Clotilde, par exemple), créer une
+-- NOUVELLE migration — modifier ce fichier après coup n'aurait aucun effet
+-- sur la base de production.
+--
+-- Sur une base sans aucun adulte (branche de preview, CI), le script sort
+-- sans rien faire au lieu d'échouer et de bloquer la série de migrations.
+--
 -- Convention horaire : tous les instants sont écrits avec leur décalage
 -- explicite — +02:00 = heure d'été (CEST), +01:00 = heure d'hiver (CET) —
 -- pour ne dépendre ni du fuseau du serveur ni de la configuration de la base.
@@ -40,12 +49,22 @@ DECLARE
   ];
   v_old         UUID[];
 BEGIN
+  -- Base sans aucun adulte : environnement neuf (branche de preview, CI…)
+  -- qui ne contient que le schéma. On sort sans rien faire plutôt que de
+  -- faire échouer la série de migrations.
+  IF NOT EXISTS (SELECT 1 FROM persons WHERE is_child = false) THEN
+    RAISE NOTICE 'Aucun adulte en base : données de garde non insérées (environnement neuf).';
+    RETURN;
+  END IF;
+
   SELECT id INTO v_damien
   FROM persons WHERE is_child = false AND name ILIKE 'damien%' LIMIT 1;
 
   SELECT id INTO v_marie_alix
   FROM persons WHERE is_child = false AND name ILIKE 'marie%alix%' LIMIT 1;
 
+  -- En revanche, si la base contient des adultes mais pas ceux-là, c'est une
+  -- vraie anomalie : mieux vaut interrompre que poser des règles à côté.
   IF v_damien IS NULL THEN
     RAISE EXCEPTION 'Aucun adulte dont le nom commence par « Damien » dans persons.';
   END IF;

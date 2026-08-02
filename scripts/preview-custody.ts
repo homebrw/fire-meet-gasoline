@@ -4,6 +4,12 @@
  * avec la vérité terrain fournie (ancrage §3 + segments §5).
  *
  * Usage: npx tsx scripts/preview-custody.ts
+ *
+ * Pour rejouer les règles telles qu'elles sont réellement en base plutôt que
+ * celles décrites ici (aller-retour complet SQL → base → moteur) :
+ *   CUSTODY_FIXTURE=/chemin/fixture.json npx tsx scripts/preview-custody.ts
+ * où fixture.json contient { rules: [...], exceptions: [...] } exportés depuis
+ * les tables recurrence_rules / recurrence_exceptions.
  */
 import { readFileSync } from "node:fs"
 import { addDays, format, parseISO } from "date-fns"
@@ -136,7 +142,25 @@ const exceptions: RecurrenceException[] = [
 const FROM = new Date(2026, 7, 31)
 const TO = new Date(2027, 8, 6)
 
-const periods = generateCustodyPeriods(rules, exceptions, FROM, TO)
+// Mode « aller-retour base » : CUSTODY_FIXTURE=<fichier.json> rejoue les
+// règles telles qu'elles ont réellement été écrites en base par la migration,
+// au lieu des objets définis ci-dessus. Ferme la boucle SQL → base → moteur.
+const fixturePath = process.env.CUSTODY_FIXTURE
+const source = fixturePath
+  ? (JSON.parse(readFileSync(fixturePath, "utf8")) as {
+      rules: RecurrenceRule[]
+      exceptions: RecurrenceException[]
+    })
+  : { rules, exceptions }
+
+if (fixturePath) {
+  console.log(
+    `⟳ Règles relues depuis la base : ${source.rules.length} règles, ` +
+      `${source.exceptions.length} exceptions (${fixturePath})\n`
+  )
+}
+
+const periods = generateCustodyPeriods(source.rules, source.exceptions, FROM, TO)
 
 /**
  * Vérité terrain « chez qui est l'enfant ce jour-là » : on échantillonne à

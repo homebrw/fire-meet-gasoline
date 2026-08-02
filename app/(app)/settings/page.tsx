@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CalendarClock, AlertCircle, Baby, Calendar, Users, History, Link2 } from "lucide-react"
+import { CalendarClock, AlertCircle, Baby, Calendar, Users, History, Link2, Download } from "lucide-react"
 
 const sections = [
   {
@@ -44,6 +44,12 @@ const sections = [
     icon: Link2,
     title: "Synchronisation",
     description: "Synchronisez automatiquement avec Google Agenda pour que tout le monde soit à jour.",
+  },
+  {
+    href: "/settings/downloads",
+    icon: Download,
+    title: "Téléchargements",
+    description: "Téléchargez le calendrier croisé de garde (matrice Excel, PDF, images) dans plusieurs formats.",
   },
 ]
 

@@ -100,10 +100,14 @@ export async function POST(request: Request) {
 
   const client = new Anthropic()
 
+  // claude-haiku-4-5 : les faits viennent des outils, pas du modèle — sa
+  // seule tâche est de comprendre la question et reformuler en français, ce
+  // pour quoi Haiku suffit très largement à un coût ~5x moindre qu'Opus 5.
+  // Pas de output_config.effort ici : Haiku 4.5 rejette ce paramètre (400),
+  // contrairement à Opus 5 / Sonnet 5.
   const runner = client.beta.messages.toolRunner({
-    model: "claude-opus-5",
+    model: "claude-haiku-4-5",
     max_tokens: 8192,
-    output_config: { effort: "medium" },
     system: SYSTEM_PROMPT,
     messages: parsed.data.messages.map((m) => ({ role: m.role, content: m.content })),
     tools,

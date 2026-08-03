@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut, CloudSun, HelpCircle } from "lucide-react"
+import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut, CloudSun, HelpCircle, MessageCircleQuestion } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/calendar", label: "Calendrier", icon: CalendarDays },
   { href: "/week", label: "Semaine", icon: CalendarRange },
   { href: "/weather", label: "Météo", icon: CloudSun },
+  { href: "/assistant", label: "Assistant", icon: MessageCircleQuestion },
   { href: "/settings", label: "Paramètres", icon: Settings },
 ]
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CalendarDays, LayoutDashboard, CalendarRange, Settings, CloudSun } from "lucide-react"
+import { CalendarDays, LayoutDashboard, CalendarRange, Settings, CloudSun, MessageCircleQuestion } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/calendar", label: "Calendrier", icon: CalendarDays },
   { href: "/week", label: "Semaine", icon: CalendarRange },
   { href: "/weather", label: "Météo", icon: CloudSun },
+  { href: "/assistant", label: "Assistant", icon: MessageCircleQuestion },
   { href: "/settings", label: "Paramètres", icon: Settings },
 ]
 
@@ -26,7 +27,7 @@ export function BottomNav({ pendingImportCount = 0 }: { pendingImportCount?: num
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 text-xs transition-all duration-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] rounded-md",
+                "flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2 text-[11px] transition-all duration-75 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)] rounded-md",
                 active
                   ? "text-[var(--color-damien)]"
                   : "text-[var(--color-muted-foreground)]"
@@ -43,7 +44,7 @@ export function BottomNav({ pendingImportCount = 0 }: { pendingImportCount?: num
                   />
                 )}
               </span>
-              <span className={active ? "font-medium" : ""}>{label}</span>
+              <span className={cn("max-w-full truncate", active && "font-medium")}>{label}</span>
             </Link>
           )
         })}

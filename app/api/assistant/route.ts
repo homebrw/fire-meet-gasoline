@@ -21,6 +21,7 @@ import { createClient } from "@/lib/supabase/server"
 import { loadScheduleContext, type ScheduleContext, type SupabaseServerClient } from "@/lib/assistant/schedule"
 import { assistantTools, runTool } from "@/lib/assistant/tools"
 import { ASSISTANT_MODEL_IDS, DEFAULT_ASSISTANT_MODEL, getAssistantModel } from "@/lib/assistant/models"
+import { runOpenAIAssistant } from "@/lib/assistant/openai"
 
 // ─── Corps de requête ───────────────────────────────────────────────────────
 // `model` est validé contre l'allowlist de lib/assistant/models.ts — on ne
@@ -102,45 +103,83 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 })
   }
 
-  const ctx = await loadScheduleContext(supabase)
-  const tools = assistantTools.map((tool) => buildRunnableTool(tool, ctx, supabase))
-
-  const client = new Anthropic()
-
   // Modèle choisi par l'utilisateur dans le menu déroulant (défaut Haiku
-  // 4.5), validé plus haut contre ASSISTANT_MODEL_IDS. output_config.effort
-  // n'est ajouté que pour les modèles qui le supportent : Haiku 4.5 le
-  // rejette avec une erreur 400, contrairement à Sonnet 5 / Opus 5.
+  // 4.5), validé plus haut contre ASSISTANT_MODEL_IDS. `provider` détermine
+  // laquelle des deux boucles d'orchestration ci-dessous traite la requête —
+  // les deux chemins sont volontairement séparés plutôt qu'unifiés derrière
+  // une abstraction commune : Anthropic (tool runner du SDK, blocs
+  // tool_use) et OpenAI (fetch natif, tool_calls) ont des formats de fil
+  // trop différents pour qu'une couche commune apporte plus qu'elle ne
+  // coûte, pour deux fournisseurs. Les deux convergent uniquement sur le
+  // même contrat de sortie : un flux de texte brut, sans enveloppe SSE — le
+  // client (components/assistant/AssistantChat.tsx) concatène directement
+  // les chunks reçus dans la bulle de l'assistant, sans parser de format
+  // d'événement. En cas d'erreur, les deux chemins font échouer le
+  // ReadableStream (controller.error) plutôt que d'écrire un message
+  // d'erreur en clair : le client distingue déjà "rien reçu encore" de
+  // "réponse interrompue" via son état accumulé.
   const model = parsed.data.model ?? DEFAULT_ASSISTANT_MODEL
   const modelConfig = getAssistantModel(model)
 
+  const ctx = await loadScheduleContext(supabase)
+  const history = parsed.data.messages.map((m) => ({ role: m.role, content: m.content }))
+  const encoder = new TextEncoder()
+
+  if (modelConfig.provider === "openai") {
+    // Vérifiée avant d'ouvrir le flux : une clé manquante doit produire une
+    // erreur HTTP normale, pas un ReadableStream qui échoue après coup.
+    // Jamais loggée, jamais renvoyée au client au-delà de ce message fixe.
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      return NextResponse.json({ error: "OPENAI_API_KEY non configurée" }, { status: 500 })
+    }
+
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          await runOpenAIAssistant({
+            apiKey,
+            model,
+            maxTokens: 8192,
+            systemPrompt: SYSTEM_PROMPT,
+            history,
+            ctx,
+            supabase,
+            controller,
+            encoder,
+          })
+          controller.close()
+        } catch (err) {
+          controller.error(err instanceof Error ? err : new Error("Erreur inconnue"))
+        }
+      },
+    })
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+      },
+    })
+  }
+
+  const tools = assistantTools.map((tool) => buildRunnableTool(tool, ctx, supabase))
+  const client = new Anthropic()
+
+  // output_config.effort n'est ajouté que pour les modèles qui le
+  // supportent : Haiku 4.5 le rejette avec une erreur 400, contrairement à
+  // Sonnet 5 / Opus 5.
   const runner = client.beta.messages.toolRunner({
     model,
     max_tokens: 8192,
     ...(modelConfig.supportsEffort ? { output_config: { effort: "medium" as const } } : {}),
     system: SYSTEM_PROMPT,
-    messages: parsed.data.messages.map((m) => ({ role: m.role, content: m.content })),
+    messages: history,
     tools,
     stream: true,
     max_iterations: 8,
   })
 
-  const encoder = new TextEncoder()
-
-  // Flux texte brut, PAS d'enveloppe SSE ("event: .../data: ...") : le
-  // client existant (components/assistant/AssistantChat.tsx) lit le corps de
-  // la réponse chunk par chunk et concatène directement le texte reçu dans
-  // la bulle de l'assistant (accumulatedRef.current += chunk), sans parser
-  // de format d'événement. Émettre une enveloppe SSE ici afficherait
-  // littéralement "event: text_delta\ndata: {...}" dans la conversation.
-  // On garde néanmoins un flux progressif (boucle externe = itérations du
-  // tool runner, boucle interne = événements du flux de chaque itération) :
-  // c'est le mécanisme de streaming demandé, juste sans le framing SSE que
-  // ce client ne consomme pas. En cas d'erreur, on fait échouer le
-  // ReadableStream (controller.error) plutôt que d'écrire un message
-  // d'erreur en clair : le client distingue déjà "rien reçu encore" de
-  // "réponse interrompue" via son état accumulé (voir le bloc catch de
-  // streamAssistantReply côté client).
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       try {

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import { ErrorState, LoadingState } from "@/components/state"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ASSISTANT_MODELS, DEFAULT_ASSISTANT_MODEL, type AssistantModelId } from "@/lib/assistant/models"
 import { cn } from "@/lib/utils"
 
 interface ChatMessage {
@@ -24,6 +26,7 @@ export function AssistantChat() {
   const [error, setError] = useState("")
   const [transcriptError, setTranscriptError] = useState("")
   const [retryHistory, setRetryHistory] = useState<ChatMessage[] | null>(null)
+  const [model, setModel] = useState<AssistantModelId>(DEFAULT_ASSISTANT_MODEL)
 
   const transcriptRef = useRef<HTMLDivElement>(null)
   const accumulatedRef = useRef("")
@@ -43,7 +46,7 @@ export function AssistantChat() {
       const response = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, model }),
       })
 
       // proxy.ts redirige toute requête /api/* non authentifiée en 307 vers
@@ -228,7 +231,29 @@ export function AssistantChat() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-3 flex items-end gap-2">
+      <div className="mt-3 flex items-center gap-2">
+        <label htmlFor="assistant-model" className="text-xs text-[var(--color-muted-foreground)]">
+          Modèle
+        </label>
+        <Select
+          value={model}
+          onValueChange={(value) => setModel(value as AssistantModelId)}
+          disabled={isSending}
+        >
+          <SelectTrigger id="assistant-model" className="h-8 w-auto min-w-[220px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ASSISTANT_MODELS.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <form onSubmit={handleSubmit} className="mt-2 flex items-end gap-2">
         <Textarea
           name="message"
           placeholder="Écrivez votre question…"

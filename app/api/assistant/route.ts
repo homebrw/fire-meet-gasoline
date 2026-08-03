@@ -20,8 +20,14 @@ import { betaTool } from "@anthropic-ai/sdk/helpers/beta/json-schema"
 import { createClient } from "@/lib/supabase/server"
 import { loadScheduleContext, type ScheduleContext, type SupabaseServerClient } from "@/lib/assistant/schedule"
 import { assistantTools, runTool } from "@/lib/assistant/tools"
+import { ASSISTANT_MODEL_IDS, DEFAULT_ASSISTANT_MODEL, getAssistantModel } from "@/lib/assistant/models"
 
 // ─── Corps de requête ───────────────────────────────────────────────────────
+// `model` est validé contre l'allowlist de lib/assistant/models.ts — on ne
+// fait jamais confiance à une valeur de modèle envoyée par le client sans
+// la faire passer par ce zod.enum, même si le choix reste sans conséquence
+// de sécurité ici (l'utilisateur ne fait que choisir avec quel modèle
+// interroger ses propres données).
 
 const requestSchema = z.object({
   messages: z
@@ -32,6 +38,7 @@ const requestSchema = z.object({
       })
     )
     .min(1),
+  model: z.enum(ASSISTANT_MODEL_IDS).optional(),
 })
 
 // ─── Prompt système ─────────────────────────────────────────────────────────
@@ -100,14 +107,17 @@ export async function POST(request: Request) {
 
   const client = new Anthropic()
 
-  // claude-haiku-4-5 : les faits viennent des outils, pas du modèle — sa
-  // seule tâche est de comprendre la question et reformuler en français, ce
-  // pour quoi Haiku suffit très largement à un coût ~5x moindre qu'Opus 5.
-  // Pas de output_config.effort ici : Haiku 4.5 rejette ce paramètre (400),
-  // contrairement à Opus 5 / Sonnet 5.
+  // Modèle choisi par l'utilisateur dans le menu déroulant (défaut Haiku
+  // 4.5), validé plus haut contre ASSISTANT_MODEL_IDS. output_config.effort
+  // n'est ajouté que pour les modèles qui le supportent : Haiku 4.5 le
+  // rejette avec une erreur 400, contrairement à Sonnet 5 / Opus 5.
+  const model = parsed.data.model ?? DEFAULT_ASSISTANT_MODEL
+  const modelConfig = getAssistantModel(model)
+
   const runner = client.beta.messages.toolRunner({
-    model: "claude-haiku-4-5",
+    model,
     max_tokens: 8192,
+    ...(modelConfig.supportsEffort ? { output_config: { effort: "medium" as const } } : {}),
     system: SYSTEM_PROMPT,
     messages: parsed.data.messages.map((m) => ({ role: m.role, content: m.content })),
     tools,

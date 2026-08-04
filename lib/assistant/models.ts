@@ -5,15 +5,19 @@
 // module sans "use client" ni "use server" pour rester importable des deux
 // côtés. Ne contient que des littéraux fixes, aucune lecture de
 // process.env : les variables d'environnement spécifiques à un provider
-// (clé API, modèle de repli OpenAI) restent dans les fichiers serveur qui
-// les utilisent (route.ts, lib/assistant/openai.ts), jamais ici — ce
+// (clés API, modèles de repli) restent dans les fichiers serveur qui les
+// utilisent (route.ts, lib/assistant/openaiCompatible.ts), jamais ici — ce
 // fichier est aussi importé par un composant client.
 //
-// `provider` détermine quelle boucle d'orchestration traite la requête
-// (Anthropic tool runner vs appels fetch natifs vers l'API OpenAI, voir
-// route.ts). `supportsEffort` ne s'applique qu'au provider Anthropic :
-// Haiku 4.5 rejette output_config.effort avec une erreur 400, contrairement
-// à Sonnet 5 et Opus 5 ; laissé à false (ignoré) sur les entrées OpenAI.
+// `provider` détermine quelle boucle d'orchestration traite la requête :
+// "anthropic" passe par le tool runner du SDK (route.ts), "openai" et
+// "mistral" partagent la même boucle fetch native
+// (lib/assistant/openaiCompatible.ts) puisque les deux exposent un
+// /v1/chat/completions au même format de fil — seuls l'URL de base, la clé
+// et le modèle de repli diffèrent. `supportsEffort` ne s'applique qu'au
+// provider Anthropic : Haiku 4.5 rejette output_config.effort avec une
+// erreur 400, contrairement à Sonnet 5 et Opus 5 ; laissé à false (ignoré)
+// sur les entrées openai/mistral.
 export const ASSISTANT_MODELS = [
   {
     id: "claude-haiku-4-5",
@@ -39,9 +43,15 @@ export const ASSISTANT_MODELS = [
     label: "GPT-4.1 mini (OpenAI) — rapide, économique",
     supportsEffort: false,
   },
+  {
+    id: "mistral-small-latest",
+    provider: "mistral",
+    label: "Mistral Small (Mistral AI) — rapide, économique",
+    supportsEffort: false,
+  },
 ] as const satisfies readonly {
   id: string
-  provider: "anthropic" | "openai"
+  provider: "anthropic" | "openai" | "mistral"
   label: string
   supportsEffort: boolean
 }[]

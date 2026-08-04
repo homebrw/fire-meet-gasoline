@@ -1,53 +1,87 @@
-// Orchestration OpenAI pour l'assistant conversationnel — fetch natif, pas
-// le SDK officiel (aucune dépendance OpenAI n'existe déjà dans ce dépôt, et
-// l'appel est assez simple pour ne pas en justifier une). Exécuté
-// exclusivement côté serveur (importé uniquement par route.ts) : la clé
-// d'API OpenAI ne doit jamais atteindre le client.
+// Orchestration pour les fournisseurs "compatibles OpenAI" de l'assistant
+// conversationnel — fetch natif, pas de SDK (aucune dépendance officielle
+// n'existe déjà dans ce dépôt pour aucun des deux, et l'appel est assez
+// simple pour ne pas en justifier une). Exécuté exclusivement côté serveur
+// (importé uniquement par route.ts) : les clés d'API ne doivent jamais
+// atteindre le client.
 //
-// Miroir du chemin Anthropic (voir app/api/assistant/route.ts) sur un point
-// essentiel : runTool() (lib/assistant/tools.ts) est réutilisé tel quel.
-// Aucune requête SQL n'est générée par le modèle ici non plus — OpenAI ne
-// voit que les 4 mêmes outils en lecture seule, avec les mêmes résultats
-// déjà filtrés par lib/assistant/schedule.ts et la RLS Supabase.
+// "Compatible OpenAI" : OpenAI et Mistral exposent tous les deux un
+// endpoint /v1/chat/completions au même format de fil (messages, tools,
+// tool_calls streamés en fragments indexés, auth Bearer) — Mistral
+// documente explicitement cette compatibilité. Un seul chemin
+// d'orchestration suffit donc pour les deux ; seuls l'URL de base, la clé
+// et le modèle de repli diffèrent (PROVIDER_CONFIG ci-dessous). Anthropic,
+// lui, garde son propre chemin dans route.ts : le tool runner du SDK et ses
+// blocs tool_use n'ont pas la même forme, une abstraction commune aux trois
+// coûterait plus qu'elle n'apporterait.
+//
+// Miroir du chemin Anthropic sur un point essentiel : runTool()
+// (lib/assistant/tools.ts) est réutilisé tel quel. Aucune requête SQL n'est
+// générée par le modèle ici non plus — chaque fournisseur ne voit que les 4
+// mêmes outils en lecture seule, avec les mêmes résultats déjà filtrés par
+// lib/assistant/schedule.ts et la RLS Supabase.
 //
 // Chaque tour de conversation (négociation d'outils ou réponse finale) est
 // streamé en une seule requête HTTP, avec accumulation des fragments de
-// tool_calls par index (OpenAI les envoie découpés sur plusieurs deltas
-// SSE) — nécessaire pour éviter de rejouer une deuxième requête non
-// streamée juste pour "connaître" le tour final, ce qui doublerait le coût
-// facturé de chaque réponse.
+// tool_calls par index (envoyés découpés sur plusieurs deltas SSE) —
+// nécessaire pour éviter de rejouer une deuxième requête non streamée juste
+// pour "connaître" le tour final, ce qui doublerait le coût facturé de
+// chaque réponse.
 import { assistantTools, runTool } from "@/lib/assistant/tools"
 import type { ScheduleContext, SupabaseServerClient } from "@/lib/assistant/schedule"
 
-const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 504])
 const MAX_TOOL_ITERATIONS = 8
 
-// Modèle de repli en cas d'erreur réseau ou de statut retryable sur le
-// modèle par défaut (gpt-4.1-mini). À vérifier sur votre compte OpenAI
-// avant mise en production : contrairement au catalogue Claude, ce dépôt
-// n'a pas de référence à jour du catalogue de modèles OpenAI.
-const OPENAI_FALLBACK_MODEL = "gpt-4o-mini"
+export type OpenAICompatibleProvider = "openai" | "mistral"
 
-type OpenAIRole = "system" | "user" | "assistant" | "tool"
+// Nom de la variable d'environnement portant la clé API de chaque
+// fournisseur — utilisé par route.ts pour vérifier sa présence avant
+// d'ouvrir le flux.
+export const OPENAI_COMPATIBLE_API_KEY_ENV_VAR: Record<OpenAICompatibleProvider, string> = {
+  openai: "OPENAI_API_KEY",
+  mistral: "MISTRAL_API_KEY",
+}
 
-type OpenAIToolCallParam = {
+// Modèles de repli en cas d'erreur réseau ou de statut retryable sur le
+// modèle par défaut. À vérifier sur vos comptes OpenAI / Mistral avant
+// mise en production : contrairement au catalogue Claude, ce dépôt n'a pas
+// de référence à jour du catalogue de ces deux fournisseurs. `-latest` est
+// l'alias roulant documenté par Mistral pour éviter justement ce genre de
+// péremption — préféré ici à un identifiant daté.
+const PROVIDER_CONFIG: Record<
+  OpenAICompatibleProvider,
+  { baseUrl: string; fallbackModel: string }
+> = {
+  openai: {
+    baseUrl: "https://api.openai.com/v1/chat/completions",
+    fallbackModel: "gpt-4o-mini",
+  },
+  mistral: {
+    baseUrl: "https://api.mistral.ai/v1/chat/completions",
+    fallbackModel: "open-mistral-nemo",
+  },
+}
+
+type ChatRole = "system" | "user" | "assistant" | "tool"
+
+type ToolCallParam = {
   id: string
   type: "function"
   function: { name: string; arguments: string }
 }
 
-type OpenAIMessageParam =
+type MessageParam =
   | { role: "system"; content: string }
   | { role: "user"; content: string }
-  | { role: "assistant"; content: string | null; tool_calls?: OpenAIToolCallParam[] }
+  | { role: "assistant"; content: string | null; tool_calls?: ToolCallParam[] }
   | { role: "tool"; tool_call_id: string; content: string }
 
 // ─── Schémas d'outils (adaptation du JSON Schema brut de tools.ts) ─────────
 // Même contenu que buildRunnableTool() côté Anthropic (route.ts) : seule
 // l'enveloppe diffère (input_schema -> function.parameters).
 
-function openAITools() {
+function chatCompletionTools() {
   return assistantTools.map((tool) => ({
     type: "function" as const,
     function: {
@@ -60,24 +94,30 @@ function openAITools() {
 }
 
 // ─── max_tokens vs max_completion_tokens ───────────────────────────────────
-// Les modèles gpt-5* (raisonnement) utilisent max_completion_tokens ; les
-// autres (gpt-4.1*, gpt-4o*) utilisent max_tokens. Sans cette distinction,
-// l'appel échoue ou tronque mal sur un modèle de raisonnement. Pas de
+// Spécifique à OpenAI : les modèles gpt-5* (raisonnement) utilisent
+// max_completion_tokens ; les autres (gpt-4.1*, gpt-4o*), comme tout le
+// catalogue Mistral, utilisent max_tokens. Sans cette distinction, l'appel
+// échoue ou tronque mal sur un modèle de raisonnement OpenAI. Pas de
 // paramètre reasoningEffort ici : aucune entrée gpt-5 n'est proposée pour
-// l'instant (voir lib/assistant/models.ts), un seul modèle par défaut a été
-// retenu pour ce premier jet.
-function getTokenLimitParam(model: string, maxTokens: number): Record<string, number> {
-  const usesReasoningBudget = model.startsWith("gpt-5")
+// l'instant (voir lib/assistant/models.ts), un seul modèle par défaut par
+// fournisseur a été retenu pour ce premier jet.
+function getTokenLimitParam(
+  provider: OpenAICompatibleProvider,
+  model: string,
+  maxTokens: number
+): Record<string, number> {
+  const usesReasoningBudget = provider === "openai" && model.startsWith("gpt-5")
   return usesReasoningBudget ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }
 }
 
 // ─── Requête avec repli automatique ────────────────────────────────────────
 
 async function postChatCompletion(
+  baseUrl: string,
   apiKey: string,
   body: Record<string, unknown> & { model: string }
 ): Promise<Response> {
-  return fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+  return fetch(baseUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,7 +127,8 @@ async function postChatCompletion(
   })
 }
 
-async function fetchOpenAIChatCompletionWithFallback(
+async function fetchChatCompletionWithFallback(
+  baseUrl: string,
   apiKey: string,
   fallbackModel: string,
   body: Record<string, unknown> & { model: string }
@@ -95,21 +136,21 @@ async function fetchOpenAIChatCompletionWithFallback(
   // Déjà sur le modèle de repli : rien vers quoi se replier, une seule
   // tentative directe (évite une boucle infinie).
   if (body.model === fallbackModel) {
-    return postChatCompletion(apiKey, body)
+    return postChatCompletion(baseUrl, apiKey, body)
   }
 
   let primary: Response
   try {
-    primary = await postChatCompletion(apiKey, body)
+    primary = await postChatCompletion(baseUrl, apiKey, body)
   } catch {
-    return postChatCompletion(apiKey, { ...body, model: fallbackModel })
+    return postChatCompletion(baseUrl, apiKey, { ...body, model: fallbackModel })
   }
 
   if (primary.ok || !RETRYABLE_STATUS_CODES.has(primary.status)) {
     return primary
   }
 
-  return postChatCompletion(apiKey, { ...body, model: fallbackModel })
+  return postChatCompletion(baseUrl, apiKey, { ...body, model: fallbackModel })
 }
 
 // ─── Un tour de conversation, streamé ──────────────────────────────────────
@@ -125,28 +166,29 @@ type StreamedTurnResult =
     }
 
 async function streamChatCompletionTurn(params: {
+  provider: OpenAICompatibleProvider
   apiKey: string
   model: string
-  fallbackModel: string
   maxTokens: number
-  messages: OpenAIMessageParam[]
+  messages: MessageParam[]
   controller: ReadableStreamDefaultController<Uint8Array>
   encoder: TextEncoder
 }): Promise<StreamedTurnResult> {
-  const { apiKey, model, fallbackModel, maxTokens, messages, controller, encoder } = params
+  const { provider, apiKey, model, maxTokens, messages, controller, encoder } = params
+  const { baseUrl, fallbackModel } = PROVIDER_CONFIG[provider]
 
-  const response = await fetchOpenAIChatCompletionWithFallback(apiKey, fallbackModel, {
+  const response = await fetchChatCompletionWithFallback(baseUrl, apiKey, fallbackModel, {
     model,
     messages,
-    tools: openAITools(),
+    tools: chatCompletionTools(),
     stream: true,
-    ...getTokenLimitParam(model, maxTokens),
+    ...getTokenLimitParam(provider, model, maxTokens),
   })
 
   if (!response.ok || !response.body) {
     const detail = await response.text().catch(() => "")
     throw new Error(
-      `OpenAI a répondu ${response.status}${detail ? ` : ${detail.slice(0, 200)}` : ""}`
+      `${provider} a répondu ${response.status}${detail ? ` : ${detail.slice(0, 200)}` : ""}`
     )
   }
 
@@ -234,7 +276,8 @@ async function streamChatCompletionTurn(params: {
 
 // ─── Boucle complète ────────────────────────────────────────────────────────
 
-export async function runOpenAIAssistant(params: {
+export async function runOpenAICompatibleAssistant(params: {
+  provider: OpenAICompatibleProvider
   apiKey: string
   model: string
   maxTokens: number
@@ -245,18 +288,19 @@ export async function runOpenAIAssistant(params: {
   controller: ReadableStreamDefaultController<Uint8Array>
   encoder: TextEncoder
 }): Promise<void> {
-  const { apiKey, model, maxTokens, systemPrompt, history, ctx, supabase, controller, encoder } = params
+  const { provider, apiKey, model, maxTokens, systemPrompt, history, ctx, supabase, controller, encoder } =
+    params
 
-  const messages: OpenAIMessageParam[] = [
+  const messages: MessageParam[] = [
     { role: "system", content: systemPrompt },
-    ...history.map((m) => ({ role: m.role, content: m.content }) as OpenAIMessageParam),
+    ...history.map((m) => ({ role: m.role, content: m.content }) as MessageParam),
   ]
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     const turn = await streamChatCompletionTurn({
+      provider,
       apiKey,
       model,
-      fallbackModel: OPENAI_FALLBACK_MODEL,
       maxTokens,
       messages,
       controller,
@@ -298,7 +342,7 @@ export async function runOpenAIAssistant(params: {
       }
 
       messages.push({
-        role: "tool" as OpenAIRole,
+        role: "tool" as ChatRole,
         tool_call_id: toolCall.id,
         content: JSON.stringify(result),
       })

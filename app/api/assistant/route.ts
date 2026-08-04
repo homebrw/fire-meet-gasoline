@@ -21,7 +21,10 @@ import { createClient } from "@/lib/supabase/server"
 import { loadScheduleContext, type ScheduleContext, type SupabaseServerClient } from "@/lib/assistant/schedule"
 import { assistantTools, runTool } from "@/lib/assistant/tools"
 import { ASSISTANT_MODEL_IDS, DEFAULT_ASSISTANT_MODEL, getAssistantModel } from "@/lib/assistant/models"
-import { runOpenAIAssistant } from "@/lib/assistant/openai"
+import {
+  OPENAI_COMPATIBLE_API_KEY_ENV_VAR,
+  runOpenAICompatibleAssistant,
+} from "@/lib/assistant/openaiCompatible"
 
 // ─── Corps de requête ───────────────────────────────────────────────────────
 // `model` est validé contre l'allowlist de lib/assistant/models.ts — on ne
@@ -105,19 +108,19 @@ export async function POST(request: Request) {
 
   // Modèle choisi par l'utilisateur dans le menu déroulant (défaut Haiku
   // 4.5), validé plus haut contre ASSISTANT_MODEL_IDS. `provider` détermine
-  // laquelle des deux boucles d'orchestration ci-dessous traite la requête —
-  // les deux chemins sont volontairement séparés plutôt qu'unifiés derrière
-  // une abstraction commune : Anthropic (tool runner du SDK, blocs
-  // tool_use) et OpenAI (fetch natif, tool_calls) ont des formats de fil
-  // trop différents pour qu'une couche commune apporte plus qu'elle ne
-  // coûte, pour deux fournisseurs. Les deux convergent uniquement sur le
-  // même contrat de sortie : un flux de texte brut, sans enveloppe SSE — le
-  // client (components/assistant/AssistantChat.tsx) concatène directement
-  // les chunks reçus dans la bulle de l'assistant, sans parser de format
-  // d'événement. En cas d'erreur, les deux chemins font échouer le
-  // ReadableStream (controller.error) plutôt que d'écrire un message
-  // d'erreur en clair : le client distingue déjà "rien reçu encore" de
-  // "réponse interrompue" via son état accumulé.
+  // laquelle des deux boucles d'orchestration ci-dessous traite la requête :
+  // Anthropic (tool runner du SDK, blocs tool_use) reste séparée, tandis
+  // qu'OpenAI et Mistral partagent la même boucle
+  // (runOpenAICompatibleAssistant) puisque les deux exposent un
+  // /v1/chat/completions au format identique — voir l'en-tête de
+  // lib/assistant/openaiCompatible.ts. Les deux branches convergent
+  // uniquement sur le même contrat de sortie : un flux de texte brut, sans
+  // enveloppe SSE — le client (components/assistant/AssistantChat.tsx)
+  // concatène directement les chunks reçus dans la bulle de l'assistant,
+  // sans parser de format d'événement. En cas d'erreur, les deux branches
+  // font échouer le ReadableStream (controller.error) plutôt que d'écrire
+  // un message d'erreur en clair : le client distingue déjà "rien reçu
+  // encore" de "réponse interrompue" via son état accumulé.
   const model = parsed.data.model ?? DEFAULT_ASSISTANT_MODEL
   const modelConfig = getAssistantModel(model)
 
@@ -125,19 +128,22 @@ export async function POST(request: Request) {
   const history = parsed.data.messages.map((m) => ({ role: m.role, content: m.content }))
   const encoder = new TextEncoder()
 
-  if (modelConfig.provider === "openai") {
+  if (modelConfig.provider === "openai" || modelConfig.provider === "mistral") {
+    const provider = modelConfig.provider
     // Vérifiée avant d'ouvrir le flux : une clé manquante doit produire une
     // erreur HTTP normale, pas un ReadableStream qui échoue après coup.
     // Jamais loggée, jamais renvoyée au client au-delà de ce message fixe.
-    const apiKey = process.env.OPENAI_API_KEY
+    const envVar = OPENAI_COMPATIBLE_API_KEY_ENV_VAR[provider]
+    const apiKey = process.env[envVar]
     if (!apiKey) {
-      return NextResponse.json({ error: "OPENAI_API_KEY non configurée" }, { status: 500 })
+      return NextResponse.json({ error: `${envVar} non configurée` }, { status: 500 })
     }
 
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
         try {
-          await runOpenAIAssistant({
+          await runOpenAICompatibleAssistant({
+            provider,
             apiKey,
             model,
             maxTokens: 8192,

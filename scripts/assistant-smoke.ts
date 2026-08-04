@@ -22,7 +22,7 @@ import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { zonedTimeToUtc } from "@/lib/timezone"
 import { custodySegments } from "@/lib/assistant/schedule"
 import type { ScheduleContext } from "@/lib/assistant/schedule"
-import { getCustody } from "@/lib/assistant/tools"
+import { getCustody, getExceptions, getRecurrenceRules } from "@/lib/assistant/tools"
 import type { Person, RecurrenceRule, RecurrenceException } from "@/lib/types"
 
 // ─── Fixture (identique à scripts/preview-custody.ts) ──────────────────────
@@ -380,6 +380,61 @@ if (damienDay3.segments.length !== 1) {
     fail(`Damien : attendu personId=${DAMIEN_ID}, obtenu ${damienDay3.segments[0].personId}`)
   } else {
     ok('Damien a la garde toute la journée (exception "present" — Noël)')
+  }
+}
+
+// ─── Scénario 4 : get_recurrence_rules filtré sur "Damien" ────────────────
+
+console.log('\n── get_recurrence_rules(person_names: ["Damien"]) ──')
+
+const rulesResult = getRecurrenceRules(ctx, { person_names: ["Damien"] })
+
+if (rulesResult.rules.length !== 1) {
+  fail(`Attendu 1 règle pour Damien, obtenu ${rulesResult.rules.length}`)
+} else {
+  ok("1 seule règle renvoyée pour Damien")
+  const [rule] = rulesResult.rules
+  if (rule.id !== "rule-damien" || rule.pattern_type !== "weekly_alternating") {
+    fail(`Règle inattendue : ${JSON.stringify(rule)}`)
+  } else {
+    ok("pattern_type=weekly_alternating confirmé pour rule-damien")
+  }
+  if (rule.handoff_day !== 0 || rule.handoff_day_name !== "Lundi") {
+    fail(`handoff_day_name attendu "Lundi" (0), obtenu ${rule.handoff_day_name} (${rule.handoff_day})`)
+  } else {
+    ok('handoff_day_name="Lundi" confirmé')
+  }
+  const maRuleLeaked = rulesResult.rules.some((r) => r.person_id === MA_ID)
+  if (maRuleLeaked) {
+    fail("Une règle de Marie-Alix a fuité dans le filtre 'Damien'")
+  } else {
+    ok("Aucune règle de Marie-Alix dans le filtre 'Damien'")
+  }
+}
+
+// ─── Scénario 5 : get_exceptions sur la Toussaint de Damien ───────────────
+
+console.log('\n── get_exceptions couvrant "Toussaint — sortie samedi 14h" ──')
+
+const exceptionsResult = getExceptions(ctx, {
+  start_date: "2026-10-24",
+  end_date: "2026-10-26",
+  person_names: ["Damien"],
+})
+
+const toussaint = exceptionsResult.exceptions.find((e) => e.reason === "Toussaint — sortie samedi 14h")
+if (!toussaint) {
+  fail(
+    `Exception "Toussaint — sortie samedi 14h" introuvable dans ${JSON.stringify(
+      exceptionsResult.exceptions.map((e) => e.reason)
+    )}`
+  )
+} else {
+  ok('Exception "Toussaint — sortie samedi 14h" trouvée')
+  if (toussaint.type !== "absent" || toussaint.person_name !== "Damien") {
+    fail(`type/person_name inattendus : ${JSON.stringify(toussaint)}`)
+  } else {
+    ok('type="absent" et person_name="Damien" confirmés')
   }
 }
 

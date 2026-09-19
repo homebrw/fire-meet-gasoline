@@ -57,7 +57,8 @@ file (or the relevant deep-dive guide) instead of duplicating in README.md.
 │   │   └── login/
 │   ├── api/
 │   │   ├── upload/
-│   │   └── attachments/download/
+│   │   ├── attachments/download/
+│   │   └── presence/               # Read-only server-to-server feed for Checkmate (see below)
 │   ├── auth/callback/             # OAuth callback
 │   ├── layout.tsx                 # Root layout
 │   ├── page.tsx                   # Landing page
@@ -159,6 +160,18 @@ range and applies `RecurrenceException` overrides (present/absent date ranges).
 **See `lib/recurrence/README.md` for the full mental model and a map of
 `availability.ts`/`display.ts`/`labels.ts`/`persist.ts` before editing this
 directory.**
+
+### Outgoing feed: `/api/presence`
+Read-only route consumed by **Checkmate** (separate app, separate Supabase
+project): given a child id + date range, it returns which Checkmate-style
+day periods (`wakeup`/`morning`/`noon`/`afternoon`/`evening`) the child
+overlaps with the parent tracked here, plus a whole-day `present_any`
+boolean. No user session — protected by a shared bearer token
+(`PRESENCE_FEED_TOKEN`, see `.env.example`) and reads via the service-role
+client (`lib/supabase/admin.ts`). Reuses `loadScheduleContext()` +
+`custodySegments()` from `lib/assistant/schedule.ts` (same engine as the
+assistant, see `lib/recurrence/README.md`) — the period conversion itself
+lives in `lib/presence/periods.ts`, verified by `scripts/preview-presence.ts`.
 
 ### Data Model
 Core entities stored in Supabase:

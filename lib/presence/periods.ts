@@ -3,8 +3,9 @@
 // (wakeup/morning/noon/afternoon/evening). Module partagé par
 // app/api/presence/route.ts et scripts/preview-presence.ts : une seule
 // implémentation, testée par le script, consommée telle quelle par la route.
-import { zonedTimeToUtc, formatTimeInZone } from "@/lib/timezone"
+import { zonedTimeToUtc, zonedDayBounds, formatTimeInZone } from "@/lib/timezone"
 import type { CustodySegment } from "@/lib/assistant/schedule"
+import type { GeneratedPeriod } from "@/lib/types"
 
 export const PRESENCE_PERIODS = ["wakeup", "morning", "noon", "afternoon", "evening"] as const
 export type PresencePeriod = (typeof PRESENCE_PERIODS)[number]
@@ -98,4 +99,42 @@ export function presenceForDay(day: Date, segments: CustodySegment[]): DayPresen
     periods,
     switch_at: switchAt,
   }
+}
+
+export type PresenceRegime = "school" | "out_of_cycle"
+
+/**
+ * `"school"` si les heures de passation de ce jour sont celles, fiables, du
+ * rythme scolaire ; `"out_of_cycle"` si elles viennent d'un bloc de
+ * vacances, posées à 00:00 ou approximatives (cf. le commentaire de tête de
+ * la migration 018_seed_custody_rules_2026_2027.sql).
+ *
+ * ⚠️ Heuristique adossée à la façon dont les données sont SAISIES, pas à un
+ * calendrier scolaire réel : dans supabase/migrations/018_..., chaque bloc
+ * de vacances (Toussaint / Noël / Hiver / Printemps / Été) neutralise le
+ * cycle habituel avec une exception `absent` sur toute la période, puis pose
+ * les vrais segments avec des exceptions `present` — ce sont CES périodes,
+ * insérées par l'exception et marquées `source: "exception"`
+ * (lib/recurrence/README.md), qui signalent un jour de vacances. À
+ * l'inverse, les échanges ponctuels de période scolaire (un vendredi
+ * échangé) sont de simples exceptions `absent` qui retirent une journée
+ * entière sans jamais insérer de période `source: "exception"` : elles ne
+ * produisent jamais de journée partielle, donc jamais de faux positif ici.
+ * Si cette heuristique dérive un jour (nouvelle façon de saisir une
+ * exception, par exemple), c'est ici qu'il faut regarder en premier.
+ *
+ * Un jour entièrement absent (`present_any: false`) est classé `"school"`
+ * par défaut : la valeur n'a alors aucun usage côté Checkmate.
+ *
+ * `periods` : GeneratedPeriod[] déjà filtrées sur le seul adulte concerné
+ * (comme pour `presenceForDay`), typiquement le résultat de
+ * `expandPeriods()`/`generateCustodyPeriods()` — PAS le résultat de
+ * `custodySegments()`, qui ne conserve pas `source`.
+ */
+export function regimeForDay(day: Date, periods: GeneratedPeriod[]): PresenceRegime {
+  const { start, end } = zonedDayBounds(day)
+  const hasInsertedExceptionPeriod = periods.some(
+    (p) => p.source === "exception" && p.start_at < end && p.end_at > start
+  )
+  return hasInsertedExceptionPeriod ? "out_of_cycle" : "school"
 }

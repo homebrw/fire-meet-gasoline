@@ -69,7 +69,12 @@ export async function loadScheduleContext(
 // fenêtre n'était pas élargie en amont. Voir lib/recurrence/README.md.
 const ENGINE_MARGIN_DAYS = 14
 
-function expandPeriods(ctx: ScheduleContext, from: Date, to: Date): GeneratedPeriod[] {
+// Exportée (simple changement de visibilité, comportement inchangé) pour
+// app/api/presence/route.ts : lib/presence/periods.ts a besoin du champ
+// `source` des GeneratedPeriod bruts (pour distinguer un jour de rythme
+// scolaire d'un jour de vacances), une information que custodySegments()
+// n'expose pas puisqu'elle ne garde que personId par segment.
+export function expandPeriods(ctx: ScheduleContext, from: Date, to: Date): GeneratedPeriod[] {
   return generateCustodyPeriods(
     ctx.rules,
     ctx.exceptions,

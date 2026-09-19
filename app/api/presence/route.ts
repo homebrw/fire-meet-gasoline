@@ -9,6 +9,13 @@
 // generateCustodyPeriods(), voir lib/recurrence/README.md) et se contente de
 // convertir leur résultat en périodes Checkmate via lib/presence/periods.ts.
 //
+// `regime` (school/out_of_cycle) a besoin du champ `source` des
+// GeneratedPeriod bruts, que custodySegments() ne conserve pas (elle ne
+// garde que personId par segment) : on appelle donc EN PLUS
+// expandPeriods() — même fonction, simplement rendue exportée — sur le même
+// ctx déjà filtré sur le seul parent de l'enfant, sans dupliquer le moteur
+// ni changer ce que custodySegments() fait pour l'assistant.
+//
 // Confidentialité : ne renvoie que des dates/périodes/booléens. Jamais de
 // prénom, d'événement, de lieu de passation ni d'un autre enfant.
 export const runtime = "nodejs"
@@ -18,8 +25,13 @@ import { z } from "zod"
 import { timingSafeEqual } from "node:crypto"
 import { APP_TIMEZONE } from "@/lib/timezone"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { loadScheduleContext, custodySegments, type ScheduleContext } from "@/lib/assistant/schedule"
-import { presenceForDay } from "@/lib/presence/periods"
+import {
+  loadScheduleContext,
+  custodySegments,
+  expandPeriods,
+  type ScheduleContext,
+} from "@/lib/assistant/schedule"
+import { presenceForDay, regimeForDay } from "@/lib/presence/periods"
 
 const MAX_WINDOW_DAYS = 200
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -109,6 +121,7 @@ export async function GET(request: Request) {
   }
 
   const daySegments = custodySegments(filteredCtx, fromDate, toDate)
+  const rawPeriods = expandPeriods(filteredCtx, fromDate, toDate)
 
   return NextResponse.json({
     timezone: APP_TIMEZONE,
@@ -117,7 +130,8 @@ export async function GET(request: Request) {
     days: daySegments.map((day) => {
       const dayMarker = parseCalendarDate(day.date)
       const { present_any, periods, switch_at } = presenceForDay(dayMarker, day.segments)
-      return { date: day.date, present_any, periods, switch_at }
+      const regime = regimeForDay(dayMarker, rawPeriods)
+      return { date: day.date, present_any, regime, periods, switch_at }
     }),
   })
 }

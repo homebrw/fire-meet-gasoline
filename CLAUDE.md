@@ -59,6 +59,7 @@ file (or the relevant deep-dive guide) instead of duplicating in README.md.
 │   │   ├── upload/
 │   │   ├── attachments/download/
 │   │   └── presence/               # Read-only server-to-server feed for Checkmate (see below)
+│   │       └── resolve/            # Pairing-code → child_id lookup, same feed (see below)
 │   ├── auth/callback/             # OAuth callback
 │   ├── layout.tsx                 # Root layout
 │   ├── page.tsx                   # Landing page
@@ -172,6 +173,27 @@ client (`lib/supabase/admin.ts`). Reuses `loadScheduleContext()` +
 `custodySegments()` from `lib/assistant/schedule.ts` (same engine as the
 assistant, see `lib/recurrence/README.md`) — the period conversion itself
 lives in `lib/presence/periods.ts`, verified by `scripts/preview-presence.ts`.
+The bearer-token check itself is shared with `/api/presence/resolve` in
+`lib/presence/auth.ts` (`checkPresenceToken()`).
+
+#### Pairing: `/api/presence/resolve`
+Checkmate no longer pairs to a child by copying its UUID by hand. Each
+child row carries a short, permanent, regenerable `pairing_code` (5
+letters, alphabet without `I`/`O` to avoid dictation mix-ups — see
+`supabase/migrations/021_add_pairing_code.sql`, generated and refreshed by
+a `BEFORE INSERT OR UPDATE` trigger on `persons`). `GET
+/api/presence/resolve?code=ABCDE`, same bearer-token auth as
+`/api/presence`, resolves that code to `{ child_id, display_name }` —
+**one-shot**: Checkmate calls it once at pairing time, stores the returned
+`child_id`, and queries `/api/presence` with that UUID from then on, so
+regenerating a code never breaks an existing pairing. `display_name` is a
+deliberate, narrow exception to "no name ever leaves this feed", used only
+so Checkmate can show "Code reconnu : `<prénom>`" before saving the
+pairing. No rate limiting is implemented (see the route's header comment
+for why); the shared token is the only protection for this route too.
+The code itself is shown, with copy/regenerate actions, in Réglages >
+Enfants (`app/(app)/settings/children/child-card.tsx`,
+`regenerateChildPairingCode()` in `lib/actions/children.ts`).
 
 ### Data Model
 Core entities stored in Supabase:

@@ -22,7 +22,6 @@ export const runtime = "nodejs"
 
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { timingSafeEqual } from "node:crypto"
 import { APP_TIMEZONE } from "@/lib/timezone"
 import { createAdminClient } from "@/lib/supabase/admin"
 import {
@@ -32,6 +31,7 @@ import {
   type ScheduleContext,
 } from "@/lib/assistant/schedule"
 import { presenceForDay, regimeForDay } from "@/lib/presence/periods"
+import { checkPresenceToken } from "@/lib/presence/auth"
 
 const MAX_WINDOW_DAYS = 200
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -57,34 +57,14 @@ function daysBetweenInclusive(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / msPerDay) + 1
 }
 
-// Comparaison à temps constant. timingSafeEqual lève une exception si les
-// deux Buffer n'ont pas la même longueur au lieu de renvoyer false : un
-// jeton fourni plus court ou plus long que l'attendu doit donc être écarté
-// AVANT l'appel, sans jamais laisser fuir l'information par une différence
-// de timing entre "longueur différente" et "longueur identique mais faux".
-function tokenMatches(provided: string, expected: string): boolean {
-  const providedBuf = Buffer.from(provided)
-  const expectedBuf = Buffer.from(expected)
-  if (providedBuf.length !== expectedBuf.length) return false
-  return timingSafeEqual(providedBuf, expectedBuf)
-}
-
 function errorResponse(status: number, error: string) {
   return NextResponse.json({ error }, { status })
 }
 
 export async function GET(request: Request) {
-  const expectedToken = process.env.PRESENCE_FEED_TOKEN
-  if (!expectedToken) {
-    // Fonctionnalité éteinte tant que le jeton n'est pas configuré côté
-    // serveur — jamais de comportement "ouvert par défaut".
-    return errorResponse(503, "Fonctionnalité désactivée.")
-  }
-
-  const authHeader = request.headers.get("authorization") ?? ""
-  const [scheme, token] = authHeader.split(" ")
-  if (scheme !== "Bearer" || !token || !tokenMatches(token, expectedToken)) {
-    return errorResponse(401, "Jeton invalide ou absent.")
+  const auth = checkPresenceToken(request)
+  if (!auth.ok) {
+    return errorResponse(auth.status, auth.error)
   }
 
   const url = new URL(request.url)

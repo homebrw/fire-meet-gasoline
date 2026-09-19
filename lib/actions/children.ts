@@ -158,6 +158,59 @@ export async function deleteChild(childId: string) {
   revalidatePath("/settings/children")
 }
 
+const pairingCodeSchema = z.object({
+  childId: z.string().uuid(),
+})
+
+// Remet pairing_code à NULL : le trigger persons_set_pairing_code
+// (supabase/migrations/021_add_pairing_code.sql) en repose un nouveau avant
+// l'écriture, dans le même aller-retour. Ne casse aucun appairage déjà
+// fait côté Checkmate : elle a déjà mémorisé l'UUID, pas le code.
+export async function regenerateChildPairingCode(childId: string) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error("Unauthorized")
+  }
+
+  const { data: parent, error: parentError } = await supabase
+    .from("persons")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single()
+
+  if (parentError || !parent) {
+    throw new Error("Parent person not found")
+  }
+
+  const { childId: validatedChildId } = pairingCodeSchema.parse({ childId })
+
+  const { data: child } = await supabase
+    .from("persons")
+    .select("parent_id, is_child")
+    .eq("id", validatedChildId)
+    .single()
+
+  if (!child || child.parent_id !== parent.id || !child.is_child) {
+    throw new Error("Unauthorized")
+  }
+
+  const { error } = await supabase
+    .from("persons")
+    .update({ pairing_code: null })
+    .eq("id", validatedChildId)
+
+  if (error) {
+    throw error
+  }
+
+  revalidatePath("/settings/children")
+}
+
 export async function getParentChildren() {
   const supabase = await createClient()
 

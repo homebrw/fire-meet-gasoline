@@ -13,8 +13,15 @@ import type {
   GeneratedPeriod,
 } from "@/lib/types"
 import type { createClient } from "@/lib/supabase/server"
+import type { createAdminClient } from "@/lib/supabase/admin"
 
-export type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+// Élargi pour couvrir aussi le client service-role (app/api/presence/route.ts,
+// appelé serveur → serveur sans cookie de session, donc sans le client SSR
+// habituel). Les deux clients exposent la même API `from()/select()` utilisée
+// ici ; pas de duplication de loadScheduleContext/custodySegments pour autant.
+export type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 export type ScheduleContext = {
   persons: Person[]

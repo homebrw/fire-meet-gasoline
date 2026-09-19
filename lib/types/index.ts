@@ -9,6 +9,7 @@ export type Person = {
   date_of_birth: string | null // 'YYYY-MM-DD'
   parent_id: string | null
   is_child: boolean
+  pairing_code: string | null // code d'appairage Checkmate, posé par trigger pour les enfants
   created_at: string
   updated_at: string
 }

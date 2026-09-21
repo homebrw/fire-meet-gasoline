@@ -53,13 +53,27 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // `api/presence` est exclu : le flux de présence consommé par Checkmate
-    // (app/api/presence/, voir CLAUDE.md « Outgoing feed ») est appelé
-    // serveur à serveur, sans cookie de session, et porte sa propre
-    // authentification par jeton partagé. Sans cette exclusion, le middleware
-    // redirigeait ces appels vers /login, et l'appelant recevait la page de
-    // connexion en HTTP 200 au lieu du JSON attendu — une panne muette, la
-    // redirection étant suivie de façon transparente par `fetch`.
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|api/presence|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Trois chemins sont exclus parce qu'ils sont appelés **sans cookie de
+    // session**, par des appelants qui n'en auront jamais un : sans
+    // exclusion, le middleware les redirige vers /login, et l'appelant
+    // reçoit la page de connexion en HTTP 200 au lieu de la réponse
+    // attendue. La redirection étant suivie de façon transparente par
+    // `fetch`, la panne est entièrement muette — rien dans les journaux de
+    // l'application ne la signale, et la route n'est jamais atteinte.
+    //
+    // Chacun porte son propre contrôle d'accès, qui est celui qui convient :
+    //   - `api/presence`                     jeton partagé (lib/presence/auth.ts),
+    //                                        appelé serveur à serveur par Checkmate ;
+    //   - `api/calendar/google/webhook`      en-têtes X-Goog-Channel-ID et
+    //                                        X-Goog-Channel-Token, vérifiés contre la
+    //                                        connexion enregistrée — Google n'a pas de
+    //                                        session ;
+    //   - `api/cron`                         Authorization: Bearer CRON_SECRET, appelé
+    //                                        par le planificateur.
+    //
+    // `api/calendar/google/connect` et `/callback` restent volontairement
+    // DANS le périmètre du middleware : ceux-là sont parcourus par le
+    // navigateur d'un utilisateur connecté.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|api/presence|api/calendar/google/webhook|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

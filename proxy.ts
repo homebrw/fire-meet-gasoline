@@ -53,6 +53,13 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // `api/presence` est exclu : le flux de présence consommé par Checkmate
+    // (app/api/presence/, voir CLAUDE.md « Outgoing feed ») est appelé
+    // serveur à serveur, sans cookie de session, et porte sa propre
+    // authentification par jeton partagé. Sans cette exclusion, le middleware
+    // redirigeait ces appels vers /login, et l'appelant recevait la page de
+    // connexion en HTTP 200 au lieu du JSON attendu — une panne muette, la
+    // redirection étant suivie de façon transparente par `fetch`.
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|api/presence|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

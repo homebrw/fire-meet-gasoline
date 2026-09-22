@@ -3,7 +3,7 @@
 // en lecture seule et n'expose que des données déjà calculées par
 // lib/assistant/schedule.ts, elle-même adossée à generateCustodyPeriods().
 import { format } from "date-fns"
-import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayMarker } from "@/lib/timezone"
+import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayBounds, zonedDayMarker } from "@/lib/timezone"
 import {
   custodySegments,
   handoffsInRange,
@@ -11,6 +11,8 @@ import {
   type ScheduleContext,
   type SupabaseServerClient,
 } from "@/lib/assistant/schedule"
+import { RECURRENCE_EXCEPTION_TYPE_LABELS } from "@/lib/recurrence/labels"
+import type { RecurrenceRule } from "@/lib/types"
 
 // ─── Schémas (input_schema JSON Schema brut, strict: true) ────────────────
 
@@ -85,12 +87,61 @@ export const getEventsTool = {
   strict: true,
 } as const
 
+export const getRecurrenceRulesTool = {
+  name: "get_recurrence_rules",
+  description:
+    "Retourne les règles de garde actives : type de motif (weekly_alternating = alternance selon la parité de semaine ; custom_cycle = cycle de jours qui se répète ; manual = période ponctuelle), horaires et lieu de passation, dates de début/fin. À utiliser pour une question sur le fonctionnement du calendrier de garde (ex. 'quel est le rythme de garde de Damien ?'), pas pour savoir qui a les enfants un jour précis (voir get_custody pour ça).",
+  input_schema: {
+    type: "object",
+    properties: {
+      person_names: {
+        type: ["array", "null"],
+        items: { type: "string" },
+        description:
+          "Prénoms d'adultes ou d'enfants (tels que renvoyés par list_family) pour restreindre aux règles de leur foyer. null ou absent = toutes les règles actives.",
+      },
+    },
+    required: ["person_names"],
+    additionalProperties: false,
+  },
+  strict: true,
+} as const
+
+export const getExceptionsTool = {
+  name: "get_exceptions",
+  description:
+    "Retourne les exceptions (présence ou absence exceptionnelle) qui chevauchent la période demandée, avec leur motif (reason) et leurs notes. À utiliser pour expliquer pourquoi la garde d'un jour donné diffère de la règle habituelle (vacances, échange...).",
+  input_schema: {
+    type: "object",
+    properties: {
+      ...DATE_RANGE_PROPERTIES,
+      person_names: {
+        type: ["array", "null"],
+        items: { type: "string" },
+        description:
+          "Prénoms d'adultes ou d'enfants (tels que renvoyés par list_family) pour restreindre aux exceptions de leur foyer. null ou absent = toutes les personnes.",
+      },
+    },
+    required: ["start_date", "end_date", "person_names"],
+    additionalProperties: false,
+  },
+  strict: true,
+} as const
+
 export const assistantTools = [
   listFamilyTool,
   getCustodyTool,
   getHandoffsTool,
   getEventsTool,
+  getRecurrenceRulesTool,
+  getExceptionsTool,
 ] as const
+
+// Jours de la semaine pour handoff_day (0=lundi..6=dimanche), même convention
+// que FULL_DAY_NAMES dans components/forms/RecurrenceRuleForm.tsx. Dupliqué
+// sciemment plutôt que partagé : couche UI de formulaire vs. couche outil
+// serveur, pas la même unité de sens malgré le contenu identique.
+const WEEKDAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -258,6 +309,91 @@ export async function getEvents(
   }
 }
 
+export type GetRecurrenceRulesInput = {
+  person_names: string[] | null
+}
+
+function ruleDate(dateStr: string): string {
+  return format(zonedDayMarker(new Date(dateStr)), "yyyy-MM-dd")
+}
+
+export function getRecurrenceRules(ctx: ScheduleContext, input: GetRecurrenceRulesInput) {
+  const { personIds, unresolvedNames } = resolvePersonIds(ctx, input.person_names)
+  const rules = ctx.rules.filter((r) => personIds.includes(r.person_id))
+
+  return {
+    timezone: APP_TIMEZONE,
+    rules: rules.map((r: RecurrenceRule) => ({
+      id: r.id,
+      person_id: r.person_id,
+      person_name: personName(ctx, r.person_id),
+      name: r.name,
+      pattern_type: r.pattern_type,
+      starts_at: ruleDate(r.starts_at),
+      ends_at: r.ends_at ? ruleDate(r.ends_at) : null,
+      custody_start_time: r.custody_start_time,
+      custody_end_time: r.custody_end_time,
+      week_parity: r.week_parity,
+      handoff_day: r.handoff_day,
+      handoff_day_name: r.handoff_day !== null ? WEEKDAY_NAMES[r.handoff_day] : null,
+      cycle_length_days: r.cycle_length_days,
+      custody_days: r.custody_days,
+      handoff_location: r.handoff_location,
+    })),
+    unresolved_names: unresolvedNames,
+  }
+}
+
+export type GetExceptionsInput = {
+  start_date: string
+  end_date: string
+  person_names: string[] | null
+}
+
+export function getExceptions(ctx: ScheduleContext, input: GetExceptionsInput) {
+  const from = parseCalendarDate(input.start_date)
+  const to = parseCalendarDate(input.end_date)
+  const { start: rangeStart } = zonedDayBounds(from)
+  const { end: rangeEnd } = zonedDayBounds(to)
+
+  const { personIds, unresolvedNames } = resolvePersonIds(ctx, input.person_names)
+  const ruleIds = new Set(ctx.rules.filter((r) => personIds.includes(r.person_id)).map((r) => r.id))
+  const rulesById = new Map(ctx.rules.map((r) => [r.id, r]))
+
+  const exceptions = ctx.exceptions.filter((e) => {
+    if (!ruleIds.has(e.recurrence_rule_id)) return false
+    const start = new Date(e.start_at)
+    const end = new Date(e.end_at)
+    return start < rangeEnd && end > rangeStart
+  })
+
+  exceptions.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+
+  return {
+    timezone: APP_TIMEZONE,
+    exceptions: exceptions.map((e) => {
+      const rule = rulesById.get(e.recurrence_rule_id)
+      const start = new Date(e.start_at)
+      const end = new Date(e.end_at)
+      return {
+        id: e.id,
+        rule_name: rule?.name ?? null,
+        person_id: rule?.person_id ?? null,
+        person_name: rule ? personName(ctx, rule.person_id) : null,
+        type: e.type,
+        type_label: RECURRENCE_EXCEPTION_TYPE_LABELS[e.type],
+        start_date: format(zonedDayMarker(start), "yyyy-MM-dd"),
+        start_time: formatTimeInZone(start),
+        end_date: format(zonedDayMarker(end), "yyyy-MM-dd"),
+        end_time: formatTimeInZone(end),
+        reason: e.reason,
+        notes: e.notes,
+      }
+    }),
+    unresolved_names: unresolvedNames,
+  }
+}
+
 // ─── Dispatcher ────────────────────────────────────────────────────────────
 
 function requireString(value: unknown, field: string): string {
@@ -304,6 +440,18 @@ export async function runTool(
       return getEvents(ctx, supabase, {
         start_date: requireString(body.start_date, "start_date"),
         end_date: requireString(body.end_date, "end_date"),
+      })
+
+    case "get_recurrence_rules":
+      return getRecurrenceRules(ctx, {
+        person_names: optionalStringArray(body.person_names, "person_names"),
+      })
+
+    case "get_exceptions":
+      return getExceptions(ctx, {
+        start_date: requireString(body.start_date, "start_date"),
+        end_date: requireString(body.end_date, "end_date"),
+        person_names: optionalStringArray(body.person_names, "person_names"),
       })
 
     default:

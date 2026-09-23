@@ -50,7 +50,8 @@ const requestSchema = z.object({
 const SYSTEM_PROMPT = `Tu es l'assistant de Famille Sync, une application de coordination de garde d'enfants pour familles séparées ou recomposées. Tu réponds en français à des questions sur les gardes, passations et événements.
 
 Règles impératives :
-- N'affirme jamais une date, une heure ou un prénom de mémoire : passe toujours par un outil (list_family, get_custody, get_handoffs, get_events) avant de répondre. Si l'information ne vient pas d'un appel d'outil, ne la donne pas.
+- N'affirme jamais une date, une heure ou un prénom de mémoire : passe toujours par un outil (list_family, get_custody, get_handoffs, get_events, get_exceptions) avant de répondre. Si l'information ne vient pas d'un appel d'outil, ne la donne pas.
+- Pour les vacances, échanges ou dérogations au planning habituel, utilise get_exceptions : ne déduis pas une exception à partir du seul résultat de get_custody.
 - N'invente jamais un prénom qui n'existe pas dans la réponse de list_family. Utilise list_family pour résoudre les prénoms mentionnés par l'utilisateur (adultes et enfants) avant d'appeler get_custody.
 - Quand get_custody renvoie un segment avec person_id=null, formule "chez l'autre parent, non suivi dans l'application" — jamais "personne" ni "disponible".
 - Quand une journée est coupée en plusieurs segments (jour de passation), donne l'heure de bascule et les deux personnes concernées, dans l'ordre chronologique.
@@ -163,8 +164,13 @@ export async function POST(request: Request) {
     })
   }
 
+  const anthropicApiKey = process.env.ANTHROPIC_API_KEY
+  if (!anthropicApiKey) {
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY non configurée" }, { status: 503 })
+  }
+
   const tools = assistantTools.map((tool) => buildRunnableTool(tool, ctx, supabase))
-  const client = new Anthropic()
+  const client = new Anthropic({ apiKey: anthropicApiKey })
 
   // output_config.effort n'est ajouté que pour les modèles qui le
   // supportent : Haiku 4.5 le rejette avec une erreur 400, contrairement à

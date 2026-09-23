@@ -59,7 +59,14 @@ export function AssistantChat() {
       }
 
       if (!response.ok || !response.body) {
-        throw new Error("Le serveur n'a pas pu traiter la demande.")
+        let detail = ""
+        try {
+          const payload = (await response.json()) as { error?: unknown }
+          if (typeof payload.error === "string") detail = payload.error
+        } catch {
+          // La route peut aussi répondre sans JSON (proxy, infrastructure).
+        }
+        throw new Error(detail || "Le serveur n'a pas pu traiter la demande.")
       }
 
       const reader = response.body.getReader()
@@ -223,7 +230,7 @@ export function AssistantChat() {
               type="button"
               disabled={isSending}
               onClick={() => sendMessage(question)}
-              className="rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="press-feedback rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-1.5 text-xs text-[var(--color-muted-foreground)] transition-colors hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {question}
             </button>

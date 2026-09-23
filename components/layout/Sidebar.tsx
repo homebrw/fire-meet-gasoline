@@ -45,7 +45,7 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                "press-feedback flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 active
                   ? "bg-[var(--color-accent)] text-[var(--color-accent-foreground)] font-medium"
                   : "text-[var(--color-muted-foreground)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-foreground)]"

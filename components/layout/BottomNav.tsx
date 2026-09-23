@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { NavigationLink } from "@/components/layout/NavigationLink"
 import { usePathname } from "next/navigation"
 import { CalendarDays, LayoutDashboard, CalendarRange, Settings, CloudSun, MessageCircleQuestion } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -23,7 +23,7 @@ export function BottomNav({ pendingImportCount = 0 }: { pendingImportCount?: num
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
-            <Link
+            <NavigationLink
               key={href}
               href={href}
               className={cn(
@@ -45,7 +45,7 @@ export function BottomNav({ pendingImportCount = 0 }: { pendingImportCount?: num
                 )}
               </span>
               <span className={cn("max-w-full truncate", active && "font-medium")}>{label}</span>
-            </Link>
+            </NavigationLink>
           )
         })}
       </div>

@@ -3,7 +3,7 @@
 // en lecture seule et n'expose que des données déjà calculées par
 // lib/assistant/schedule.ts, elle-même adossée à generateCustodyPeriods().
 import { format } from "date-fns"
-import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayMarker } from "@/lib/timezone"
+import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayBounds, zonedDayMarker } from "@/lib/timezone"
 import {
   custodySegments,
   handoffsInRange,

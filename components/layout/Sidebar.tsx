@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { NavigationLink } from "@/components/layout/NavigationLink"
 import { usePathname, useRouter } from "next/navigation"
 import { CalendarDays, LayoutDashboard, CalendarRange, Settings, Heart, LogOut, CloudSun, HelpCircle, MessageCircleQuestion } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -41,7 +41,7 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
-            <Link
+            <NavigationLink
               key={href}
               href={href}
               className={cn(
@@ -61,7 +61,7 @@ export function Sidebar({ pendingImportCount = 0 }: { pendingImportCount?: numbe
                   {pendingImportCount > 9 ? "9+" : pendingImportCount}
                 </span>
               )}
-            </Link>
+            </NavigationLink>
           )
         })}
       </nav>

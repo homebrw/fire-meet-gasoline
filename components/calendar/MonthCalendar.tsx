@@ -27,17 +27,18 @@ const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
 
 interface MonthCalendarProps {
   initialMonth?: string
+  initialDay?: string
   dayStates: Record<string, DayState>
   persons: Person[]
   exceptions?: RecurrenceException[]
   rules?: RecurrenceRule[]
 }
 
-export function MonthCalendar({ initialMonth, dayStates, persons, exceptions, rules }: MonthCalendarProps) {
+export function MonthCalendar({ initialMonth, initialDay, dayStates, persons, exceptions, rules }: MonthCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() =>
-    initialMonth ? new Date(initialMonth + "-01") : startOfMonth(new Date())
+    initialMonth ? new Date(initialMonth + "-01T12:00:00") : startOfMonth(new Date())
   )
-  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [selectedDay, setSelectedDay] = useState<string | null>(initialDay ?? null)
 
   function buildWeeks(): string[][] {
     const monthStart = startOfMonth(currentMonth)

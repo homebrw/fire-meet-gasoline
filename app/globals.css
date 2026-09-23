@@ -182,3 +182,38 @@ body {
     filter: brightness(0.9);
   }
 }
+
+
+/*
+ * Relais de chargement de navigation. Le feedback de pression reste immédiat,
+ * puis la barre reste visible tant que le Link activé est pending.
+ */
+.press-feedback:has([data-pending]) {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.94);
+}
+
+@keyframes route-loading-slide {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(220%); }
+}
+
+.route-loading-indicator {
+  background: var(--color-muted);
+}
+
+.route-loading-indicator-bar {
+  animation: route-loading-slide 700ms ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press-feedback:has([data-pending]) {
+    transform: none;
+    filter: brightness(0.9);
+  }
+
+  .route-loading-indicator-bar {
+    width: 100%;
+    animation: none !important;
+  }
+}

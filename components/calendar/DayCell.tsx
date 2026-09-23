@@ -30,7 +30,7 @@ export function DayCell({ dateKey, state, persons, isCurrentMonth, onClick }: Da
     <button
       onClick={() => onClick(dateKey)}
       className={cn(
-        "relative flex flex-col items-center justify-start rounded-lg p-1 min-h-[56px] text-left transition-all hover:ring-2 hover:ring-[var(--color-ring)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
+        "press-feedback relative flex flex-col items-center justify-start rounded-lg p-1 min-h-[56px] text-left transition-all hover:ring-2 hover:ring-[var(--color-ring)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]",
         isCurrentMonth ? "opacity-100" : "opacity-30",
         config?.bgClass ?? "bg-transparent",
       )}

@@ -22,7 +22,7 @@ import { generateCustodyPeriods } from "@/lib/recurrence/engine"
 import { zonedTimeToUtc } from "@/lib/timezone"
 import { custodySegments } from "@/lib/assistant/schedule"
 import type { ScheduleContext } from "@/lib/assistant/schedule"
-import { getCustody } from "@/lib/assistant/tools"
+import { getCustody, getExceptions } from "@/lib/assistant/tools"
 import type { Person, RecurrenceRule, RecurrenceException } from "@/lib/types"
 
 // ─── Fixture (identique à scripts/preview-custody.ts) ──────────────────────
@@ -386,6 +386,27 @@ if (damienDay3.segments.length !== 1) {
   } else {
     ok('Damien a la garde toute la journée (exception "present" — Noël)')
   }
+}
+
+// ─── Scénario 4 : lecture des exceptions (outil assistant) ────────────────
+
+console.log("\n── 2026-12-25 → 2026-12-31 : exceptions de Noël ──")
+
+const exceptionResult = getExceptions(ctx, {
+  start_date: "2026-12-25",
+  end_date: "2026-12-31",
+})
+
+const christmasExceptions = exceptionResult.exceptions.filter(
+  (exception) => exception.reason?.toLowerCase().includes("noël")
+)
+
+if (christmasExceptions.length === 0) {
+  fail("get_exceptions : aucune exception de Noël trouvée sur la période")
+} else if (christmasExceptions.some((exception) => !exception.person_name || !exception.rule_name)) {
+  fail("get_exceptions : une exception ne résout pas son parent ou sa règle")
+} else {
+  ok(`get_exceptions : ${christmasExceptions.length} exception(s) de Noël avec parent et règle résolus`)
 }
 
 // ─── Bilan ──────────────────────────────────────────────────────────────────

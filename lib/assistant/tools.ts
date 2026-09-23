@@ -3,7 +3,7 @@
 // en lecture seule et n'expose que des données déjà calculées par
 // lib/assistant/schedule.ts, elle-même adossée à generateCustodyPeriods().
 import { format } from "date-fns"
-import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayMarker } from "@/lib/timezone"
+import { APP_TIMEZONE, formatTimeInZone, todayInZone, zonedDayBounds, zonedDayMarker } from "@/lib/timezone"
 import {
   custodySegments,
   handoffsInRange,
@@ -85,11 +85,25 @@ export const getEventsTool = {
   strict: true,
 } as const
 
+export const getExceptionsTool = {
+  name: "get_exceptions",
+  description:
+    "Retourne les exceptions de garde qui chevauchent la période demandée, avec le parent concerné, la règle, le type (présence ajoutée ou absence) et le motif. À utiliser pour toute question portant sur des vacances, échanges ou exceptions au planning habituel.",
+  input_schema: {
+    type: "object",
+    properties: { ...DATE_RANGE_PROPERTIES },
+    required: ["start_date", "end_date"],
+    additionalProperties: false,
+  },
+  strict: true,
+} as const
+
 export const assistantTools = [
   listFamilyTool,
   getCustodyTool,
   getHandoffsTool,
   getEventsTool,
+  getExceptionsTool,
 ] as const
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -229,6 +243,50 @@ export type GetEventsInput = {
   end_date: string
 }
 
+export type GetExceptionsInput = {
+  start_date: string
+  end_date: string
+}
+
+export function getExceptions(ctx: ScheduleContext, input: GetExceptionsInput) {
+  const from = parseCalendarDate(input.start_date)
+  const to = parseCalendarDate(input.end_date)
+  const { start: rangeStart } = zonedDayBounds(from)
+  const { end: rangeEnd } = zonedDayBounds(to)
+  const rulesById = new Map(ctx.rules.map((rule) => [rule.id, rule]))
+
+  const exceptions = ctx.exceptions
+    .filter((exception) => {
+      const start = new Date(exception.start_at)
+      const end = new Date(exception.end_at)
+      return start <= rangeEnd && end >= rangeStart
+    })
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+    .map((exception) => {
+      const rule = rulesById.get(exception.recurrence_rule_id)
+      const person = rule ? ctx.persons.find((p) => p.id === rule.person_id) : undefined
+      const start = new Date(exception.start_at)
+      const end = new Date(exception.end_at)
+
+      return {
+        type: exception.type,
+        start_date: format(zonedDayMarker(start), "yyyy-MM-dd"),
+        start_time: formatTimeInZone(start),
+        end_date: format(zonedDayMarker(end), "yyyy-MM-dd"),
+        end_time: formatTimeInZone(end),
+        reason: exception.reason,
+        notes: exception.notes,
+        rule_name: rule?.name ?? null,
+        person_name: person?.name ?? null,
+      }
+    })
+
+  return {
+    timezone: APP_TIMEZONE,
+    exceptions,
+  }
+}
+
 export async function getEvents(
   ctx: ScheduleContext,
   supabase: SupabaseServerClient,
@@ -302,6 +360,12 @@ export async function runTool(
 
     case "get_events":
       return getEvents(ctx, supabase, {
+        start_date: requireString(body.start_date, "start_date"),
+        end_date: requireString(body.end_date, "end_date"),
+      })
+
+    case "get_exceptions":
+      return getExceptions(ctx, {
         start_date: requireString(body.start_date, "start_date"),
         end_date: requireString(body.end_date, "end_date"),
       })

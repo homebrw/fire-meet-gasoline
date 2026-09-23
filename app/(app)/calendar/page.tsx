@@ -8,7 +8,16 @@ import { subDays, addDays } from "date-fns"
 import { todayInZone } from "@/lib/timezone"
 import type { RecurrenceRule, RecurrenceException, ChildPresence, CalendarEvent, CustodyTransition, Person, DayState } from "@/lib/types"
 
-export default async function CalendarPage() {
+type CalendarPageProps = {
+  searchParams: Promise<{ month?: string; day?: string }>
+}
+
+export default async function CalendarPage({ searchParams }: CalendarPageProps) {
+  const params = await searchParams
+  const requestedMonth = /^\d{4}-\d{2}$/.test(params.month ?? "") ? params.month : undefined
+  const requestedDay = /^\d{4}-\d{2}-\d{2}$/.test(params.day ?? "") ? params.day : undefined
+  const initialMonth = requestedMonth ?? requestedDay?.slice(0, 7)
+
   const supabase = await createClient()
   const today = todayInZone()
   const from = subDays(today, 90)
@@ -41,7 +50,14 @@ export default async function CalendarPage() {
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Calendrier</h1>
-      <MonthCalendar dayStates={dayStates} persons={persons} exceptions={exceptions} rules={rules} />
+      <MonthCalendar
+        initialMonth={initialMonth}
+        initialDay={requestedDay}
+        dayStates={dayStates}
+        persons={persons}
+        exceptions={exceptions}
+        rules={rules}
+      />
     </div>
   )
 }

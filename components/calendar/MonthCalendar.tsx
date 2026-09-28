@@ -5,6 +5,8 @@ import {
   addMonths,
   subMonths,
   subDays,
+  startOfDay,
+  endOfDay,
   startOfWeek,
   endOfWeek,
   addDays,
@@ -35,12 +37,12 @@ interface MonthCalendarProps {
 
 export function MonthCalendar({ initialDate, initialDay, dayStates, persons, exceptions, rules }: MonthCalendarProps) {
   const [windowStart, setWindowStart] = useState(() =>
-    initialDate ? new Date(initialDate + "T12:00:00") : new Date()
+    startOfDay(initialDate ? new Date(initialDate + "T12:00:00") : new Date())
   )
   const [selectedDay, setSelectedDay] = useState<string | null>(initialDay ?? null)
+  const windowEnd = endOfDay(subDays(addMonths(windowStart, 1), 1))
 
   function buildWeeks(): string[][] {
-    const windowEnd = subDays(addMonths(windowStart, 1), 1)
     const gridStart = startOfWeek(windowStart, { weekStartsOn: 1 })
     const gridEnd = endOfWeek(windowEnd, { weekStartsOn: 1 })
 
@@ -98,10 +100,10 @@ export function MonthCalendar({ initialDate, initialDay, dayStates, persons, exc
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-lg font-semibold capitalize">
-          {format(windowStart, "d MMM", { locale: fr })} – {format(subDays(addMonths(windowStart, 1), 1), "d MMM yyyy", { locale: fr })}
+          {format(windowStart, "d MMM", { locale: fr })} – {format(windowEnd, "d MMM yyyy", { locale: fr })}
         </h2>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setWindowStart(new Date())} aria-label="Retour à aujourd'hui">
+          <Button variant="ghost" size="icon" onClick={() => setWindowStart(startOfDay(new Date()))} aria-label="Retour à aujourd'hui">
             <Home className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => setWindowStart(addMonths(windowStart, 1))} aria-label="Période suivante">
@@ -112,7 +114,6 @@ export function MonthCalendar({ initialDate, initialDay, dayStates, persons, exc
 
       <div className="md:hidden">
         {weeks.map((week, weekIndex) => {
-          const windowEnd = subDays(addMonths(windowStart, 1), 1)
           const windowDays = week.filter((dateKey) =>
             isWithinInterval(new Date(dateKey + "T12:00:00"), { start: windowStart, end: windowEnd })
           )
@@ -293,7 +294,7 @@ export function MonthCalendar({ initialDate, initialDay, dayStates, persons, exc
                     dateKey={dateKey}
                     state={dayStates[dateKey]}
                     persons={persons}
-                    isCurrentMonth={isWithinInterval(new Date(dateKey + "T12:00:00"), { start: windowStart, end: subDays(addMonths(windowStart, 1), 1) })}
+                    isCurrentMonth={isWithinInterval(new Date(dateKey + "T12:00:00"), { start: windowStart, end: windowEnd })}
                     onClick={setSelectedDay}
                   />
                 ))}

@@ -16,7 +16,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
   const params = await searchParams
   const requestedMonth = /^\d{4}-\d{2}$/.test(params.month ?? "") ? params.month : undefined
   const requestedDay = /^\d{4}-\d{2}-\d{2}$/.test(params.day ?? "") ? params.day : undefined
-  const initialMonth = requestedMonth ?? requestedDay?.slice(0, 7)
+  const initialDate = requestedDay ?? (requestedMonth ? `${requestedMonth}-01` : undefined)
 
   const supabase = await createClient()
   const today = todayInZone()
@@ -51,7 +51,7 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-4">Calendrier</h1>
       <MonthCalendar
-        initialMonth={initialMonth}
+        initialDate={initialDate}
         initialDay={requestedDay}
         dayStates={dayStates}
         persons={persons}
